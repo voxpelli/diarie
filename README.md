@@ -2,6 +2,13 @@
 
 **A flat-YAML task tracker that is just files. No daemon, no database, no git hooks.**
 
+[![npm version](https://img.shields.io/npm/v/diarie.svg?style=flat)](https://www.npmjs.com/package/diarie)
+[![npm downloads](https://img.shields.io/npm/dm/diarie.svg?style=flat)](https://www.npmjs.com/package/diarie)
+[![neostandard javascript style](https://img.shields.io/badge/code_style-neostandard-7fffff?style=flat&labelColor=ff80ff)](https://github.com/neostandard/neostandard)
+[![Module type: ESM](https://img.shields.io/badge/module%20type-esm-brightgreen)](https://github.com/voxpelli/badges-cjs-esm)
+[![Types in JS](https://img.shields.io/badge/types_in_js-yes-brightgreen)](https://github.com/voxpelli/types-in-js)
+![human-directed, AI-built](https://img.shields.io/badge/human--directed-AI--built-6B4FC8?style=flat)
+
 Your backlog is a YAML file in your repo. `diarie` reads it, tells you what is ready to work on, and
 refuses to lie to you when the store is broken. That is the whole product.
 
