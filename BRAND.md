@@ -122,6 +122,8 @@ being a mood board. The accents are the exit-code contract, in color:
 On wide-gamut screens the highlights are served again in OKLCH at higher
 chroma, guarded by `color-gamut: p3` — same lightness and hue, so the
 ratios above hold; the phosphor simply glows harder where the glass allows.
+The boosted values live as `*-p3` sibling tokens in both token files;
+only the gate itself is CSS-only.
 The brand book's swatches stay sRGB on purpose: the printed hex must be the
 color shown.
 
@@ -161,7 +163,10 @@ bottom of every page.
 — partly the LG München GDPR ruling, mostly the principle: a page that
 depends on a third party to render its own name has already lost the
 argument this project exists to make. On diarie.dev the subset woff2:s are
-inlined as data URI:s, so the page is one file and arrives whole. Regenerate
+served from `fonts/` beside the page — the same directory the release
+tooling (`update-stamp.mjs`) reads, one source of truth for every glyph —
+preloaded, with `font-display: swap`. Provenance and the verbatim OFL
+texts travel with the files — `fonts/README.md`. Regenerate
 the subsets from the upstream OFL files with:
 
 ```bash
@@ -241,19 +246,21 @@ rule: a hairline carrying the mark's opposite leaf-pair, letting the scene
 recur between sections. The closing line on any diarie surface makes the
 exit the pitch — leaving is free, and saying so is the brand.
 
-**diarie.dev.** One static HTML document. Fonts inlined, zero external
-requests, no analytics, no cookies, no consent banner because there is
-nothing to consent to. The consequence, named: ≈152 KiB of subset fonts
-become ≈203 KiB of base64 (+33 %), the page lands around a quarter-megabyte
-as a single request, and fonts cannot be cached separately from it — a
-repeat visit refetches everything unless the file itself is cached.
-Performance orthodoxy says split them; diarie keeps the one file because
-the page is the artifact — it survives `curl`, `file://`, and the archive
-whole — and pays the cost knowingly. If measurement ever shows LCP above
+**diarie.dev.** One static HTML document (≈50 KiB) plus three subset
+woff2:s (≈152 KiB) served from `fonts/`, preloaded, cached independently
+of the page. Zero external requests, no analytics, no cookies, no consent
+banner because there is nothing to consent to. Revision, kept visible: an
+earlier version inlined the fonts as base64 (+33 %, a quarter-megabyte
+single file, paid knowingly as "the page is the artifact"); it was
+reversed when the release tooling began reading `fonts/` — one source of
+truth beat one file, and repeat visits now cache the type once. The page
+still survives `curl`, `file://` (with `fonts/` beside it), and the
+archive. If measurement ever shows LCP above
 2.5 s on a cold mobile load, that is the named trigger for revisiting.
-Two sibling assets exist: `og.png` (1200 × 630), the link-preview card —
-path-rendered from the mark, wordmark, and tagline so it needs no fonts. Scrapers and
-iOS fetch them; the page never does. View source is a feature: the page practices what the
+The page's siblings: the `fonts/` directory (three subset woff2:s, plus
+the TTF the release tooling outlines from), `og.png` (1200 × 630), the
+link-preview card — path-rendered so it needs no fonts — and
+`apple-touch-icon.png` (180 × 180), the home-screen mark. View source is a feature: the page practices what the
 tool preaches, and it survives `curl`, `file://`, and the Internet Archive
 without modification.
 

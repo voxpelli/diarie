@@ -23,6 +23,11 @@ colors:
   stampel-mork: "#A83732"
   kant: "rgba(239, 230, 210, 0.16)"
   markering: "rgba(107, 79, 200, 0.42)"
+  fosfor-p3: "oklch(82.5% 0.207 156.3)"
+  barnsten-p3: "oklch(76.1% 0.171 71.8)"
+  stampel-p3: "oklch(59.9% 0.218 27)"
+  stampel-ljus-p3: "oklch(69.3% 0.17 26.6)"
+  lysning-4-p3: "oklch(40.9% 0.154 290)"
 typography:
   ordmarke:
     fontFamily: Fraunces
@@ -107,8 +112,10 @@ Implementation contract for the built pages: [`HANDOFF.md`](./HANDOFF.md). Borde
 the component schema: hairlines are always `kant` at 0.5px, stamp borders
 always `stampel` (dark ground) or `stampel-mork` (paper) at 1.5px.
 Lint: `npx @google/design.md lint DESIGN.md` — current status: 0 errors,
-11 accepted warnings (palette members referenced by the page ground, halo,
-borders, and terminal states rather than by schema components).*
+16 accepted warnings (palette members referenced by the page ground, halo,
+borders, and terminal states rather than by schema components — including
+the five `*-p3` tokens, which are consumed by a media gate, not a
+component).*
 
 ## Overview
 
@@ -146,8 +153,10 @@ lives in BRAND.md. Follow APCA where they disagree: `hektograf` on arkiv
 `stampel-ljus` (Lc −46) carries short status labels, not paragraphs; on
 papper use `stampel-mork`. Body text on arkiv is `papper` (primary),
 `lavendel` (secondary), `hektograf-ljus` (muted). On P3 screens the
-highlights upgrade to chroma-boosted OKLCH (double-guarded in tokens.css);
-same lightness and hue, so contrast is unchanged.
+highlights upgrade to the `*-p3` tokens above — chroma-boosted OKLCH with
+lightness and hue held, so every ratio survives. Serve them only under the
+double gate (`color-gamut: p3` + `@supports oklch`), which lives in
+tokens.css; the token values here are the what, the gate is the when.
 
 ## Typography
 
@@ -164,8 +173,9 @@ character belongs at display sizes, never in running text. Sizes in the
 front matter are reference points; the pages scale them with `clamp()`.
 
 Fonts are always self-hosted (both OFL, no Reserved Font Names — subsetting
-needs attribution only). On the site they are subset and inlined so the
-page arrives whole; the measured cost is named in BRAND.md.
+needs attribution only). On the site they are subset and served from `fonts/` beside the page —
+the same files the release tooling reads — preloaded, with
+`font-display: swap`.
 
 ## Layout
 

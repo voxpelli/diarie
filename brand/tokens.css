@@ -119,7 +119,8 @@
 /* Wide-gamut layer: on P3 screens the intense highlights are served in
    OKLCH at higher chroma — same lightness and hue, so every contrast ratio
    above still holds. Double-guarded; sRGB screens keep the hex values.
-   (CSS-only: the DTCG twin cannot express media conditions.) */
+   The DTCG twin carries these values as *-p3 sibling tokens; only the
+   media/supports gate itself is CSS-only. */
 @media (color-gamut: p3) {
   @supports (color: oklch(50% 0.1 180)) {
     :root {
