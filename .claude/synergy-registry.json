@@ -1,0 +1,9 @@
+[
+  {
+    "name": "vp-beads",
+    "file": "SYNERGY-vp-beads.md",
+    "remote": "https://github.com/voxpelli/claude-beads",
+    "bm-entity": "engineering/agents/vp-beads-and-diarie",
+    "relationship": "consumer"
+  }
+]
