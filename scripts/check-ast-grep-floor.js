@@ -23,41 +23,41 @@
  * propagated `exit(r.status)`.
  */
 
-import { spawnSync } from 'node:child_process'
-import process from 'node:process'
+import { spawnSync } from 'node:child_process';
+import process from 'node:process';
 
-const FLOOR = 25
+const FLOOR = 25;
 
 // `--inspect entity` runs the full scan exactly as before (violations on stdout, exit non-zero on
 // an error) AND prints a per-run summary to stderr. One invocation does both jobs.
-const result = spawnSync('ast-grep', ['scan', '--inspect', 'entity'], { encoding: 'utf8' })
+const result = spawnSync('ast-grep', ['scan', '--inspect', 'entity'], { encoding: 'utf8' });
 
-process.stdout.write(result.stdout ?? '')
-process.stderr.write(result.stderr ?? '')
+process.stdout.write(result.stdout ?? '');
+process.stderr.write(result.stderr ?? '');
 
 // A spawn failure (ast-grep not on PATH, etc.) leaves status=null and stderr=null — surface the cause
 // instead of a bare exit-1 with no message. The comment below already anticipated this case.
 if (result.error) {
-  process.stderr.write(`check:ast-grep floor: could not run ast-grep — ${result.error.message}\n`)
-  process.exit(1)
+  process.stderr.write(`check:ast-grep floor: could not run ast-grep — ${result.error.message}\n`);
+  process.exit(1);
 }
 
 // A real lint violation (or ast-grep itself failing to run) fails regardless of the floor.
 if (result.status !== 0) {
-  process.exit(1)
+  process.exit(1);
 }
 
-const match = /scannedFileCount=(\d+)/.exec(result.stderr ?? '')
+const match = /scannedFileCount=(\d+)/.exec(result.stderr ?? '');
 if (!match) {
-  process.stderr.write('check:ast-grep floor: could not read scannedFileCount from --inspect output — did the summary format change?\n')
-  process.exit(1)
+  process.stderr.write('check:ast-grep floor: could not read scannedFileCount from --inspect output — did the summary format change?\n');
+  process.exit(1);
 }
 
-const scanned = Number(match[1])
+const scanned = Number(match[1]);
 if (scanned < FLOOR) {
   process.stderr.write(
     `check:ast-grep floor: only ${scanned} file(s) scanned, floor is ${FLOOR}. A broad .gitignore line ` +
     'likely blinded the bare scan (ast-grep honours .gitignore). See vp-beads-flr.\n'
-  )
-  process.exit(1)
+  );
+  process.exit(1);
 }

@@ -25,19 +25,19 @@
  * in the exit code. Nothing important is whispered.
  */
 
-import process, { argv, stderr } from 'node:process'
+import process, { argv, stderr } from 'node:process';
 
-import { messageWithCauses, stackWithCauses } from 'pony-cause'
+import { messageWithCauses, stackWithCauses } from 'pony-cause';
 
-import { cli } from './lib/main.js'
-import { InputError, ResultError } from './lib/utils/errors.js'
-import { exitResultError } from './lib/utils/exit.js'
+import { cli } from './lib/main.js';
+import { InputError, ResultError } from './lib/utils/errors.js';
+import { exitResultError } from './lib/utils/exit.js';
 
 /** True if the user asked for machine-readable output. */
-const wantsJson = argv.includes('--json') || argv.includes('-j')
+const wantsJson = argv.includes('--json') || argv.includes('-j');
 
 try {
-  await cli(argv.slice(2))
+  await cli(argv.slice(2));
 } catch (err) {
   // AN IF/ELSE CHAIN, AND `process.exitCode` — NOT `process.exit()`. Both halves are load-bearing.
   //
@@ -56,7 +56,7 @@ try {
     //
     // `exitResultError()` rather than a bare `exit(2)`: the code is reserved, and the name is what
     // reserves it. See lib/utils/exit.js — it is the only file allowed to write the number.
-    exitResultError()
+    exitResultError();
   } else if (err instanceof InputError) {
     if (wantsJson) {
       // On stdout, WITH a code, so a machine consumer can branch without regexing a human
@@ -73,22 +73,22 @@ try {
       // The same unsound guard crashed main.js on three user-error paths. This was its sibling
       // site, and hardening only the one that had already blown up would have been fixing the
       // instance and leaving the class.
-      const { code } = err
-      process.stdout.write(JSON.stringify({ error: err.message, ...(code ? { code } : {}) }, undefined, 2) + '\n')
+      const { code } = err;
+      process.stdout.write(JSON.stringify({ error: err.message, ...(code ? { code } : {}) }, undefined, 2) + '\n');
     } else {
-      stderr.write(`diarie: ${err.message}\n`)
-      if (err.body) stderr.write('\n' + err.body + '\n')
+      stderr.write(`diarie: ${err.message}\n`);
+      if (err.body) stderr.write('\n' + err.body + '\n');
     }
-    process.exitCode = 1
+    process.exitCode = 1;
   } else {
     // Genuinely unexpected: a bug, not a user mistake. Show the whole cause chain —
     // this is the one place a stack trace is the honest answer.
     if (err instanceof Error) {
-      stderr.write(`diarie: unexpected error: ${messageWithCauses(err)}\n\n`)
-      stderr.write(stackWithCauses(err) + '\n')
+      stderr.write(`diarie: unexpected error: ${messageWithCauses(err)}\n\n`);
+      stderr.write(stackWithCauses(err) + '\n');
     } else {
-      stderr.write('diarie: unexpected error with no details\n')
+      stderr.write('diarie: unexpected error with no details\n');
     }
-    process.exitCode = 1
+    process.exitCode = 1;
   }
 }

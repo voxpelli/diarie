@@ -1,24 +1,9 @@
-import { voxpelli } from '@voxpelli/eslint-config'
+import { voxpelli } from '@voxpelli/eslint-config';
 
-// diarie's OWN lint config. It did not have one: ESLint — the config AND the `eslint` /
-// `@voxpelli/eslint-config` dependencies — lived only at the repo root, which reached in through
-// a `cliFiles: ['diarie/**/*.js']` glob. So a `git subtree split --prefix=diarie` would have
-// carried the source and left the linter behind entirely, and the extracted package would have
-// shipped with no lint at all while reporting success. Same story for tsc, type-coverage and knip:
-// the configs travelled, the SCRIPTS that invoke them did not. `diarie/package.json` had exactly
-// one script, `test`.
-//
-// Now the workspace owns its gates and the root DELEGATES (`npm run check --workspace=diarie`)
-// instead of reaching in. That inversion is what makes the split a no-op rather than an amputation.
-//
-// Options match the root's, deliberately: this package's style must not fork from the repo it
-// still lives in.
-//   - noMocha:   node:test, not Mocha.
-//   - semi:false neostandard's default, and what every file here already is. (On extraction to
-//                ~/Sites/node this flips to semicolons — a separate, deliberate decision.)
-//   - cliFiles:  diarie is a library-with-a-bin, and `process.exit`/sync I/O are correct in the
-//                bin and in the migrator. Preserved verbatim from the root's treatment of
-//                `diarie/**/*.js`, so switching owners changes no rule.
+// diarie's own lint config: neostandard via @voxpelli/eslint-config. Semicolons are the neostandard
+// default; diarie dropped the `semi: false` it carried as a vp-beads workspace (the `~/Sites/ai`
+// no-semicolons convention) when it became a published library, matching the node-* templates it is
+// scaffolded from. Per-option rationale is inline below.
 export default [
   {
     name: 'diarie/generated-declarations',
@@ -38,7 +23,6 @@ export default [
   },
   ...voxpelli({
     noMocha: true,
-    semi: false,
     // Exactly the root's old `diarie/**/*.js` glob, expressed from inside. Test files are included
     // deliberately: they were CLI-treated before this move, and switching owners must change no
     // rule. Dropping them re-armed `n/no-sync` across the suite, which builds its stores with
@@ -57,4 +41,4 @@ export default [
       'security/detect-non-literal-regexp': 'off',
     },
   },
-]
+];
