@@ -24,6 +24,10 @@ node_modules/
 .impeccable/
 .cache/
 
+# Local upstream-friction notes against the templates diarie was scaffolded from
+# (contribute-back opportunities). Personal working notes — never committed.
+UPSTREAM-*.md
+
 # Generated type declarations. THE BUILD THAT JUSTIFIES THIS LINE NOW EXISTS, which is the condition
 # an earlier version of this comment set for adding it: `npm run build` (declaration.tsconfig.json)
 # emits them, `prepack` runs that build, `files:` packs them, and `exports` points its `types`
