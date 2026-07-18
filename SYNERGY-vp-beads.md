@@ -28,11 +28,11 @@ vp-beads's `dependency`).
 
 ## Divergences
 
-_No entries yet._
+*No entries yet.*
 
 ## Extraction Candidates
 
-_No entries yet._
+*No entries yet.*
 
 ## They Have / We Don't
 
