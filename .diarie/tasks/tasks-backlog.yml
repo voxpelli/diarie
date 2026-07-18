@@ -885,3 +885,20 @@ tasks:
       check-type-tests`; diarie's is a fail-fast `run-p check:*`. Deferred at the 2026-07-18
       alignment — a small DX call, not a gap.
     updated: '2026-07-18'
+  - id: diarie-srv
+    title: Report @domstack/sync preview-server shortcomings upstream to bcomnes
+    status: pending
+    type: task
+    priority: low
+    labels:
+      - chore
+    acceptance_criteria:
+      - "DONE 2026-07-18: `npm run serve` (domstack-sync --server brand --watch --port ${PORT:-3334}) serves brand/index.html at / and brand-book.html — a dev-only devDependency, never shipped (brand/ is not in `files`)"
+      - "OPEN: @domstack/sync@0.0.5 pulls a vulnerable @fastify/static (2 moderate advisories — directory-listing path traversal + encoded-separator route-guard bypass; `npm audit` reports no fix available upstream yet) — dev-only surface, but the reason this row exists"
+      - "collect shortcomings in the gitignored UPSTREAM-domstack--sync.md and report them to bcomnes (the tool was chosen partly to dogfood + feed back); revisit the dep if a fix lands or the advisories ever gain a shipped consumer"
+    description: >-
+      The brand preview server uses @domstack/sync (bcomnes) — a lighter-intent
+      love-letter-to-browser-sync chosen over servor/sirv-cli specifically to dogfood a friend's
+      tool and report back. This row is the durable home for that commitment; an ephemeral note is
+      not enough.
+    updated: '2026-07-18'

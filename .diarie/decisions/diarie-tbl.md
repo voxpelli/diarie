@@ -42,3 +42,8 @@ states rather than by a schema component), not suppressed and not "fixed" into s
 - the repository's remark config / `check:md` (and `vp-beads-imd`, which tracks a broader
   `check:md` exclusion hole through `--ignore-pattern`)
 - at extraction, diarie's own `check:md` — if it adds one — inherits this posture.
+- **REALIZED 2026-07-18.** diarie's own `check:md` now exists (`remark . --frail --ignore-path
+  .gitignore`, no per-file exclusions) plus a `fix:md` fixer. The brand docs and every decision
+  `.md` are linted under it; on first run it re-padded the brand tables (cosmetic, `diff -bw`
+  clean) and `remark-validate-links` caught the `brand/DESIGN.md` `./BRAND.md` → `../BRAND.md`
+  regression. The load-bearing decision-*frontmatter* gap stays open under `diarie-dlm`.
