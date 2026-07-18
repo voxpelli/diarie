@@ -754,7 +754,15 @@ tasks:
       GitHub Actions) and confirm the diarie.dev custom domain; then a push to main triggers the first
       deploy. Still gated on vp-beads-pub for the public launch (opentype.js@^2.0.0 + @voxpelli/generate-
       favicon are the dev-only build deps; neither ships in the npm package).
-    updated: '2026-07-18'
+
+
+      2026-07-19: the first push triggered pages.yml and it FAILED at `npm ci` — diarie is
+      lockfile-less and `npm ci` requires a package-lock.json. Fixed to `npm install --no-fund
+      --no-audit` (the Node CI + release-please workflows already install lockfile-less). The deploy
+      job will STILL fail until the maintainer enables Pages (Settings → Pages → Source: GitHub
+      Actions) — configure-pages/deploy-pages need it — so BOTH the npm-install fix (done) and the
+      Pages enablement (pending) are required for a green deploy.
+    updated: '2026-07-19'
   - id: diarie-rlp
     title: Wire release-please + OIDC trusted publishing for 0.1.1+
     status: pending
@@ -797,6 +805,15 @@ tasks:
       excluded from check:md (diarie-tbl intact). Caveat: do NOT run `fix:md` on the release-please-
       owned CHANGELOG — it would rewrite `*`→`-` and later mix with new `*` entries. Maintainer may
       instead choose CI-normalization (keeps strict `-`) or exclusion (disfavored) — reversible.
+
+
+      PUBLISHED + FIRST RUN 2026-07-19: 0.1.0 published by hand (npm), pushed with tag v0.1.0 — no
+      premature release PR (the tag-with-push ordering held). release-please.yml ran and FAILED at
+      `actions/create-github-app-token@v3`: "The 'private-key' input must be set to a non-empty
+      string" — the App 1082006 private key (APP_PEM secret / pr-bot environment) was not yet set on
+      the repo. Maintainer configured the pr-bot environment 2026-07-19; re-run release-please to
+      confirm it now opens the 0.1.1 PR. STILL PENDING for the actual publish leg: the npm trusted
+      publisher on the diarie package (npmjs.com) + the `npm` GitHub Environment.
     updated: '2026-07-19'
   - id: diarie-col
     title: Wire the brand's semantic exit-code colors into the CLI output
