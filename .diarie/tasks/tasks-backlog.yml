@@ -728,6 +728,18 @@ tasks:
       The site pages are built and self-contained (fonts inlined, zero external requests); this
       row is the deploy checklist HANDOFF.md defers to publish time. Blocked on the name gate via
       vp-beads-pub.
+
+
+      BUILT 2026-07-18: the deploy machinery now exists. `npm run brand:build` writes the deployable
+      set into the gitignored `brand-dist/` (copy of source + a freshly generated INKOM stamp with the
+      build date + package version, + a generated apple-touch-icon.png, + CNAME/.nojekyll); source
+      `brand/` stays pristine. `.github/workflows/pages.yml` deploys brand-dist/ to GitHub Pages
+      (build → brand:check → deploy-pages@v5). So the "update stamps + version at publish" step is now
+      AUTOMATIC (every deploy re-stamps), and og.png/apple-touch-icon travel via brand:copy/brand:favicon.
+      REMAINING (maintainer, GitHub-side, cannot be scripted): enable Pages (Settings → Pages → Source:
+      GitHub Actions) and confirm the diarie.dev custom domain; then a push to main triggers the first
+      deploy. Still gated on vp-beads-pub for the public launch (opentype.js@^2.0.0 + @voxpelli/generate-
+      favicon are the dev-only build deps; neither ships in the npm package).
     updated: '2026-07-18'
   - id: diarie-col
     title: Wire the brand's semantic exit-code colors into the CLI output
