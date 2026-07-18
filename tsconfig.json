@@ -6,7 +6,8 @@
   "include": [
     "lib/**/*",
     "test/**/*",
-    "brand/**/*"
+    "brand/**/*",
+    "scripts/**/*"
   ],
   "compilerOptions": {
     "types": [

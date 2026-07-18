@@ -14,9 +14,10 @@
 # and a reviewer disproved it in one line. The bound has MOVED, not vanished: a bare scan is bounded
 # by `.gitignore`, so any broad ignore (`lib/generated/`, `dist/`) silently shrinks lint coverage
 # with nothing going red. The root runner at least asserts its listed paths exist; this config
-# asserts nothing about how many files its scan actually reached. `vp-beads-flr` files the floor
-# assertion that would restore detectability. Until then: every line in `.gitignore` is a lint-scope
-# decision.
+# asserts nothing about how many files its scan actually reached. A `scannedFileCount` floor once
+# guarded this (vp-beads-flr), but was retired (diarie-agf) as an inconsistent per-tool special case —
+# `check:md` (remark, also `.gitignore`-bounded) had the identical exposure with no floor. Detection is
+# now deliberate discipline: every line in `.gitignore` is a lint-scope decision.
 ruleDirs:
   - .ast-grep/rules
 testConfigs:

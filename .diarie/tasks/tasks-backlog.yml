@@ -821,7 +821,7 @@ tasks:
     updated: '2026-07-18'
   - id: diarie-agf
     title: Reconsider check-ast-grep-floor.js — a bespoke fix for a general ignore-driven-coverage-shrink problem?
-    status: pending
+    status: completed
     type: task
     priority: medium
     labels:
@@ -836,6 +836,15 @@ tasks:
       broad .gitignore line cannot silently zero the ast-grep scan (vp-beads-flr). Open question:
       is this the right layer, or an over-fit fix for a green-and-inert-via-ignore failure shared
       by eslint, tsc, type-coverage and knip — none of which carry a floor?
+
+
+      DECISION 2026-07-18 — DROP. Retired the floor: deleted scripts/check-ast-grep-floor.js;
+      check:ast-grep is now a bare `ast-grep scan`. It guarded ast-grep alone while check:md (remark,
+      also .gitignore-bounded) had the identical exposure with no floor — an inconsistent per-tool
+      special case. The general ignore-driven-shrink risk is accepted uniformly and documented as
+      discipline (reworked the .gitignore + sgconfig.yml comments to say detection is deliberately
+      absent, not restored-by-a-floor). Proved the bare scan still catches rule violations (a planted
+      CommonJS require went red).
     updated: '2026-07-18'
   - id: diarie-tst
     title: Add tstyche type-testing for the public type API + restore the tstyche.yml workflow

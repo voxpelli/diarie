@@ -16,8 +16,12 @@
 # going red. A reviewer demonstrated it by appending one line and watching the scan go blind. So
 # treat every entry below as a lint-scope decision, not a git decision. (An earlier draft of this
 # file claimed the green-and-inert failure mode was "unrepresentable" here. It is not. It is
-# relocated — from a path list that a runner can check, to a git file that nobody checks.
-# `vp-beads-flr` files the floor assertion that would restore detectability.)
+# relocated — from a path list that a runner can check, to a git file that nobody checks.) This gap
+# is now DELIBERATELY UNGUARDED: a `scannedFileCount` floor once asserted it (vp-beads-flr / diarie-agf),
+# but it guarded the ast-grep scan alone while `check:md` (remark, also `.gitignore`-bounded) had the
+# identical exposure with no floor — an inconsistent per-tool special case, retired. The discipline IS
+# the guard now: every line below is a coverage decision. (`brand-dist/` above was added under exactly
+# this rationale — generated output, deliberately excluded.)
 node_modules/
 
 # Local tool caches.
