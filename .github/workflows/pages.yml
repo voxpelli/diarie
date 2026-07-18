@@ -41,7 +41,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm ci --no-fund --no-audit
+      # diarie is deliberately lockfile-less (npm-workspace heritage; the Node CI and
+      # release-please workflows install the same way), so `npm ci` — which REQUIRES a
+      # package-lock.json — cannot be used here.
+      - run: npm install --no-fund --no-audit
       - run: npm run brand:build
       - run: npm run brand:check
       - uses: actions/configure-pages@v6
