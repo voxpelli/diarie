@@ -119,6 +119,12 @@ being a mood board. The accents are the exit-code contract, in color:
 - `stämpel` is **exit 2** — it ran, and the answer is no. The stamp belongs
   to `validate`, because `validate` is the authority that rejects.
 
+On wide-gamut screens the highlights are served again in OKLCH at higher
+chroma, guarded by `color-gamut: p3` — same lightness and hue, so the
+ratios above hold; the phosphor simply glows harder where the glass allows.
+The brand book's swatches stay sRGB on purpose: the printed hex must be the
+color shown.
+
 One hazard, named plainly because pretending otherwise would be off-brand:
 dark ground with a single acid-green accent is a default AI aesthetic in
 2026. What keeps this palette specific is everything the default lacks — the
@@ -223,11 +229,14 @@ information loss — color is annotation, never the message.
 stamp, stamp-red, reading `INKOM <date>` over `dnr <version>` — the mark a
 registrar puts on a handling the day it arrives. It appears on the site
 footer, in release notes, and nowhere else — a stamp used everywhere
-certifies nothing. Its sibling `granskad` (examined) may appear once, on a
+certifies nothing. On the pages it is drawn as outlined SVG: rotated text
+as geometry, so no rasterizer's pixel grid can stair-step it. Its sibling `granskad` (examined) may appear once, on a
 specimen sheet.
 
 **The small devices.** The marker wash — a hektograf tint over a key
-phrase, at most three per page, because emphasis is scarce. And the leaf
+phrase, at most three per page, because emphasis is scarce; borderless ink
+with hand-uneven corners, never confusable with the bordered, square-cornered
+code chip — if the two are confusable, one of them is styled wrong. And the leaf
 rule: a hairline carrying the mark's opposite leaf-pair, letting the scene
 recur between sections. The closing line on any diarie surface makes the
 exit the pitch — leaving is free, and saying so is the brand.
@@ -242,9 +251,9 @@ Performance orthodoxy says split them; diarie keeps the one file because
 the page is the artifact — it survives `curl`, `file://`, and the archive
 whole — and pays the cost knowingly. If measurement ever shows LCP above
 2.5 s on a cold mobile load, that is the named trigger for revisiting.
-One sibling asset exists: `og.png` (1200 × 630), the link-preview card —
-path-rendered from the mark, wordmark, and tagline so it needs no fonts.
-Scrapers fetch it; the page never does. View source is a feature: the page practices what the
+Two sibling assets exist: `og.png` (1200 × 630), the link-preview card —
+path-rendered from the mark, wordmark, and tagline so it needs no fonts. Scrapers and
+iOS fetch them; the page never does. View source is a feature: the page practices what the
 tool preaches, and it survives `curl`, `file://`, and the Internet Archive
 without modification.
 
@@ -276,8 +285,13 @@ The same canon as [VISION.md](./VISION.md), applied one layer up: local-first
 worse-is-better (Gabriel), and the indieweb's own-your-data ethos — plus
 Linné's herbarium and the Swedish diarium, which were local-first before the
 term, and klarspråk, which was tone-of-voice guidance before brand books.
-The canon is not borrowed for the occasion; it is the author's own
-long-kept library. Maggie Appleton's
+The canon is not borrowed for the occasion — the library shows the
+receipts: its copy of the Ink & Switch manifesto carries a note tracing
+Adam Wiggins from the Twelve-Factor App (2011) to co-authoring Local-first
+software (2019), cloud orthodoxy writing its own critique; and the
+highlight archive keeps the personal-web ethos in others' words — Zeldman
+on the old web "where people shared honestly on their personal sites,"
+Heilmann's "everybody is invited to consume, contribute and create."  Maggie Appleton's
 [Home-Cooked Software](https://maggieappleton.com/home-cooked-software)
 carries the Illich thread — that people "should have agency and ownership
 over their data and software." Amber Case's calm-technology work holds the

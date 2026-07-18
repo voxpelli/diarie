@@ -88,10 +88,11 @@
   --korn:           .04;      /* riso grain opacity ceiling — static, never
                                  animated; the sanctioned atmosphere along
                                  with stepped light                         */
-  --markering:      rgba(107, 79, 200, .32);
+  --markering:      rgba(107, 79, 200, .42);
                               /* the marker wash: hektograf at highlighter
-                                 strength. At most three per page —
-                                 emphasis is scarce.                        */
+                                 strength — borderless ink with hand-uneven
+                                 corners, never the bordered code chip.
+                                 At most three per page.                    */
   --hallinje:       0.5px;    /* hairline borders                          */
 
   /* one easing, designed: slow start, fast middle, very slow stop —
@@ -113,6 +114,22 @@
   --kant:   color-mix(in srgb, var(--arkiv) 22%, transparent);
   --status-attention: var(--stampel-mork);
   --exit-2:           var(--stampel-mork);
+}
+
+/* Wide-gamut layer: on P3 screens the intense highlights are served in
+   OKLCH at higher chroma — same lightness and hue, so every contrast ratio
+   above still holds. Double-guarded; sRGB screens keep the hex values.
+   (CSS-only: the DTCG twin cannot express media conditions.) */
+@media (color-gamut: p3) {
+  @supports (color: oklch(50% 0.1 180)) {
+    :root {
+      --fosfor:       oklch(82.5% 0.207 156.3);
+      --barnsten:     oklch(76.1% 0.171 71.8);
+      --stampel:      oklch(59.9% 0.218 27);
+      --stampel-ljus: oklch(69.3% 0.17 26.6);
+      --lysning-4:    oklch(40.9% 0.154 290);
+    }
+  }
 }
 
 /* The brand respects the reader’s settings the way the CLI respects the

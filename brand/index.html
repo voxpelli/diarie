@@ -18,7 +18,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>diarie — a task tracker you cannot be trapped by</title>
 <meta name="description" content="A flat-YAML task tracker that is just files. No daemon, no database, no git hooks. Your backlog is YAML in your repo; the CLI is a reader over files you own.">
 <meta name="color-scheme" content="dark">
@@ -46,12 +46,27 @@
   --kant:rgba(239,230,210,.16);
   --stil-arkiv:"Fraunces",Georgia,"Times New Roman",serif;
   --stil-lasare:"Fragment Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-  --korn:.04;--markering:rgba(107,79,200,.32);
+  --korn:.04;--markering:rgba(107,79,200,.42);
   --ease-lysning:cubic-bezier(.22,0,.18,1);
   --dur-beat:700ms;--dur-reveal:1100ms;
 }
+
+/* Wide-gamut enhancement: on P3 screens the intense highlights are served
+   in OKLCH at higher chroma — same lightness and hue, so contrast holds.
+   Double-guarded; sRGB screens keep the canonical hex values. */
+@media (color-gamut:p3){
+  @supports (color: oklch(50% 0.1 180)){
+    :root{
+      --fosfor:oklch(82.5% 0.207 156.3);
+      --barnsten:oklch(76.1% 0.171 71.8);
+      --stampel:oklch(59.9% 0.218 27);
+      --stampel-ljus:oklch(69.3% 0.17 26.6);
+      --lysning-4:oklch(40.9% 0.154 290);
+    }
+  }
+}
 *{box-sizing:border-box;margin:0}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-size-adjust:100%;scrollbar-color:var(--lysning-4) var(--arkiv)}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 body{
   background:var(--arkiv);color:var(--papper);
@@ -59,6 +74,15 @@ body{
   font-variation-settings:"opsz" 15,"wght" 415,"SOFT" 0,"WONK" 0;
   font-size:1.0625rem;line-height:1.65;
   -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  padding-left:env(safe-area-inset-left);
+  padding-right:env(safe-area-inset-right);
+  hanging-punctuation:first allow-end;
+}
+h1,h2,h3{text-wrap:balance}
+p{text-wrap:pretty}
+@supports (text-box-trim: trim-both){
+  h1,h2{text-box-trim:trim-both;text-box-edge:cap alphabetic}
 }
 body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:60;opacity:var(--korn);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E")}
 ::selection{background:var(--lysning-4);color:var(--papper)}
@@ -66,6 +90,8 @@ a{color:var(--fosfor);text-decoration-thickness:.06em;text-underline-offset:.18e
 a:hover{color:var(--papper)}
 :focus-visible{outline:2px solid var(--fosfor);outline-offset:3px;border-radius:2px}
 code,pre,kbd{font-family:var(--stil-lasare);font-synthesis:none}
+code{background:var(--yta-2);border-radius:2px;padding:.08em .32em;font-size:.86em;box-shadow:inset 0 0 0 .5px var(--kant)}
+pre code,.install code{background:none;border-radius:0;padding:0;font-size:inherit;box-shadow:none}
 h2{
   font-variation-settings:"opsz" 72,"wght" 480,"SOFT" 40,"WONK" 1;
   font-size:clamp(1.7rem,3.4vw,2.3rem);line-height:1.15;font-weight:480;
@@ -87,7 +113,7 @@ header .wrap{display:flex;align-items:center;justify-content:space-between;gap:1
 .brand{display:flex;align-items:center;gap:.6rem;color:var(--papper);text-decoration:none;font-variation-settings:"opsz" 40,"wght" 500,"SOFT" 60,"WONK" 1;font-size:1.15rem}
 .brand svg{width:30px;height:30px}
 nav{display:flex;gap:1.4rem;font-family:var(--stil-lasare);font-size:.86rem}
-nav a{color:var(--lavendel);text-decoration:none}
+nav a{color:var(--lavendel);text-decoration:none;padding:.5rem .15rem;margin:-.5rem 0}
 nav a:hover{color:var(--fosfor)}
 
 /* ---- hero: the light table ---- */
@@ -95,7 +121,7 @@ nav a:hover{color:var(--fosfor)}
 .env{position:absolute;inset:0;overflow:hidden;z-index:-1}
 .env svg{width:100%;height:100%}
 .env circle{transform-box:fill-box;transform-origin:center}
-.mark{width:clamp(190px,30vw,260px);height:auto;display:block;margin:0 auto}
+.mark{width:clamp(190px,30vw,260px);height:auto;display:block;margin:0 auto;view-transition-name:diarie-mark}
 .mark circle,.mark .flower{transform-box:fill-box;transform-origin:center}
 h1{
   font-variation-settings:"opsz" 144,"wght" 520,"SOFT" 60,"WONK" 1;
@@ -116,12 +142,12 @@ h1{
 .install .p{color:var(--hektograf-ljus);user-select:none}
 .install button{
   font:inherit;color:var(--arkiv);background:var(--fosfor);border:0;border-radius:4px;
-  padding:.35rem .7rem;cursor:pointer;
+  padding:.45rem .85rem;cursor:pointer;
 }
 .install button:hover{background:var(--papper)}
 .hero-links{margin-top:1.1rem;font-family:var(--stil-lasare);font-size:.86rem}
 .hero-links a{margin:0 .7rem}
-.hl{background:var(--markering);padding:.02em .22em;border-radius:3px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.hl{background:var(--markering);padding:.06em .3em .1em;border-radius:.5em .25em .55em .2em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
 
 /* ---- audiences: the type system is the split ---- */
 .aud{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:2rem}
@@ -138,30 +164,31 @@ h1{
 .leafrule{max-width:66rem;margin:0 auto;padding:0 1.4rem;position:relative;height:26px}
 .leafrule::before{content:"";position:absolute;left:1.4rem;right:1.4rem;top:50%;border-top:.5px solid var(--kant)}
 .leafrule svg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--arkiv);padding:0 14px;box-sizing:content-box}
-.closer{padding:1.5rem 0 4.5rem;text-align:center}
+.closer{padding:3rem 0 4.5rem;text-align:center}
 .closer .install{margin-top:1.8rem}
-.dnr-scene{position:relative;flex:none;display:flex;align-items:center;justify-content:center;min-width:210px;min-height:96px}
+.dnr-scene{position:relative;flex:none;display:flex;align-items:center;justify-content:center;width:184px;height:170px}
 .dnr-scene::before,.dnr-scene::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;z-index:-1}
-.dnr-scene::before{width:230px;height:230px;background:#191330}
-.dnr-scene::after{width:150px;height:150px;background:#1C1536}
+.dnr-scene::before{width:156px;height:156px;background:#1C1536}
+.dnr-scene::after{width:104px;height:104px;background:#221940}
 
 /* beat 1: the light comes up. Only when .anim is set on <html>. */
 @media (prefers-reduced-motion:no-preference){
-  .anim .env circle{opacity:0;animation:lysning var(--dur-beat) var(--ease-lysning) forwards}
+  .anim .env circle{opacity:0;animation:lysning 780ms var(--ease-lysning) forwards}
   .anim .env circle:nth-child(2){animation-delay:70ms}
   .anim .env circle:nth-child(3){animation-delay:140ms}
   .anim .halo{opacity:0;animation:lysning var(--dur-beat) var(--ease-lysning) 200ms forwards}
   .anim .halo:nth-child(2){animation-delay:290ms}
   .anim .halo:nth-child(3){animation-delay:380ms}
   .anim .halo:nth-child(4){animation-delay:470ms}
-  .anim .flower{opacity:0;animation:blomma var(--dur-beat) var(--ease-lysning) 580ms forwards}
+  .anim .flower{opacity:0;animation:blomma 740ms var(--ease-lysning) 580ms forwards}
   .anim .rise{opacity:0;animation:stiga var(--dur-beat) var(--ease-lysning) forwards}
-  .anim h1.rise{animation-delay:740ms}
-  .anim .tagline.rise{animation-delay:900ms}
-  .anim .sub.rise{animation-delay:1040ms}
+  .anim h1.rise{opacity:1;animation-name:stiga-lcp;animation-delay:640ms;animation-duration:760ms;animation-fill-mode:both}
+  .anim .tagline.rise{animation-delay:880ms}
+  .anim .sub.rise{animation-delay:1000ms;animation-duration:650ms}
   @keyframes lysning{0%{opacity:0;transform:scale(1.09)}55%{opacity:1;transform:scale(.99)}100%{opacity:1;transform:scale(1)}}
   @keyframes blomma{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
   @keyframes stiga{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes stiga-lcp{from{transform:translateY(10px)}to{transform:translateY(0)}}
 }
 
 /* ---- exit codes ---- */
@@ -185,15 +212,13 @@ p+.term,p+.codes{margin-top:1.5rem}
 .term .k{color:var(--lavendel)}
 .term .r{color:var(--stampel-ljus)}
 
-.band{background:#1B142E;border-top:.5px solid var(--kant);border-bottom:.5px solid var(--kant)}
-
 /* ---- the write side: the specimen sheet ---- */
 .sheet-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:2.6rem;align-items:start}
 .sheet{
   background:var(--papper);color:var(--arkiv);border-radius:6px;
   padding:1.4rem 1.5rem;position:relative;
   box-shadow:0 0 0 6px var(--lysning-2);
-  transform:rotate(-.8deg);
+  transform:rotate(var(--rr,-.8deg));
 }
 .sheet::before,.sheet::after{
   content:"";position:absolute;top:-9px;width:70px;height:20px;
@@ -201,20 +226,16 @@ p+.term,p+.codes{margin-top:1.5rem}
 }
 .sheet::before{left:26px;transform:rotate(-5deg)}
 .sheet::after{right:26px;transform:rotate(4deg)}
-.granskad{
-  position:absolute;right:1.1rem;bottom:3.4rem;
-  font-family:var(--stil-lasare);font-size:.72rem;letter-spacing:.1em;
-  color:var(--stampel-mork);border:1.5px dashed var(--stampel-mork);
-  border-radius:4px;padding:.25rem .55rem;transform:rotate(-7deg);
-}
-.sheet pre{font-size:.85rem;line-height:1.65;overflow-x:auto}
+.sheet-label .cat{display:flex;flex-direction:column;gap:.35rem}
+.granskad{flex:none;align-self:center;display:block;--st-line:var(--stampel-mork);--st-text:var(--stampel-mork)}
+.sheet pre{font-size:.85rem;line-height:1.65;overflow-x:auto;text-rendering:geometricPrecision}
 .sheet .y-k{color:var(--hektograf)}
 .sheet .y-c{color:#6B5E92;font-style:italic}
 .sheet .y-hl{background:#E3D3F2;border-radius:3px;padding:0 .2em}
 .sheet-label{
   margin-top:1.1rem;padding-top:.8rem;border-top:.5px dashed rgba(23,17,38,.3);
   font-family:var(--stil-lasare);font-size:.74rem;color:#4A3B6B;
-  display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+  display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;
 }
 
 /* ---- types ---- */
@@ -231,14 +252,18 @@ p+.term,p+.codes{margin-top:1.5rem}
 .stamp{
   font-family:var(--stil-lasare);font-size:.9rem;letter-spacing:.06em;
   color:var(--stampel-ljus);border:1.5px dashed var(--stampel);border-radius:6px;
-  padding:.6rem 1rem;transform:rotate(var(--r,0deg));
+  padding:.6rem 1rem;transform:rotate(var(--rr,var(--r,0deg)));
+  text-rendering:geometricPrecision;
 }
 @media (prefers-reduced-motion:no-preference){
-  .anim.stamps-armed .stamp{opacity:0;transform:rotate(var(--r,0deg)) scale(1.16)}
+  .anim.stamps-armed .stamp{opacity:0;transform:rotate(var(--rr,var(--r,0deg))) scale(1.16)}
   .anim.stamps-armed .stamps.in .stamp{
-    opacity:1;transform:rotate(var(--r,0deg)) scale(1);
-    transition:opacity var(--dur-beat) var(--ease-lysning),transform var(--dur-beat) var(--ease-lysning);
-    transition-delay:var(--d,0ms);
+    animation:stampla var(--dur-beat) var(--ease-lysning) var(--d,0ms) both;
+  }
+  @keyframes stampla{
+    0%{opacity:0;transform:rotate(var(--rr,var(--r,0deg))) scale(1.16)}
+    62%{opacity:1;transform:rotate(var(--rr,var(--r,0deg))) scale(.985)}
+    100%{opacity:1;transform:rotate(var(--rr,var(--r,0deg))) scale(1)}
   }
 }
 
@@ -248,13 +273,76 @@ p+.term,p+.codes{margin-top:1.5rem}
 footer{border-top:.5px solid var(--kant);padding:2.8rem 0 3.4rem;position:relative;overflow:hidden}
 footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:2rem;flex-wrap:wrap}
 footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektograf-ljus);line-height:2}
-.dnr{
-  border:1.5px solid var(--stampel);padding:.45rem .85rem;
-  font-family:var(--stil-lasare);font-size:.74rem;letter-spacing:.08em;
-  color:var(--stampel-ljus);transform:rotate(-4deg);flex:none;
+.dnr{flex:none;display:block;--st-line:var(--stampel);--st-text:var(--stampel-ljus)}
+
+/* ---- the latest glass: guarded bleeding-edge layers ------------------- */
+
+/* Reading progress as a ledger line filling in (Safari 26+, Chromium).
+   Functional feedback, not a beat. */
+@media (prefers-reduced-motion:no-preference){
+  @supports (animation-timeline: scroll()){
+    .ledger{
+      position:fixed;top:env(safe-area-inset-top,0px);
+      left:env(safe-area-inset-left,0px);right:env(safe-area-inset-right,0px);
+      height:2px;z-index:70;
+      background:var(--hektograf);opacity:.75;transform-origin:0 50%;
+      transform:scaleX(0);animation:bokfora linear forwards;
+      animation-timeline:scroll(root);
+    }
+    @keyframes bokfora{to{transform:scaleX(1)}}
+  }
+  /* Cross-document view transitions: diarie.dev <-> the brand book.
+     The mark carries across; the light table becomes the sheet. */
+  @view-transition{navigation:auto}
+  ::view-transition-group(*){animation-timing-function:var(--ease-lysning)}
 }
-.dnr span{display:block}
-.dnr .rule{border-top:1px solid var(--stampel);margin:.32rem -.3rem}
+
+/* A hand never stamps at the same angle twice (Safari 26.5+ random()). */
+@supports (rotate: random(-1deg, 1deg)){
+  .stamp{--rr:random(-2.6deg, 2.6deg)}
+  .sheet{--rr:random(-1.2deg, -0.4deg)}
+}
+
+/* Option D, active: geometricPrecision does not defeat per-glyph snapping
+   on rotated HTML text (Bugzilla 492214 lineage), so screens without the
+   pixel density to draw a 2° baseline smoothly get the straight version —
+   the trigger is the capability (resolution), never the vendor. The
+   outlined-SVG stamps and the tape keep their tilt: geometry and plain
+   boxes have no glyphs to snap, so the register survives everywhere. */
+@media (max-resolution: 1.4dppx){
+  .stamp,.sheet{--rr:0deg}
+}
+
+/* Softer die-cut corners where corner-shape exists (Chromium 139+). */
+@supports (corner-shape: squircle){
+  .code,.type,.term,.sheet,.aud>div,.install{corner-shape:squircle}
+}
+
+/* Courtesy layers */
+@media (prefers-contrast: more){
+  :root{--kant:rgba(239,230,210,.34);--korn:0}
+  .muted,.dim,.facts p,.qa p,.aud p{color:var(--papper)}
+}
+@media (forced-colors: active){
+  body::after,.env{display:none}
+}
+@media print{
+  :root{--korn:0}
+  body{background:#fff;color:#171126;padding:0}
+  body::after,.env,.ledger,nav,.install,.hero-links{display:none}
+  .stamps .stamp{opacity:1;transform:none;animation:none;color:#A83732;border-color:#A83732}
+  .hero,section{padding:1.2rem 0}
+  h1,h2,.tagline{color:#171126}
+  .muted,.dim,.facts p,.qa p,.aud p,.code p,.type p{color:#3a3060}
+  .term{background:#f2ecdd;color:#171126;border:.5px solid #999}
+  .term .c,.term .g,.term .k,.term .r{color:#171126}
+  .code,.type,.aud>div{border:.5px solid #999;background:#fff}
+  a{color:#171126}
+  .lineage a::after,footer a::after{content:" (" attr(href) ")";font-size:.75em;color:#666}
+  .dnr{--st-line:#A83732;--st-text:#A83732}
+  .dnr-scene::before,.dnr-scene::after{background:none}
+  .hl{background:#E6DCF5}
+}
 
 @media (max-width:840px){
   .codes,.types{grid-template-columns:1fr 1fr}
@@ -265,6 +353,12 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
   .codes,.types{grid-template-columns:1fr}
   section{padding:3.2rem 0}
   nav{gap:1rem}
+  .install{flex-wrap:wrap;justify-content:center;row-gap:.6rem;max-width:100%}
+  .install code{font-size:.84rem}
+  .term{font-size:.8rem}
+}
+@media (min-width:1800px){
+  html{font-size:17.5px}
 }
 </style>
 <script>
@@ -280,6 +374,8 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
 </script>
 </head>
 <body>
+
+<div class="ledger" aria-hidden="true"></div>
 
 <header>
   <div class="wrap">
@@ -310,19 +406,20 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
 </header>
 
 <main>
-  <div class="hero wrap">
+  <section class="hero">
     <div class="env" aria-hidden="true">
-      <svg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice">
-        <circle cx="500" cy="310" r="560" fill="#191330"/>
-        <circle cx="500" cy="310" r="420" fill="#1C1536"/>
-        <circle cx="500" cy="310" r="290" fill="#1F183C"/>
+      <svg viewBox="0 0 1000 640" preserveAspectRatio="xMidYMin slice">
+        <circle cx="500" cy="-120" r="760" fill="#191330"/>
+        <circle cx="500" cy="-120" r="600" fill="#1C1536"/>
+        <circle cx="500" cy="-120" r="450" fill="#1F183C"/>
       </svg>
     </div>
+    <div class="wrap">
     <svg class="mark" viewBox="0 0 256 256" role="img" aria-label="The diarie mark: a pressed twinflower backlit on a light table">
-      <circle class="halo" cx="128" cy="120" r="106" fill="#221940"/>
-      <circle class="halo" cx="128" cy="120" r="82"  fill="#2E2257"/>
-      <circle class="halo" cx="128" cy="120" r="60"  fill="#3C2D6E"/>
-      <circle class="halo" cx="128" cy="120" r="41"  fill="#4B3A87"/>
+      <circle class="halo" cx="128" cy="120" r="106" fill="var(--lysning-1)"/>
+      <circle class="halo" cx="128" cy="120" r="82"  fill="var(--lysning-2)"/>
+      <circle class="halo" cx="128" cy="120" r="60"  fill="var(--lysning-3)"/>
+      <circle class="halo" cx="128" cy="120" r="41"  fill="var(--lysning-4)"/>
       <g class="flower">
         <g fill="none" stroke="#EFE6D2" stroke-linecap="round">
   <path d="M128,208 C125,190 129,168 126,150" stroke-width="5"/>
@@ -352,6 +449,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
     </div>
     <p class="hero-links dim">no daemon · no database · no git hooks</p>
   </div>
+  </section>
 
   <section>
     <div class="wrap">
@@ -360,8 +458,8 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
       <div class="sheet-grid">
         <div>
           <p>diarie reads a backlog that already lives in your repo — plain
-          YAML your editor writes and git remembers. The tool is a visitor;
-          the record is yours.</p>
+          YAML your editor writes and git remembers. The tool is a visitor,
+          not a landlord.</p>
           <div class="facts">
             <p><strong class="hl">Git is the database.</strong> The store is ordinary
             committed files: your backlog diffs, branches, merges, and
@@ -425,7 +523,6 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
     </div>
   </section>
 
-
   <section>
     <div class="wrap">
       <span class="eyebrow">the write side</span>
@@ -436,8 +533,8 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
           <code>assign</code> — deliberately. A CRUD layer would make diarie
           the owner of your data, and <span class="hl">the point is that you
           own it</span>.</p>
-          <p>Claiming a task is two lines in your editor. Completing it is
-          <code>status: completed</code>. The files are the API; git is the
+          <p>Claiming a task is two lines in your editor; completing it is
+          one — <code>status: completed</code>. The files are the API; git is the
           audit log; <code>diarie validate</code> is the integrity gate.</p>
           <p class="muted">And the reader is honest: a malformed row is
           represented, never silently dropped — dropping it would hide it
@@ -452,10 +549,12 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
     <span class="y-k">type:</span> task
     <span class="y-k">priority:</span> high
     <span class="y-k">deps:</span> [proj-session]  <span class="y-c"># blocked until done</span></pre>
-          <span class="granskad" aria-hidden="true">granskad</span>
           <div class="sheet-label">
+            <div class="cat">
             <span>specimen · tasks-backlog.yml</span>
             <span>coll. your repo, det. your editor</span>
+            </div>
+            <svg class="granskad" aria-hidden="true" width="97" height="36" viewBox="-7 -6 97 36" overflow="visible"><g transform="rotate(-7 42 12)"><rect x="0" y="0" width="83" height="24" rx="3" fill="none" stroke="var(--st-line)" stroke-width="1.5" stroke-dasharray="4.5 3.5"/><path fill="var(--st-text)" transform="translate(9,16.5)" d="M3.4 2.5Q2.4 2.5 1.7 2.1Q1.1 1.6 0.9 0.7H1.9Q2.2 1.7 3.4 1.7Q4.3 1.7 4.7 1.2Q5.1 0.7 5.1 -0.5V-0.9Q4.9 -0.3 4.4 -0.1Q3.9 0.2 3.3 0.2Q2.4 0.2 1.9 -0.2Q1.3 -0.6 1.0 -1.4Q0.7 -2.1 0.7 -3.0Q0.7 -3.9 1.0 -4.6Q1.3 -5.4 1.9 -5.8Q2.4 -6.2 3.3 -6.2Q4.5 -6.2 5.2 -5.3V-6.0H6.1V-1.0Q6.1 0.3 5.9 0.9Q5.6 1.7 5.0 2.1Q4.4 2.5 3.4 2.5ZM3.5 -0.7Q4.1 -0.7 4.5 -1.0Q4.8 -1.4 5.0 -1.9Q5.2 -2.4 5.2 -3.0Q5.2 -3.6 5.0 -4.1Q4.8 -4.6 4.4 -5.0Q4.1 -5.3 3.5 -5.3Q2.9 -5.3 2.5 -5.0Q2.1 -4.7 1.9 -4.2Q1.7 -3.7 1.7 -3.0Q1.7 -2.4 1.9 -1.9Q2.1 -1.3 2.5 -1.0Q2.9 -0.7 3.5 -0.7Z M9.7 0.0V-6.0H10.6V-4.7Q10.9 -5.4 11.4 -5.8Q12.0 -6.2 12.7 -6.2Q13.8 -6.2 14.3 -5.7Q14.9 -5.1 14.9 -4.2H14.0Q13.9 -4.8 13.6 -5.1Q13.2 -5.4 12.6 -5.4Q12.0 -5.4 11.6 -5.0Q11.1 -4.7 10.9 -4.2Q10.6 -3.6 10.6 -2.9V0.0Z M23.1 -0.6V0.1Q22.7 0.2 22.5 0.2Q21.5 0.2 21.4 -0.7Q20.9 -0.2 20.4 -0.0Q19.9 0.2 19.4 0.2Q18.5 0.2 17.9 -0.3Q17.4 -0.7 17.4 -1.6Q17.4 -2.2 17.7 -2.6Q17.9 -2.9 18.3 -3.1Q18.7 -3.3 19.0 -3.4Q19.2 -3.4 19.5 -3.4Q19.9 -3.5 20.4 -3.6Q21.0 -3.6 21.2 -3.8Q21.4 -3.9 21.4 -4.2V-4.4Q21.4 -5.3 20.0 -5.3Q19.4 -5.3 19.0 -5.1Q18.7 -4.8 18.6 -4.2H17.7Q17.7 -5.3 18.3 -5.7Q19.0 -6.2 20.1 -6.2Q21.2 -6.2 21.8 -5.8Q22.3 -5.4 22.3 -4.6V-1.1Q22.3 -0.6 22.9 -0.6Q22.9 -0.6 23.1 -0.6ZM21.4 -2.1V-3.0Q21.1 -2.9 20.7 -2.8Q20.2 -2.7 19.8 -2.7Q19.2 -2.6 18.8 -2.4Q18.4 -2.2 18.4 -1.6Q18.4 -1.1 18.7 -0.9Q19.0 -0.6 19.6 -0.6Q20.0 -0.6 20.4 -0.8Q20.8 -1.0 21.1 -1.3Q21.4 -1.7 21.4 -2.1Z M25.9 0.0V-6.0H26.8V-5.0Q27.2 -5.6 27.6 -5.9Q28.1 -6.2 28.8 -6.2Q29.3 -6.2 29.8 -6.0Q30.2 -5.8 30.5 -5.5Q30.7 -5.1 30.7 -4.6V0.0H29.8V-4.2Q29.8 -4.8 29.4 -5.1Q29.0 -5.4 28.5 -5.4Q28.0 -5.4 27.6 -5.1Q27.3 -4.8 27.1 -4.4Q26.9 -3.9 26.9 -3.4V0.0Z M38.8 -4.4H37.8Q37.8 -4.8 37.4 -5.1Q37.1 -5.4 36.6 -5.4Q36.0 -5.4 35.6 -5.1Q35.3 -4.9 35.3 -4.5Q35.3 -4.2 35.5 -4.0Q35.7 -3.8 36.1 -3.6L37.5 -3.3Q38.3 -3.1 38.6 -2.7Q39.0 -2.3 39.0 -1.7Q39.0 -0.8 38.4 -0.3Q37.7 0.2 36.6 0.2Q34.2 0.2 34.1 -1.8H35.2Q35.2 -1.2 35.6 -0.9Q36.0 -0.6 36.6 -0.6Q37.3 -0.6 37.7 -0.9Q38.1 -1.1 38.1 -1.5Q38.1 -1.9 37.8 -2.1Q37.6 -2.3 37.1 -2.4L35.9 -2.8Q35.1 -3.0 34.7 -3.4Q34.3 -3.7 34.3 -4.4Q34.3 -5.2 34.9 -5.7Q35.5 -6.2 36.6 -6.2Q37.7 -6.2 38.2 -5.7Q38.8 -5.2 38.8 -4.4Z M43.8 0.0H42.9V-8.4H43.8V-3.5L46.4 -6.0H47.6L45.4 -3.9L48.0 0.0H46.8L44.7 -3.2L43.8 -2.3Z M56.1 -0.6V0.1Q55.7 0.2 55.5 0.2Q54.5 0.2 54.4 -0.7Q53.9 -0.2 53.5 -0.0Q53.0 0.2 52.4 0.2Q51.5 0.2 51.0 -0.3Q50.4 -0.7 50.4 -1.6Q50.4 -2.2 50.7 -2.6Q51.0 -2.9 51.3 -3.1Q51.7 -3.3 52.1 -3.4Q52.2 -3.4 52.6 -3.4Q52.9 -3.5 53.4 -3.6Q54.0 -3.6 54.2 -3.8Q54.4 -3.9 54.4 -4.2V-4.4Q54.4 -5.3 53.0 -5.3Q52.4 -5.3 52.0 -5.1Q51.7 -4.8 51.6 -4.2H50.7Q50.7 -5.3 51.4 -5.7Q52.0 -6.2 53.1 -6.2Q54.2 -6.2 54.8 -5.8Q55.4 -5.4 55.4 -4.6V-1.1Q55.4 -0.6 55.9 -0.6Q56.0 -0.6 56.1 -0.6ZM54.4 -2.1V-3.0Q54.1 -2.9 53.7 -2.8Q53.2 -2.7 52.9 -2.7Q52.2 -2.6 51.8 -2.4Q51.4 -2.2 51.4 -1.6Q51.4 -1.1 51.7 -0.9Q52.1 -0.6 52.6 -0.6Q53.1 -0.6 53.5 -0.8Q53.9 -1.0 54.2 -1.3Q54.4 -1.7 54.4 -2.1Z M63.0 -8.4H63.9V0.0H63.1V-0.9Q62.3 0.2 61.1 0.2Q60.2 0.2 59.7 -0.2Q59.1 -0.7 58.8 -1.4Q58.5 -2.2 58.5 -3.1Q58.5 -3.9 58.8 -4.7Q59.1 -5.4 59.7 -5.8Q60.2 -6.2 61.1 -6.2Q62.3 -6.2 63.0 -5.3ZM61.3 -5.3Q60.7 -5.3 60.3 -5.0Q59.9 -4.7 59.7 -4.2Q59.5 -3.7 59.5 -3.0Q59.5 -2.4 59.7 -1.9Q59.9 -1.3 60.3 -1.0Q60.7 -0.7 61.3 -0.7Q61.9 -0.7 62.2 -1.0Q62.6 -1.4 62.8 -1.9Q63.0 -2.4 63.0 -3.0Q63.0 -3.6 62.8 -4.1Q62.6 -4.6 62.2 -5.0Q61.9 -5.3 61.3 -5.3Z"/></g></svg>
           </div>
         </div>
       </div>
@@ -503,11 +602,13 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
       </div>
       <p class="muted" style="margin-top:1.1rem"><code>needsAttention</code> is the third
       partition, and it matters: a row whose required fields are malformed is
-      broken, not merely non-workable — and it is never silently dropped.</p>
+      broken, not merely non-workable — so it is surfaced, not skipped.</p>
     </div>
   </section>
 
-  <section class="band">
+<div class="leafrule" aria-hidden="true"><svg width="42" height="18" viewBox="0 0 42 18"><ellipse cx="14" cy="9" rx="9" ry="4.5" transform="rotate(-24 14 9)" fill="#9C90C4"/><ellipse cx="28" cy="9" rx="9" ry="4.5" transform="rotate(24 28 9)" fill="#9C90C4"/></svg></div>
+
+  <section>
     <div class="wrap">
       <span class="eyebrow">the contract</span>
       <h2>The exit codes are worth reading</h2>
@@ -561,11 +662,26 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
         <span class="stamp" style="--r:-1.5deg;--d:320ms">no CRUD write layer</span>
         <span class="stamp" style="--r:1deg;--d:400ms">no web dashboard</span>
       </div>
-      <p class="muted" style="max-width:42rem;margin:0 auto">Leaving must always be free:
-      uninstall diarie and your backlog is still there, in files you own.</p>
+      <p class="muted" style="max-width:42rem;margin:0 auto">Leaving must always be free —
+      every refusal above exists to keep it that way.</p>
     </div>
   </section>
 
+<div class="leafrule" aria-hidden="true"><svg width="42" height="18" viewBox="0 0 42 18"><ellipse cx="14" cy="9" rx="9" ry="4.5" transform="rotate(-24 14 9)" fill="#9C90C4"/><ellipse cx="28" cy="9" rx="9" ry="4.5" transform="rotate(24 28 9)" fill="#9C90C4"/></svg></div>
+
+  <section class="closer">
+    <div class="wrap">
+      <h2 style="margin-bottom:.7rem">Try it on a repo you already have</h2>
+      <p class="muted" style="max-width:44rem;margin:0 auto"><span class="hl">Leaving is
+      free:</span> uninstall diarie and your backlog is still there, in
+      files you own.</p>
+      <div class="install">
+        <span class="p" aria-hidden="true">$</span>
+        <code>npm install --save-dev diarie</code>
+        <button type="button" aria-label="Copy install command">copy</button>
+      </div>
+    </div>
+  </section>
   <section class="lineage">
     <div class="wrap">
       <span class="eyebrow">lineage</span>
@@ -581,32 +697,21 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
       small place to apply them — which is the point.</p>
     </div>
   </section>
-  <section class="closer">
-    <div class="wrap">
-      <h2 style="margin-bottom:.7rem">Try it on a repo you already have</h2>
-      <p class="muted" style="max-width:38rem;margin:0 auto"><span class="hl">Leaving is
-      free:</span> uninstall diarie and your backlog is still there, in
-      files you own.</p>
-      <div class="install">
-        <span class="p" aria-hidden="true">$</span>
-        <code>npm install --save-dev diarie</code>
-        <button type="button" aria-label="Copy install command">copy</button>
-      </div>
-    </div>
-  </section>
+
 </main>
 
 <footer>
   <div class="wrap">
     <div class="fine">
       MIT © <a href="https://kodfabrik.se/">Pelle Wessman</a><br>
-      This page is one file — ≈238 KiB, and no requests leave it. View source.<br>
+      This page is one file — ≈253 KiB, and no requests leave it. View source.<br>
+      <a href="./brand-book.html">brand book</a> ·
       <a href="https://github.com/voxpelli/diarie">github</a> ·
       <a href="https://www.npmjs.com/package/diarie">npm</a> ·
       set in <a href="https://github.com/undercasetype/Fraunces">Fraunces</a> and
       <a href="https://github.com/weiweihuanghuang/fragment-mono">Fragment Mono</a>, self-hosted
     </div>
-    <div class="dnr-scene"><div class="dnr" role="img" aria-label="Received 2026-07-18, diarienummer 0.1.0"><span>INKOM 2026-07-18</span><span class="rule"></span><span>dnr 0.1.0</span></div></div>
+    <div class="dnr-scene"><svg class="dnr" role="img" aria-label="Received 2026-07-18, diarienummer 0.1.0" width="179" height="62" viewBox="-9 -8 179 62" overflow="visible"><g transform="rotate(-4 80 23)"><rect x="0" y="0" width="161" height="46" fill="none" stroke="var(--st-line)" stroke-width="1.5"/><line x1="6" y1="23.0" x2="155" y2="23.0" stroke="var(--st-line)" stroke-width="1"/><path fill="var(--st-text)" transform="translate(14,18)" d="M1.4 0.0V-0.9H3.1V-7.5H1.4V-8.4H6.1V-7.5H4.3V-0.9H6.1V0.0Z M13.8 -8.4H14.9V0.0H13.6L10.3 -6.7H10.3V0.0H9.3V-8.4H10.5L13.8 -1.6H13.8Z M19.1 0.0H17.9V-8.4H19.1V-4.6L22.4 -8.4H23.8L20.8 -5.0L24.0 0.0H22.7L20.0 -4.2L19.1 -3.1Z M28.8 -8.6Q30.4 -8.6 31.2 -7.4Q32.1 -6.3 32.1 -4.2Q32.1 -2.1 31.2 -0.9Q30.4 0.2 28.8 0.2Q27.3 0.2 26.4 -0.9Q25.6 -2.1 25.6 -4.2Q25.6 -6.3 26.4 -7.4Q27.3 -8.6 28.8 -8.6ZM28.8 -7.6Q27.9 -7.6 27.3 -6.7Q26.7 -5.8 26.7 -4.2Q26.7 -2.6 27.3 -1.7Q27.9 -0.8 28.8 -0.8Q29.8 -0.8 30.4 -1.7Q30.9 -2.6 30.9 -4.2Q30.9 -5.8 30.4 -6.7Q29.8 -7.6 28.8 -7.6Z M36.8 -2.4 35.2 -6.6V0.0H34.3V-8.4H35.5L37.2 -3.6L38.9 -8.4H40.2V0.0H39.2V-6.6L37.7 -2.4Z M56.8 -0.9V0.0H51.1Q51.2 -1.0 51.4 -1.6Q51.6 -2.3 52.1 -2.8Q52.6 -3.3 53.5 -3.7L54.6 -4.4Q55.2 -4.7 55.5 -5.1Q55.8 -5.5 55.8 -6.0Q55.8 -6.8 55.4 -7.2Q55.0 -7.7 54.2 -7.7Q53.3 -7.7 52.8 -7.1Q52.4 -6.5 52.4 -5.6H51.3Q51.3 -7.0 52.1 -7.8Q52.8 -8.6 54.2 -8.6Q55.1 -8.6 55.7 -8.2Q56.2 -7.9 56.5 -7.3Q56.8 -6.8 56.8 -6.0Q56.8 -4.4 55.0 -3.5L53.8 -2.9Q53.1 -2.4 52.7 -2.0Q52.4 -1.5 52.3 -0.9Z M62.3 -8.6Q63.2 -8.6 63.7 -8.2Q64.2 -7.8 64.5 -7.2Q64.9 -6.6 65.0 -5.8Q65.1 -5.0 65.1 -4.2Q65.1 -3.3 65.0 -2.6Q64.9 -1.8 64.5 -1.1Q64.2 -0.5 63.7 -0.2Q63.2 0.2 62.3 0.2Q61.5 0.2 61.0 -0.2Q60.4 -0.5 60.1 -1.1Q59.8 -1.8 59.7 -2.6Q59.6 -3.3 59.6 -4.2Q59.6 -5.0 59.7 -5.8Q59.8 -6.6 60.1 -7.2Q60.4 -7.8 61.0 -8.2Q61.5 -8.6 62.3 -8.6ZM62.3 -7.7Q61.4 -7.7 61.0 -6.7Q60.5 -5.8 60.5 -4.2Q60.5 -3.4 60.6 -2.8Q60.7 -2.2 60.9 -1.7L63.3 -7.3Q62.9 -7.7 62.3 -7.7ZM64.1 -4.2Q64.1 -4.9 64.1 -5.5Q64.0 -6.0 63.8 -6.5L61.5 -1.0Q61.8 -0.7 62.3 -0.7Q63.0 -0.7 63.4 -1.1Q63.8 -1.6 63.9 -2.3Q64.1 -3.1 64.1 -4.2Z M73.5 -0.9V0.0H67.9Q67.9 -1.0 68.2 -1.6Q68.4 -2.3 68.9 -2.8Q69.4 -3.3 70.2 -3.7L71.4 -4.4Q71.9 -4.7 72.2 -5.1Q72.5 -5.5 72.5 -6.0Q72.5 -6.8 72.1 -7.2Q71.7 -7.7 70.9 -7.7Q70.0 -7.7 69.6 -7.1Q69.2 -6.5 69.1 -5.6H68.1Q68.1 -7.0 68.8 -7.8Q69.6 -8.6 71.0 -8.6Q71.8 -8.6 72.4 -8.2Q73.0 -7.9 73.3 -7.3Q73.6 -6.8 73.6 -6.0Q73.6 -4.4 71.8 -3.5L70.6 -2.9Q69.8 -2.4 69.5 -2.0Q69.1 -1.5 69.0 -0.9Z M81.8 -6.4H80.8Q80.7 -7.0 80.4 -7.3Q80.0 -7.7 79.4 -7.7Q78.4 -7.7 77.9 -6.8Q77.4 -5.9 77.4 -4.2Q77.7 -4.7 78.2 -5.1Q78.8 -5.4 79.5 -5.4Q80.3 -5.4 80.9 -5.0Q81.4 -4.6 81.7 -4.0Q82.0 -3.4 82.0 -2.7Q82.0 -1.9 81.7 -1.3Q81.4 -0.6 80.8 -0.2Q80.2 0.2 79.3 0.2Q78.4 0.2 77.9 -0.1Q77.3 -0.5 77.0 -1.1Q76.7 -1.7 76.5 -2.4Q76.4 -3.2 76.4 -4.0Q76.4 -6.2 77.2 -7.4Q78.0 -8.6 79.5 -8.6Q80.4 -8.6 81.1 -8.0Q81.7 -7.5 81.8 -6.4ZM79.3 -4.5Q78.8 -4.5 78.4 -4.2Q78.0 -4.0 77.7 -3.5Q77.5 -3.1 77.5 -2.6Q77.5 -2.0 77.7 -1.6Q78.0 -1.2 78.4 -0.9Q78.8 -0.7 79.3 -0.7Q80.1 -0.7 80.5 -1.2Q80.9 -1.8 80.9 -2.6Q80.9 -3.4 80.5 -3.9Q80.1 -4.5 79.3 -4.5Z M85.2 -4.3H89.7V-3.4H85.2Z M95.8 -8.6Q96.7 -8.6 97.2 -8.2Q97.7 -7.8 98.1 -7.2Q98.4 -6.6 98.5 -5.8Q98.6 -5.0 98.6 -4.2Q98.6 -3.3 98.5 -2.6Q98.4 -1.8 98.1 -1.1Q97.7 -0.5 97.2 -0.2Q96.7 0.2 95.8 0.2Q95.0 0.2 94.5 -0.2Q93.9 -0.5 93.6 -1.1Q93.3 -1.8 93.2 -2.6Q93.1 -3.3 93.1 -4.2Q93.1 -5.0 93.2 -5.8Q93.3 -6.6 93.6 -7.2Q93.9 -7.8 94.5 -8.2Q95.0 -8.6 95.8 -8.6ZM95.8 -7.7Q94.9 -7.7 94.5 -6.7Q94.0 -5.8 94.0 -4.2Q94.0 -3.4 94.1 -2.8Q94.2 -2.2 94.5 -1.7L96.8 -7.3Q96.4 -7.7 95.8 -7.7ZM97.6 -4.2Q97.6 -4.9 97.6 -5.5Q97.5 -6.0 97.3 -6.5L95.0 -1.0Q95.4 -0.7 95.8 -0.7Q96.5 -0.7 96.9 -1.1Q97.3 -1.6 97.5 -2.3Q97.6 -3.1 97.6 -4.2Z M101.4 -8.4H107.1V-7.5Q106.1 -6.2 105.4 -5.0Q104.8 -3.9 104.3 -2.6Q103.9 -1.4 103.6 0.0H102.5Q102.7 -1.1 103.0 -1.9Q103.2 -2.7 103.5 -3.3Q103.8 -4.0 104.2 -4.7Q104.6 -5.3 105.0 -6.0Q105.5 -6.6 106.0 -7.5H101.4Z M110.3 -4.3H114.9V-3.4H110.3Z M120.9 0.0V-6.1H118.7V-6.9Q119.4 -6.9 119.8 -7.0Q120.3 -7.0 120.5 -7.2Q120.8 -7.3 120.9 -7.7Q121.0 -8.0 121.2 -8.5H122.0V0.0Z M130.8 -4.5Q132.2 -3.8 132.2 -2.4Q132.2 -1.6 131.9 -1.1Q131.5 -0.5 130.9 -0.1Q130.2 0.2 129.3 0.2Q128.5 0.2 127.9 -0.1Q127.2 -0.5 126.9 -1.1Q126.5 -1.6 126.5 -2.4Q126.5 -3.8 128.0 -4.5Q127.4 -4.9 127.1 -5.3Q126.8 -5.7 126.8 -6.3Q126.8 -7.0 127.1 -7.5Q127.5 -8.0 128.0 -8.3Q128.6 -8.6 129.3 -8.6Q130.1 -8.6 130.7 -8.3Q131.3 -8.0 131.6 -7.5Q131.9 -7.0 131.9 -6.3Q131.9 -5.7 131.7 -5.3Q131.4 -4.9 130.8 -4.5ZM129.3 -7.7Q128.6 -7.7 128.2 -7.3Q127.8 -6.9 127.8 -6.3Q127.8 -5.7 128.2 -5.3Q128.6 -4.9 129.3 -4.9Q130.0 -4.9 130.5 -5.3Q130.9 -5.7 130.9 -6.3Q130.9 -6.9 130.5 -7.3Q130.1 -7.7 129.3 -7.7ZM129.3 -4.1Q128.9 -4.1 128.4 -3.9Q128.0 -3.7 127.8 -3.3Q127.5 -2.9 127.5 -2.4Q127.5 -1.9 127.8 -1.5Q128.0 -1.1 128.4 -0.9Q128.8 -0.7 129.3 -0.7Q130.2 -0.7 130.7 -1.1Q131.2 -1.6 131.2 -2.4Q131.2 -2.9 130.9 -3.3Q130.7 -3.7 130.3 -3.9Q129.8 -4.1 129.3 -4.1Z"/><path fill="var(--st-text)" transform="translate(14,38)" d="M5.4 -8.7H6.4V0.0H5.5V-0.9Q4.7 0.2 3.5 0.2Q2.6 0.2 1.9 -0.2Q1.3 -0.7 1.0 -1.5Q0.7 -2.2 0.7 -3.2Q0.7 -4.1 1.0 -4.9Q1.3 -5.6 2.0 -6.0Q2.6 -6.5 3.4 -6.5Q4.7 -6.5 5.4 -5.5ZM3.6 -5.5Q3.0 -5.5 2.6 -5.2Q2.2 -4.9 2.0 -4.4Q1.8 -3.8 1.8 -3.1Q1.8 -2.5 2.0 -1.9Q2.2 -1.4 2.6 -1.1Q3.0 -0.7 3.6 -0.7Q4.3 -0.7 4.6 -1.1Q5.0 -1.4 5.2 -2.0Q5.4 -2.5 5.4 -3.1Q5.4 -3.7 5.2 -4.3Q5.0 -4.8 4.6 -5.2Q4.2 -5.5 3.6 -5.5Z M9.6 0.0V-6.3H10.5V-5.2Q10.9 -5.8 11.4 -6.1Q11.9 -6.5 12.6 -6.5Q13.2 -6.5 13.6 -6.3Q14.1 -6.1 14.3 -5.7Q14.6 -5.3 14.6 -4.8V0.0H13.6V-4.4Q13.6 -5.0 13.2 -5.3Q12.8 -5.6 12.3 -5.6Q11.7 -5.6 11.4 -5.3Q11.0 -5.0 10.8 -4.5Q10.6 -4.1 10.6 -3.5V0.0Z M18.2 0.0V-6.3H19.2V-4.9Q19.5 -5.6 20.1 -6.0Q20.7 -6.5 21.4 -6.5Q22.5 -6.5 23.1 -5.9Q23.6 -5.4 23.7 -4.4H22.7Q22.6 -5.0 22.3 -5.3Q22.0 -5.6 21.3 -5.6Q20.7 -5.6 20.2 -5.3Q19.8 -4.9 19.5 -4.4Q19.2 -3.8 19.2 -3.0V0.0Z M37.2 -8.6Q38.0 -8.6 38.6 -8.2Q39.1 -7.8 39.4 -7.2Q39.7 -6.6 39.9 -5.8Q40.0 -5.0 40.0 -4.2Q40.0 -3.3 39.9 -2.6Q39.7 -1.8 39.4 -1.1Q39.1 -0.5 38.6 -0.2Q38.0 0.2 37.2 0.2Q36.4 0.2 35.9 -0.2Q35.3 -0.5 35.0 -1.1Q34.7 -1.8 34.6 -2.6Q34.4 -3.3 34.4 -4.2Q34.4 -5.0 34.6 -5.8Q34.7 -6.6 35.0 -7.2Q35.3 -7.8 35.9 -8.2Q36.4 -8.6 37.2 -8.6ZM37.2 -7.7Q36.3 -7.7 35.9 -6.7Q35.4 -5.8 35.4 -4.2Q35.4 -3.4 35.5 -2.8Q35.6 -2.2 35.8 -1.7L38.2 -7.3Q37.8 -7.7 37.2 -7.7ZM39.0 -4.2Q39.0 -4.9 38.9 -5.5Q38.8 -6.0 38.7 -6.5L36.4 -1.0Q36.7 -0.7 37.2 -0.7Q37.8 -0.7 38.2 -1.1Q38.6 -1.6 38.8 -2.3Q39.0 -3.1 39.0 -4.2Z M44.8 -1.6H46.4V0.0H44.8Z M53.9 0.0V-6.1H51.6V-6.9Q52.4 -6.9 52.8 -7.0Q53.3 -7.0 53.5 -7.2Q53.7 -7.3 53.9 -7.7Q54.0 -8.0 54.2 -8.5H54.9V0.0Z M61.5 -1.6H63.2V0.0H61.5Z M70.7 -8.6Q71.5 -8.6 72.1 -8.2Q72.6 -7.8 72.9 -7.2Q73.2 -6.6 73.4 -5.8Q73.5 -5.0 73.5 -4.2Q73.5 -3.3 73.4 -2.6Q73.2 -1.8 72.9 -1.1Q72.6 -0.5 72.1 -0.2Q71.5 0.2 70.7 0.2Q69.9 0.2 69.4 -0.2Q68.8 -0.5 68.5 -1.1Q68.2 -1.8 68.1 -2.6Q67.9 -3.3 67.9 -4.2Q67.9 -5.0 68.1 -5.8Q68.2 -6.6 68.5 -7.2Q68.8 -7.8 69.4 -8.2Q69.9 -8.6 70.7 -8.6ZM70.7 -7.7Q69.8 -7.7 69.4 -6.7Q68.9 -5.8 68.9 -4.2Q68.9 -3.4 69.0 -2.8Q69.1 -2.2 69.3 -1.7L71.7 -7.3Q71.3 -7.7 70.7 -7.7ZM72.5 -4.2Q72.5 -4.9 72.4 -5.5Q72.3 -6.0 72.2 -6.5L69.9 -1.0Q70.2 -0.7 70.7 -0.7Q71.3 -0.7 71.7 -1.1Q72.1 -1.6 72.3 -2.3Q72.5 -3.1 72.5 -4.2Z"/></g></svg></div>
   </div>
 </footer>
 

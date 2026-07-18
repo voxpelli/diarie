@@ -22,7 +22,7 @@ colors:
   stampel-ljus: "#E8756B"
   stampel-mork: "#A83732"
   kant: "rgba(239, 230, 210, 0.16)"
-  markering: "rgba(107, 79, 200, 0.32)"
+  markering: "rgba(107, 79, 200, 0.42)"
 typography:
   ordmarke:
     fontFamily: Fraunces
@@ -145,7 +145,9 @@ lives in BRAND.md. Follow APCA where they disagree: `hektograf` on arkiv
 (Lc −22) is borders and decoration only, even at display sizes;
 `stampel-ljus` (Lc −46) carries short status labels, not paragraphs; on
 papper use `stampel-mork`. Body text on arkiv is `papper` (primary),
-`lavendel` (secondary), `hektograf-ljus` (muted).
+`lavendel` (secondary), `hektograf-ljus` (muted). On P3 screens the
+highlights upgrade to chroma-boosted OKLCH (double-guarded in tokens.css);
+same lightness and hue, so contrast is unchanged.
 
 ## Typography
 
@@ -190,7 +192,11 @@ the dark ground at 4% opacity (`--korn`) — texture, never animated.
 Corners are `6px` on cards and terminals, `3px` on the marker wash;
 borders are `0.5px` hairlines in `kant`. Stamps are the sharp exception:
 `1.5px` borders, rotated a few degrees off true (−4° to −7°), dashed for
-`granskad`, solid with an inner rule for the `INKOM` date stamp. The mark's
+`granskad`, solid with an inner rule for the `INKOM` date stamp. On the
+built pages both are outlined SVG — rotation baked into geometry, immune
+to per-glyph pixel snapping — and at or below 1.4 dppx the remaining
+rotated HTML text straightens, triggered by resolution (a capability),
+never by vendor sniffing. The mark's
 bells are deliberately asymmetric — pressed specimens are never symmetric —
 and the halo is always four flat steps.
 
@@ -202,8 +208,10 @@ structure, amber for staleness, stämpel-ljus for errors; `role="img"` with
 a summarizing `aria-label` per WCAG H86); **specimen-sheet** (paper card,
 tilted −0.8°, tape corners, optional `granskad` stamp; YAML with hektograf
 keys); **install** (mono pill with copy button — the button is the page's
-only solid-fosfor element and never animates); **marker-wash** (emphasis,
-at most three per page); **stamp-dnr** (`INKOM <date>` over `dnr <version>`; site footer and release notes only); **exit-card** (oversized
+only solid-fosfor element and never animates); **marker-wash** (emphasis, at most
+three per page — borderless ink with hand-uneven corners, deliberately
+distinct from the bordered, square-cornered code chip); **stamp-dnr** (`INKOM <date>` over `dnr
+<version>`; site footer and release notes only); **exit-card** (oversized
 `ordmarke`-cut numeral colored by exit code); the **leaf rule** (hairline
 with the mark's opposite leaf-pair). Full states, motion timings, and edge
 cases: HANDOFF.md.
