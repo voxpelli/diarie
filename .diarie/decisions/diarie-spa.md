@@ -48,9 +48,9 @@ nothing to acknowledge.
 ## Rationale
 
 **Refuse-unless-`--nested` (case 1) overrides the prior-art lean, deliberately.** A 4-round
-reference-class survey placed diarie in the DATA-store class (node_modules, DataLad, DVC), where
+reference-class survey placed diarie in the DATA-store class (node\_modules, DataLad, DVC), where
 nested stores are independent, nearest-wins, and benign — so the class norm is *silent nesting*
-and DataLad/node_modules never warn on an ancestor. The decision goes the other way on purpose, and the reason is CONCRETE: preventing an accidental,
+and DataLad/node\_modules never warn on an ancestor. The decision goes the other way on purpose, and the reason is CONCRETE: preventing an accidental,
 forgotten-ancestor nesting. `ENOSTORE` only distinguishes present-vs-absent, and *which* of two
 present stores answers is already unambiguous via nearest-wins + a `diarie where` query — so the
 refuse does not buy *determinism* (nearest-wins gives that). What it buys is *accident-prevention*:
@@ -83,7 +83,7 @@ surfaces nesting — a read the user asks for, never a per-command runtime nag.
 
 - **Allow + inform / create-time notice (the data-store class norm)** — declined for the
   forgotten-ancestor case: a notice INFORMS but still CREATES the second store, so it does not
-  prevent the accident. Correct for node_modules (nobody reasons about "which node_modules");
+  prevent the accident. Correct for node\_modules (nobody reasons about "which node\_modules");
   diarie chooses to STOP an accidental forgotten-ancestor nesting, not merely report it after the
   fact. `diarie where` supplies the "inform" half positively, as a query the user asks.
 - **Warn but still create** — declined. A warning that creates the store anyway is the ESLint

@@ -54,10 +54,12 @@
     "check:installed-check": "installed-check",
     "check:knip": "knip",
     "check:lint": "eslint",
+    "check:md": "remark . --quiet --frail --ignore-path .gitignore",
     "check:tasks": "node cli.js validate",
     "check:tsc": "tsc",
     "check:type-coverage": "type-coverage --detail --strict --at-least 98 --ignore-files 'test/*'",
     "clean": "find lib -type f \\( -name '*.d.ts' -o -name '*.d.ts.map' \\) ! -name '*-types.d.ts' -delete",
+    "fix:md": "remark . -o --quiet --ignore-path .gitignore",
     "prepack": "npm run build",
     "test": "run-s check test:*",
     "test-ci": "run-s test:*",
@@ -80,7 +82,36 @@
     "installed-check": "^10.0.1",
     "knip": "^5.88.1",
     "npm-run-all2": "^7.0.2",
+    "remark-cli": "^12.0.0",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-lint-unordered-list-marker-style": "^4.0.1",
+    "remark-preset-lint-consistent": "^6.0.0",
+    "remark-preset-lint-recommended": "^7.0.0",
+    "remark-validate-links": "^13.1.0",
     "type-coverage": "^2.29.7",
     "typescript": "~5.9.3"
+  },
+  "remarkConfig": {
+    "settings": {
+      "bullet": "-",
+      "emphasis": "*",
+      "strong": "*",
+      "rule": "-",
+      "fence": "`",
+      "fences": true,
+      "listItemIndent": "one"
+    },
+    "plugins": [
+      "remark-frontmatter",
+      "remark-gfm",
+      "remark-preset-lint-consistent",
+      "remark-preset-lint-recommended",
+      "remark-validate-links",
+      [
+        "remark-lint-unordered-list-marker-style",
+        "-"
+      ]
+    ]
   }
 }

@@ -12,12 +12,12 @@ updated: '2026-07-11'
 **The built-in Claude Code task tracker is not banned.** It and `diarie` occupy different time
 horizons and are used together:
 
-| | `diarie` | the built-in tracker |
-| --- | --- | --- |
-| lifespan | durable — the store **is** the repo, committed to git | ephemeral — dies with the session, correctly |
-| answers | "what is the state of this project's work?" | "what am I doing right now, in this turn?" |
-| audience | you, future sessions, a PR reviewer | you, live, watching progress |
-| carries | dependencies, types, acceptance criteria, an integrity gate | the ordered steps of one claimed thing |
+|          | `diarie`                                                    | the built-in tracker                         |
+| -------- | ----------------------------------------------------------- | -------------------------------------------- |
+| lifespan | durable — the store **is** the repo, committed to git       | ephemeral — dies with the session, correctly |
+| answers  | "what is the state of this project's work?"                 | "what am I doing right now, in this turn?"   |
+| audience | you, future sessions, a PR reviewer                         | you, live, watching progress                 |
+| carries  | dependencies, types, acceptance criteria, an integrity gate | the ordered steps of one claimed thing       |
 
 **One boundary rule, and it is the whole decision:**
 
@@ -65,7 +65,7 @@ precisely; a blanket ban prevents it by also destroying a useful, orthogonal too
 
 **Evidence, from the session that produced this decision (2026-07-11, `vp-beads-tst`).** The
 harness prompted the agent eight times to use the built-in tracker. It declined every time,
-because `CLAUDE.md` said to. The task ran ~10 distinct steps — four suite conversions, a
+because `CLAUDE.md` said to. The task ran \~10 distinct steps — four suite conversions, a
 synthetic fixture, five config edits, a doc sweep, a mutation proof — and the human had **no
 live view of where it was**. The ban cost visibility and bought nothing: the durable record was
 in `.diarie/tasks/` the entire time, doing its job. A rule that fails on its own terms, observed

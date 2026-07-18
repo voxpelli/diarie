@@ -210,8 +210,7 @@ tilted −0.8°, tape corners, optional `granskad` stamp; YAML with hektograf
 keys); **install** (mono pill with copy button — the button is the page's
 only solid-fosfor element and never animates); **marker-wash** (emphasis, at most
 three per page — borderless ink with hand-uneven corners, deliberately
-distinct from the bordered, square-cornered code chip); **stamp-dnr** (`INKOM <date>` over `dnr
-<version>`; site footer and release notes only); **exit-card** (oversized
+distinct from the bordered, square-cornered code chip); **stamp-dnr** (`INKOM <date>` over `dnr <version>`; site footer and release notes only); **exit-card** (oversized
 `ordmarke`-cut numeral colored by exit code); the **leaf rule** (hairline
 with the mark's opposite leaf-pair). Full states, motion timings, and edge
 cases: HANDOFF.md.

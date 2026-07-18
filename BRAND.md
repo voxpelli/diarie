@@ -87,19 +87,19 @@ Canonical values live in [`tokens.css`](./brand/tokens.css) (with
 [`tokens.json`](./brand/tokens.json) as the tooling twin). The palette, with its
 verified WCAG ratios:
 
-| token | hex | role | WCAG 2.x | APCA Lc |
-| --- | --- | --- | --- | --- |
-| `arkiv` | `#171126` | page ground | — | — |
-| `yta` / `yta-2` | `#1F1733` / `#2A1F45` | raised surfaces, code | — | — |
-| `lysning-1…4` | `#221940 → #4B3A87` | the halo, outer → inner | decorative | decorative |
-| `papper` | `#EFE6D2` | text on dark; paper surface | 14.78:1 | −91 |
-| `lavendel` | `#B7ABDD` | secondary text | 8.63:1 | −60 |
-| `hektograf-ljus` | `#9C90C4` | muted text | 6.29:1 | −45 |
-| `hektograf` | `#6B4FC8` | ink: borders, display; body on papper | 3.13 / 4.73:1 | −22 / 65 |
-| `fosfor` | `#5CE49A` | the terminal's voice | 11.37:1 | −75 |
-| `bärnsten` | `#E8A13C` | warnings, staleness | 8.38:1 | −59 |
-| `stämpel` | `#D8453E` | the rejection stamp | 4.23:1 — large only | −32 |
-| `stämpel-ljus` / `-mörk` | `#E8756B` / `#A83732` | red at body size, dark / paper | 6.28 / 5.19:1 | −46 / 67 |
+| token                    | hex                   | role                                  | WCAG 2.x            | APCA Lc    |
+| ------------------------ | --------------------- | ------------------------------------- | ------------------- | ---------- |
+| `arkiv`                  | `#171126`             | page ground                           | —                   | —          |
+| `yta` / `yta-2`          | `#1F1733` / `#2A1F45` | raised surfaces, code                 | —                   | —          |
+| `lysning-1…4`            | `#221940 → #4B3A87`   | the halo, outer → inner               | decorative          | decorative |
+| `papper`                 | `#EFE6D2`             | text on dark; paper surface           | 14.78:1             | −91        |
+| `lavendel`               | `#B7ABDD`             | secondary text                        | 8.63:1              | −60        |
+| `hektograf-ljus`         | `#9C90C4`             | muted text                            | 6.29:1              | −45        |
+| `hektograf`              | `#6B4FC8`             | ink: borders, display; body on papper | 3.13 / 4.73:1       | −22 / 65   |
+| `fosfor`                 | `#5CE49A`             | the terminal's voice                  | 11.37:1             | −75        |
+| `bärnsten`               | `#E8A13C`             | warnings, staleness                   | 8.38:1              | −59        |
+| `stämpel`                | `#D8453E`             | the rejection stamp                   | 4.23:1 — large only | −32        |
+| `stämpel-ljus` / `-mörk` | `#E8756B` / `#A83732` | red at body size, dark / paper        | 6.28 / 5.19:1       | −46 / 67   |
 
 APCA values are Lc per APCA-W3 0.0.98G-4g (negative = light-on-dark), given
 alongside WCAG 2.x because APCA is the stricter, perceptually honest model —
@@ -127,7 +127,7 @@ color shown.
 
 One hazard, named plainly because pretending otherwise would be off-brand:
 dark ground with a single acid-green accent is a default AI aesthetic in
-2026. What keeps this palette specific is everything the default lacks — the
+2026\. What keeps this palette specific is everything the default lacks — the
 paper, the stamps, the stepped light, the amber and red as full citizens,
 and the fact that every accent is a semantic claim you can check against the
 CLI:s actual exit codes.
@@ -146,11 +146,11 @@ Two voices, no third — because the architecture has exactly two sides:
 
 Fraunces is a variable font; the cuts are tokens:
 
-| cut | axes | use |
-| --- | --- | --- |
-| `ordmärke` | opsz 144 · wght 520 · SOFT 60 · WONK 1 | the wordmark and hero only, ≥ 40 px |
-| `rubrik` | opsz 72 · wght 480 · SOFT 40 · WONK 1 | headings |
-| `brödtext` | opsz 15 · wght 415 · SOFT 0 · WONK 0 | running text — wonk off at reading sizes |
+| cut        | axes                                   | use                                      |
+| ---------- | -------------------------------------- | ---------------------------------------- |
+| `ordmärke` | opsz 144 · wght 520 · SOFT 60 · WONK 1 | the wordmark and hero only, ≥ 40 px      |
+| `rubrik`   | opsz 72 · wght 480 · SOFT 40 · WONK 1  | headings                                 |
+| `brödtext` | opsz 15 · wght 415 · SOFT 0 · WONK 0   | running text — wonk off at reading sizes |
 
 Neither family declares a Reserved Font Name in its upstream OFL notice
 (verified against both projects' license files), so subsetting and inlining

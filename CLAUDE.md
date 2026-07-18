@@ -79,15 +79,20 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
 - **ESM only**, JSDoc types (`tsc` checks, never compiles), **neostandard** via
   `@voxpelli/eslint-config` (semicolons on). Prefer `unknown` + type guards over `any`.
 - **`.gitignore` is load-bearing for lint scope.** `check:ast-grep` is a bare `ast-grep scan` (no path
-  args) bounded by `.gitignore`, so adding a broad ignore entry SILENTLY shrinks lint coverage with
-  nothing going red. Treat every `.gitignore` line as a lint-scope decision. (See `sgconfig.yml`.)
+  args) bounded by `.gitignore`, and `check:md` runs `--ignore-path .gitignore`, so adding a broad
+  ignore entry SILENTLY shrinks lint coverage with nothing going red. Treat every `.gitignore` line as
+  a lint-scope decision. (See `sgconfig.yml`.)
 - **8 ast-grep rules** in `.ast-grep/rules/` guard structural invariants (no hardcoded tracker dir, no
   unsanctioned `exit(2)`, no CommonJS `require`, no JSDoc `any`/`object` typedef, no computed exit code,
   no identifier-shadow call, no identical test titles). Each is paired with a rule-test.
 - **Generated `.d.ts`** (`lib/**/*.d.ts`) are gitignored build artifacts, packed via `files`/`prepack`,
   and eslint-ignored — but a hand-written ambient `*-types.d.ts` stays linted and committed.
-- No markdown gate here (no remark/`check:md`), so this file and decision `.md` are unlinted —
-  proofread by hand.
+- **`check:md` lints every tracked `.md`** (`remark . --frail`, bounded by `.gitignore`) — this
+  file, README, and the decision/brand docs, with no exclusions (decision `diarie-tbl`: "no unlinted
+  island"). `fix:md` (`remark . -o`) auto-formats tables/markers/links in place — run it to fix a
+  table rather than hand-aligning cells. `remark-validate-links` catches broken relative links.
+  `brand/DESIGN.md` additionally carries a separate `@google/design.md` lint (its own header records
+  the accepted-warnings status) — that is NOT part of `check:md`.
 
 ## Guardrails
 

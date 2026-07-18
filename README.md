@@ -73,13 +73,13 @@ it cannot go stale, and you cannot forget to unset it when the blocker lands.
 
 ## Commands
 
-| | |
-| --- | --- |
-| `diarie init` | Create a `.diarie/` store |
-| `diarie ready` | List the work that is ready to start · `[--filter <status>] [--blocked] [--strict] [--json]` |
-| `diarie stats` | Totals, ready, blocked, stale claims · `[--stale] [--days <n>] [--json]` |
-| `diarie validate` | Check for dangling deps, bad enums, and cycles · `[--json]` |
-| `diarie migrate` | One-way import of a [beads](https://github.com/steveyegge/beads) export |
+|                   |                                                                                              |
+| ----------------- | -------------------------------------------------------------------------------------------- |
+| `diarie init`     | Create a `.diarie/` store                                                                    |
+| `diarie ready`    | List the work that is ready to start · `[--filter <status>] [--blocked] [--strict] [--json]` |
+| `diarie stats`    | Totals, ready, blocked, stale claims · `[--stale] [--days <n>] [--json]`                     |
+| `diarie validate` | Check for dangling deps, bad enums, and cycles · `[--json]`                                  |
+| `diarie migrate`  | One-way import of a [beads](https://github.com/steveyegge/beads) export                      |
 
 `--root <dir>` points at a project explicitly; otherwise `diarie` searches upward from the cwd, like
 `git` does.
@@ -94,10 +94,10 @@ them is how a broken tracker gets reported as a clean sprint.
 
 So:
 
-| exit | meaning |
-| --- | --- |
-| **0** | The answer is on stdout. An **empty but present** store is a legitimate answer. |
-| **1** | You asked wrong. A machine-readable `code` says how: `ENOSTORE` (no store here), `EUSAGE`, `EEXIST`. |
+| exit  | meaning                                                                                                                             |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **0** | The answer is on stdout. An **empty but present** store is a legitimate answer.                                                     |
+| **1** | You asked wrong. A machine-readable `code` says how: `ENOSTORE` (no store here), `EUSAGE`, `EEXIST`.                                |
 | **2** | It ran, and the answer is **no**: the store is unsound (`validate` found errors, or `ready --strict` on a store with dropped rows). |
 
 With `--json`, an error is a JSON object on **stdout**, not a message on stderr:
@@ -135,12 +135,12 @@ owner of your data, and the point is that you own it. The files are the API; `gi
 
 Four, and they are exclusive:
 
-| type | lives in | |
-| --- | --- | --- |
-| `task` | `.diarie/tasks/*.yml` | A unit of work. **The only type `ready` ever surfaces.** |
-| `milestone` | `.diarie/tasks/*.yml` | A structural marker (`v1.0`). No effort, no assignment. |
-| `decision` | `.diarie/decisions/<id>.md` | An architectural choice and its reasoning. Stays open while in force. |
-| `doc` | `.diarie/docs/<id>.md` | Reference prose. |
+| type        | lives in                    |                                                                       |
+| ----------- | --------------------------- | --------------------------------------------------------------------- |
+| `task`      | `.diarie/tasks/*.yml`       | A unit of work. **The only type `ready` ever surfaces.**              |
+| `milestone` | `.diarie/tasks/*.yml`       | A structural marker (`v1.0`). No effort, no assignment.               |
+| `decision`  | `.diarie/decisions/<id>.md` | An architectural choice and its reasoning. Stays open while in force. |
+| `doc`       | `.diarie/docs/<id>.md`      | Reference prose.                                                      |
 
 **The type is exclusive; the framing is additive.** `bug`, `feature`, `chore`, `spike` are *labels* on a
 `task` — because "what kind of thing is this" admits one answer, while "how should I think about it"
