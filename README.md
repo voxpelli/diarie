@@ -26,7 +26,7 @@ the thing you cannot leave.
 npm install --save-dev diarie
 ```
 
-Requires Node.js `^20.19.0 || ^22.13.0 || >=24`.
+Requires Node.js `^22.13.0 || >=24.0.0`.
 
 ## Quick start
 

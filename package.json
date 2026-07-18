@@ -25,7 +25,7 @@
   "license": "MIT",
   "type": "module",
   "engines": {
-    "node": "^20.19.0 || ^22.13.0 || >=24"
+    "node": "^22.13.0 || >=24.0.0"
   },
   "bin": {
     "diarie": "cli.js"
@@ -77,7 +77,7 @@
     "@ast-grep/cli": "^0.44.1",
     "@domstack/sync": "^0.0.5",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^20.19.43",
+    "@types/node": "^22.20.1",
     "@voxpelli/eslint-config": "^25.1.0",
     "@voxpelli/tsconfig": "^16.2.1",
     "eslint": "^9.39.4",
