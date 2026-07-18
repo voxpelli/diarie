@@ -1,7 +1,6 @@
 {
   "name": "diarie",
   "version": "0.1.0",
-  "private": true,
   "description": "A flat-YAML task tracker that is just files. No daemon, no database, no git hooks.",
   "author": "Pelle Wessman <pelle@kodfabrik.se> (https://kodfabrik.se/)",
   "homepage": "https://diarie.dev",
