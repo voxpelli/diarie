@@ -55,12 +55,13 @@
     "check:knip": "knip",
     "check:lint": "eslint",
     "check:tasks": "node cli.js validate",
-    "check:test": "npm test",
     "check:tsc": "tsc",
     "check:type-coverage": "type-coverage --detail --strict --at-least 98 --ignore-files 'test/*'",
     "clean": "find lib -type f \\( -name '*.d.ts' -o -name '*.d.ts.map' \\) ! -name '*-types.d.ts' -delete",
     "prepack": "npm run build",
-    "test": "node --test"
+    "test": "run-s check test:*",
+    "test-ci": "run-s test:*",
+    "test:node": "node --test"
   },
   "dependencies": {
     "@voxpelli/typed-utils": "^5.0.0",
