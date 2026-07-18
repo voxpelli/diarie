@@ -365,7 +365,21 @@ tasks:
       BLOCKED ON A USER ACTION, not on code: the name gate. `diarie` must not be exposed
       publicly — no push, no npm publish, no released plugin naming it — until the domain and
       an npm placeholder are secured. Everything else here is mechanical.
-    updated: '2026-07-11'
+
+
+      PROGRESS 2026-07-18 (publish-prep, plan splendid-mixing-kazoo). Re-verified GREEN after the
+      brand session: `npm pack --dry-run` ships 67 files (LICENSE/README/cli.js/lib/**, every .d.ts
+      present, zero brand/test/scripts/.github leak), publint "All good", attw --profile esm-only
+      shows node16-ESM + bundler green for both `diarie` and `diarie/schema`, and
+      installed-check/knip/`npm test` (255 assertions) all pass. Polish tail: `knip.jsonc` →
+      `.knip.jsonc` DONE; the type-coverage 98→99 bump DROPPED (maintainer: accept 98 — the ~60
+      uncovered `any`s are in lib/, out of scope for this release). RELEASE MODEL SET: 0.1.0
+      publishes BY HAND locally, then release-please + OIDC trusted publishing for 0.1.1+ — that
+      automation is split into its own row `diarie-rlp`. REMAINING here = two human gates: remove
+      `private: true` (gate: diarie.dev registered + `npm view diarie` 404) and confirm
+      repository/homepage, then local `npm publish` + `git tag v0.1.0` + push, each on the
+      maintainer's explicit in-the-moment approval.
+    updated: '2026-07-18'
   - id: vp-beads-ext
     title: Extract diarie from vp-beads (git subtree split)
     status: pending
@@ -741,6 +755,49 @@ tasks:
       deploy. Still gated on vp-beads-pub for the public launch (opentype.js@^2.0.0 + @voxpelli/generate-
       favicon are the dev-only build deps; neither ships in the npm package).
     updated: '2026-07-18'
+  - id: diarie-rlp
+    title: Wire release-please + OIDC trusted publishing for 0.1.1+
+    status: pending
+    type: task
+    priority: medium
+    deps:
+      - vp-beads-pub
+    labels:
+      - chore
+    acceptance_criteria:
+      - "add the release-please config, mirroring voxpelli's ghatemplates/release-please.patch: .github/release-please/config.json (release-type node, include-component-in-tag false, the template changelog-sections, one package at the repo root) and .github/release-please/manifest.json seeded to 0.1.0 (NOT 0.0.0 — 0.1.0 shipped by hand first)"
+      - ".github/workflows/release-please.yml uses voxpelli/ghatemplates/.github/workflows/release-please-oidc.yml@main (secrets: inherit; app-id 1082006; id-token: write), and .github/workflows/compliance.yml enforces conventional-commit PR titles"
+      - "the reusable workflow defaults config-file/manifest-file to the .github/release-please/ paths and PUBLISHES via pure OIDC trusted publishing (npm publish --access public, NO NPM_TOKEN, on id-token: write + a GitHub environment named npm) — verified by reading reusable-npm-publish-oidc.yml"
+      - "RECONCILE the generated CHANGELOG with check:md: release-please emits * bullets, which FAIL diarie's remark-lint-unordered-list-marker-style (-) under --frail (confirmed 2 warnings). Decision diarie-tbl forbids excluding tracked markdown (no unlinted island), so make release-please emit - bullets via config if achievable; else take the researched fallback and record the tradeoff. Seed the hand-written 0.1.0 CHANGELOG entry in release-please's own format"
+      - "SKIP .husky/commit-msg — compliance.yml already enforces conventional commits at PR level; the local hook is redundant, and is repo dev-tooling distinct from the tracker's own no-git-hooks identity"
+      - "HUMAN, post-publish (npmjs.com + GitHub, cannot be scripted): add a trusted publisher on the diarie npm package pointing at release-please.yml (environment npm); create the npm GitHub Environment; confirm the APP_PEM secret for GitHub App 1082006 exists (drives the release-PR bot, not npm auth)"
+      - "VERIFY: a conventional-commit push to main opens a release-please PR; merging publishes the next version via OIDC with provenance (0.1.0 shipped locally without provenance — intentional)"
+    description: >-
+      The go-forward release automation, split out of vp-beads-pub. Model set by the maintainer:
+      0.1.0 is published BY HAND locally (npm trusted publishing can only be configured on a
+      package that already exists), then release-please + OIDC handles 0.1.1+. Mirrors the
+      convention in voxpelli's own published packages (list-dependents-cli, peowly-commands),
+      verified against ghatemplates' reusable release-please-oidc.yml + reusable-npm-publish-oidc.yml
+      (2026-07-18). See plan splendid-mixing-kazoo.md Phase B.
+
+
+      ORDERING GOTCHA: release-please.yml triggers on push to main, and with the manifest at 0.1.0 it
+      opens a release PR for the NEXT version off the commits it finds. So its commit must be PUSHED
+      only AFTER the manual 0.1.0 publish + `git tag v0.1.0` exist — otherwise the first run opens a
+      premature release PR against an unpublished 0.1.0. Keep B1 as a separate commit from the
+      pre-publish prep so the push can follow 0.1.0.
+
+
+      STAGED 2026-07-19 (uncommitted): the four files exist locally
+      (.github/release-please/{config,manifest}.json + workflows/{release-please,compliance}.yml).
+      CHANGELOG reconciliation resolved via research (release-please CANNOT be configured to emit
+      `-` bullets — hardcoded in conventional-changelog's commit.hbs; verified against source):
+      relaxed diarie's `remark-lint-unordered-list-marker-style` from `-` to its `consistent` default,
+      so the all-`*` CHANGELOG passes while every hand-written `-` doc still passes and nothing is
+      excluded from check:md (diarie-tbl intact). Caveat: do NOT run `fix:md` on the release-please-
+      owned CHANGELOG — it would rewrite `*`→`-` and later mix with new `*` entries. Maintainer may
+      instead choose CI-normalization (keeps strict `-`) or exclusion (disfavored) — reversible.
+    updated: '2026-07-19'
   - id: diarie-col
     title: Wire the brand's semantic exit-code colors into the CLI output
     status: pending
