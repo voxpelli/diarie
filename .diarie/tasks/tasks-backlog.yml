@@ -997,3 +997,23 @@ tasks:
       tool and report back. This row is the durable home for that commitment; an ephemeral note is
       not enough.
     updated: '2026-07-18'
+  - id: diarie-aus
+    title: Adopt the AI Usage Scale on diarie.dev — deferred (needs the honest 3-vs-4 call)
+    status: pending
+    type: task
+    priority: low
+    labels:
+      - feature
+    acceptance_criteria:
+      - "DECIDE the honest level first (3 vs 4): the badge aims at Level 3 Directed (the substance/design/decisions are the author's; a model produced most of the code, reviewed line by line), but v0.1.0 had AI originating much of the design elaboration — arguably a 3.5/3.6. Leaning 3 (L4 = AI produced the substance from a thin brief, which does NOT fit — the briefs carried the author's specific philosophy). The scale is integer, so it rounds to one"
+      - "if adopted: link the README human-directed/AI-built shields badge to usagescale.org/<level> (currently UNLINKED by choice); inline the official dark-ground Level mark on diarie.dev (use 3-dark.svg — NOT 3-name.svg, whose #16191B ink vanishes on arkiv); add ai-usage + ai-disclosure meta tags; a /.well-known/ai-disclosure.json wired into brand/dist-copy.js ASSETS; and an honest one-line footer blurb in .fine"
+      - "the scale is CC0 (marks + levels.json) — no attribution required; keeping the link IS the definition per its own rules"
+      - "full landscape, the scale's mechanics and the rationale live in the BM note 'AI-Development Disclosure Badges — the human-directed/AI-built framing and the 2026 landscape' — read it before acting"
+    description: >-
+      Deferred 2026-07-19 (user: 'requires more thought'). The AI Usage Scale (usagescale.org) is a
+      strong 1:1 fit — Level 3 'Directed' matches diarie's human-directs/AI-builds/reviews process,
+      it is an open CC0 standard (the 'standards over products' tenet), machine-readable (EU AI Act
+      Art. 50-aligned), deliberately non-judgmental, and declares ITSELF Level 3 (built the same way).
+      For now the README carries only the plain UNLINKED shields badge; this row is the durable home
+      for the fuller adoption once the honest 3-vs-4 call is made.
+    updated: '2026-07-19'
