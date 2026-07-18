@@ -24,9 +24,11 @@ verb:
 - **`npm test`** — the FULL gate: `run-s check test:*` (all linting/checks, then all tests). If it
   passes, everything passes. This is what you run before declaring work done.
 - `npm run check` — **linting/checks ONLY** (`run-p check:*`: lint, tsc, type-coverage, knip,
-  installed-check, ast-grep, ast-grep-test, tasks). Does NOT run tests.
+  installed-check, md, ast-grep, ast-grep-test, tasks). Does NOT run tests.
 - `npm run test-ci` / `npm run test:node` — tests only (`node --test`).
 - `npm run build` — emit `.d.ts` via `declaration.tsconfig.json` (also runs on `prepack`).
+- `npm run serve` — live-reload preview of the `brand/` HTML pages (`index.html` = diarie.dev) at
+  `localhost:${PORT:-3334}` via `@domstack/sync`. Dev-only; `brand/` is not in the package `files`.
 
 🚨 **Do NOT re-add a `check:test` script.** Tests deliberately do not live inside `check`: CI runs them
 via the dedicated `nodejs.yml`/`test-ci` job, and `npm test` is the local full gate. `check:test` once
