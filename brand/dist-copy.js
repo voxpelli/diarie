@@ -1,0 +1,29 @@
+/**
+ * dist-copy.js — reset `brand-dist/` to a clean snapshot of the deployable
+ * source, ready for the stamp + favicon generators to write into.
+ *
+ * A BUILD step (`brand:copy`), the first stage of `brand:build`. It copies
+ * only the ALLOWLIST below — the files diarie.dev actually serves — so the
+ * design docs, the brand book, and the build tooling never leak into the
+ * deploy. `cp` throws if a listed source is missing (loud, per the founding
+ * thesis — a missing asset must never silently produce an empty deploy).
+ */
+import { cp, mkdir, rm } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+
+const SRC = new URL('./', import.meta.url); // brand/
+const DIST = new URL('../brand-dist/', import.meta.url); // repo-root sibling
+
+// The deployable set (diarie.dev root). CNAME/.nojekyll join this once the
+// deploy workflow lands; generated favicons are written by brand:favicon.
+const ASSETS = ['index.html', 'og.png', 'fonts'];
+
+await rm(DIST, { recursive: true, force: true });
+await mkdir(DIST, { recursive: true });
+
+for (const name of ASSETS) {
+  await cp(new URL(name, SRC), new URL(name, DIST), { recursive: true });
+  console.log(`copied ${name} → brand-dist/`);
+}
+
+console.log(`brand-dist/ ready at ${fileURLToPath(DIST)}`);
