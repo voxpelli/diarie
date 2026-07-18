@@ -163,8 +163,8 @@ bottom of every page.
 — partly the LG München GDPR ruling, mostly the principle: a page that
 depends on a third party to render its own name has already lost the
 argument this project exists to make. On diarie.dev the subset woff2:s are
-served from `fonts/` beside the page — the same directory the release
-tooling (`update-stamp.mjs`) reads, one source of truth for every glyph —
+served from `fonts/` beside the page — the same directory the build
+tooling (`update-stamp.js`) reads, one source of truth for every glyph —
 preloaded, with `font-display: swap`. Provenance and the verbatim OFL
 texts travel with the files — `fonts/README.md`. Regenerate
 the subsets from the upstream OFL files with:

@@ -6,12 +6,12 @@ The two voices of diarie, self-hosted. Both are licensed under the
 [`FragmentMono-OFL.txt`](./FragmentMono-OFL.txt)), fetched verbatim from
 the upstream repositories.
 
-| File                           | What it is                                               | Used by                                                  |
-| ------------------------------ | -------------------------------------------------------- | -------------------------------------------------------- |
-| `Fraunces-VF.woff2`            | Fraunces variable (opsz/wght/SOFT/WONK), subset          | both pages — the archive voice                           |
-| `Fraunces-Italic-static.woff2` | Fraunces italic, instanced at opsz 14 / wght 430, subset | both pages — emphasis in prose                           |
-| `FragmentMono-Regular.woff2`   | Fragment Mono regular, subset                            | both pages — the reader voice                            |
-| `FragmentMono-Regular.ttf`     | Fragment Mono, unsubset TTF                              | `update-stamp.mjs` — outlines the INKOM stamp at release |
+| File                           | What it is                                               | Used by                                               |
+| ------------------------------ | -------------------------------------------------------- | ----------------------------------------------------- |
+| `Fraunces-VF.woff2`            | Fraunces variable (opsz/wght/SOFT/WONK), subset          | both pages — the archive voice                        |
+| `Fraunces-Italic-static.woff2` | Fraunces italic, instanced at opsz 14 / wght 430, subset | both pages — emphasis in prose                        |
+| `FragmentMono-Regular.woff2`   | Fragment Mono regular, subset                            | both pages — the reader voice                         |
+| `FragmentMono-Regular.ttf`     | Fragment Mono, unsubset TTF                              | `update-stamp.js` — outlines the INKOM stamp at build |
 
 **Provenance.** Fraunces: Undercase Type (Phaedra Charles, Flavia
 Zimbardi) — github.com/undercasetype/Fraunces. Fragment Mono: Wei Huang —

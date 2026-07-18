@@ -29,6 +29,17 @@ verb:
 - `npm run build` — emit `.d.ts` via `declaration.tsconfig.json` (also runs on `prepack`).
 - `npm run serve` — live-reload preview of the `brand/` HTML pages (`index.html` = diarie.dev) at
   `localhost:${PORT:-3334}` via `@domstack/sync`. Dev-only; `brand/` is not in the package `files`.
+- **Brand tooling (`brand:*`) is maintainer/CI-run and NEVER in the gate.** `brand:build` = `run-s
+  brand:copy brand:stamp brand:favicon` writes the deployable site into the **gitignored `brand-dist/`**
+  (never source `brand/`, whose committed stamp is the designer's bespoke artifact). `brand:stamp`
+  (`update-stamp.js`, opentype.js) outlines the INKOM stamp; `brand:favicon` (`generate-favicons.js`,
+  `@voxpelli/generate-favicon`) renders `apple-touch-icon.png` from the full mark (flattening its CSS
+  `var()` first — rasterizers don't resolve custom properties). `brand:check`
+  (`scripts/check-brand-assets.js`) asserts referenced deploy assets exist; it runs post-build in
+  `.github/workflows/pages.yml` (GitHub Pages, `deploy-pages@v5`), **not** in `npm test` (the local gate
+  never builds `brand-dist/`). A mutating generator must never join `check:*`/`test:*`. If the build
+  ever outgrows plain-Node copy+stamp+favicon, adopt domstack (already the `serve` tool) rather than
+  hand-rolling more.
 
 🚨 **Do NOT re-add a `check:test` script.** Tests deliberately do not live inside `check`: CI runs them
 via the dedicated `nodejs.yml`/`test-ci` job, and `npm test` is the local full gate. `check:test` once
