@@ -1,8 +1,13 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
 
-  "entry": ["lib/index.js", "lib/schema.js", "brand/update-stamp.js", "brand/dist-copy.js"],
+  "entry": ["lib/index.js", "lib/schema.js", "brand/update-stamp.js", "brand/dist-copy.js", "brand/generate-favicons.js"],
   "project": ["cli.js", "lib/**/*.js", "brand/*.js"],
+
+  // `@voxpelli/generate-favicon` is CLI-only (no exports) and is invoked as a bare binary via
+  // execFileSync in brand/generate-favicons.js, so knip cannot trace it structurally and would
+  // otherwise report it as an unused devDependency. Ignored deliberately, with WHY.
+  "ignoreDependencies": ["@voxpelli/generate-favicon"],
 
   // `@planned` marks an export that is deliberately kept without a caller. It must SAY WHY in the
   // JSDoc — a silenced knip warning that implies somebody still needs the export is worse than no
