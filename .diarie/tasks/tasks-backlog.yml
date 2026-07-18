@@ -359,7 +359,8 @@ tasks:
       - "DONE (454e9d7): the declaration build emits .d.ts (declaration.tsconfig.json + prepack). `build` runs `clean` FIRST — required, not tidy: TS resolution PREFERS a .d.ts over its sibling .js, so last build's output becomes this build's INPUT (TS5055). Idempotence proved by building twice"
       - "DONE (454e9d7): proved against the TARBALL — install it into a fresh consumer, tsc asserts computeReady/loadTasks/VALID_TYPES are NOT `any`; bin runs; publint All good; attw --profile esm-only -> node16-ESM and bundler both green"
       - "🚧 BLOCKED ON THE USER, and only this: `private: true` is removed ONLY after the name gate closes — `diarie.dev` registered (DONE) AND a placeholder npm package published (`npm view diarie` -> 404 as of 2026-07-15). Publishing 0.1.0 SATISFIES that gate rather than breaching it"
-      - "⚠️ CONFIRM BEFORE PUBLISH: `repository` is set to github:voxpelli/diarie and `homepage` to https://diarie.dev. The standalone repo does not exist yet — both are assumptions, flagged rather than buried"
+      - "⚠️ CONFIRM BEFORE PUBLISH: `repository` is set to github:voxpelli/diarie and `homepage` to https://diarie.dev. The repo now EXISTS (private, pushed 2026-07-18) and diarie.dev is registered — confirm both resolve as intended before publish"
+      - "MINOR house-convention polish (optional, pre-publish; folded here rather than given its own row): bump `type-coverage --at-least` 98 -> 99 to match the templates IF coverage already reaches it (do not cut code to hit it); rename `knip.jsonc` -> `.knip.jsonc` (dotfile, matching all four node-* templates)"
     description: >-
       BLOCKED ON A USER ACTION, not on code: the name gate. `diarie` must not be exposed
       publicly — no push, no npm publish, no released plugin naming it — until the domain and
@@ -813,4 +814,70 @@ tasks:
       doc-type vestigial, milestone unconstrained, meta block dead data, mis-placed doc/decision
       row unflagged. Consolidated because they are all "the type model defines something the
       tooling never enforces" — each needs a prune-or-enforce decision.
+    updated: '2026-07-18'
+  - id: diarie-agf
+    title: Reconsider check-ast-grep-floor.js — a bespoke fix for a general ignore-driven-coverage-shrink problem?
+    status: pending
+    type: task
+    priority: medium
+    labels:
+      - chore
+    acceptance_criteria:
+      - "the scannedFileCount floor (vp-beads-flr) guards ONE tool — ast-grep's bare, .gitignore-bounded scan — against the 'a broad ignore silently shrinks coverage' failure. But that failure haunts EVERY ignore-driven tool here: eslint (ignores), tsc (exclude), type-coverage (--ignore-files), knip (ignore lists). Decide: keep ast-grep-only, generalize a floor across tools, or drop it as over-fit"
+      - "if KEEP: state why ast-grep is uniquely exposed (a bare scan with no explicit path list) while the others name their inputs, so a shrink shows up in the config diff"
+      - "if GENERALIZE: what would a per-tool coverage floor even assert for eslint/tsc/type-coverage/knip, and is the machinery worth it"
+      - "if DROP: what replaces the detectability the floor buys"
+    description: >-
+      Raised 2026-07-18: scripts/check-ast-grep-floor.js asserts a minimum scannedFileCount so a
+      broad .gitignore line cannot silently zero the ast-grep scan (vp-beads-flr). Open question:
+      is this the right layer, or an over-fit fix for a green-and-inert-via-ignore failure shared
+      by eslint, tsc, type-coverage and knip — none of which carry a floor?
+    updated: '2026-07-18'
+  - id: diarie-tst
+    title: Add tstyche type-testing for the public type API + restore the tstyche.yml workflow
+    status: pending
+    type: task
+    priority: medium
+    labels:
+      - chore
+    acceptance_criteria:
+      - "add the `tstyche` devDep, `tstyche.config.json` (`testFileMatch: typetests/**/*.tst.ts`, `rejectAnyType`/`rejectNeverType`), and a `typetests/` suite covering the shipped public surface (`computeReady`, `loadTasks`, the `diarie/schema` subpath)"
+      - "wire the `check-type-tests` script, add `exclude: [typetests/**/*]` to tsconfig.json (tsc's main project must not compile the .tst.ts files), and set `engines.typescript` so a `--target` has a source"
+      - "restore the omitted `.github/workflows/tstyche.yml` (copied from node-cli-template) — this is the ONE node-module-template CI job diarie skipped at the 2026-07-18 alignment"
+      - "the point: diarie ships .d.ts via `exports`, so tstyche is the gate that catches a regression in what consumers import — type GENERATION works today (build/prepack, verified), type TESTING does not"
+    description: >-
+      diarie is a library-with-a-bin and generates .d.ts (declaration.tsconfig.json -> prepack).
+      node-module-template validates its public type API with tstyche + a tstyche.yml workflow;
+      diarie deferred both at the house-conventions alignment (2026-07-18). Publish-relevant: this
+      is the last node-module-template piece diarie does not yet carry.
+    updated: '2026-07-18'
+  - id: diarie-cov
+    title: Decide c8 line-coverage — instrument test:node
+    status: pending
+    type: task
+    priority: low
+    labels:
+      - chore
+    acceptance_criteria:
+      - "decide whether to add c8 line-coverage; if yes, instrument `test:node` as `c8 --reporter=lcov --reporter=text node --test` (the templates' exact test:node) — the test-ci/test:node scaffolding added 2026-07-18 already routes through test:node, so it is a one-line swap"
+      - "orthogonal to the existing type-coverage (98% ratchet): runtime branch coverage vs type-safety ratio are different axes; the templates run both"
+    description: >-
+      The templates instrument test:node with c8; diarie has type-coverage but no runtime
+      line-coverage. Deferred at the 2026-07-18 house-conventions alignment as a decision, not a
+      default.
+    updated: '2026-07-18'
+  - id: diarie-chk
+    title: Consider --continue-on-error on the check fan
+    status: pending
+    type: task
+    priority: low
+    labels:
+      - chore
+    acceptance_criteria:
+      - "consider `run-p check:* --continue-on-error` so a CI run reports EVERY red check at once instead of dying on the first (matches the templates' check script)"
+      - "weigh against the current fail-fast: --continue-on-error trades quick local failure for complete CI signal in one run"
+    description: >-
+      The templates' check is `run-s clean && run-p check:* --continue-on-error && run-s
+      check-type-tests`; diarie's is a fail-fast `run-p check:*`. Deferred at the 2026-07-18
+      alignment — a small DX call, not a gap.
     updated: '2026-07-18'
