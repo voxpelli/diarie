@@ -61,6 +61,7 @@
     "clean": "find lib -type f \\( -name '*.d.ts' -o -name '*.d.ts.map' \\) ! -name '*-types.d.ts' -delete",
     "fix:md": "remark . -o --quiet --ignore-path .gitignore",
     "prepack": "npm run build",
+    "serve": "domstack-sync --server brand --watch --port ${PORT:-3334}",
     "test": "run-s check test:*",
     "test-ci": "run-s test:*",
     "test:node": "node --test"
@@ -74,6 +75,7 @@
   },
   "devDependencies": {
     "@ast-grep/cli": "^0.44.1",
+    "@domstack/sync": "^0.0.5",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.19.43",
     "@voxpelli/eslint-config": "^25.1.0",
