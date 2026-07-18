@@ -1,0 +1,52 @@
+name: Deploy diarie.dev
+
+# Builds brand-dist/ (copy of the deployable source + freshly generated stamp
+# and favicons) and deploys it to GitHub Pages. Source brand/ stays pristine;
+# the stamp shows the build date and the current package version.
+#
+# One-time GitHub-side setup by the maintainer: Settings → Pages → Source:
+# "GitHub Actions", and confirm the diarie.dev custom domain (the CNAME in the
+# artifact keeps it pinned across deploys).
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'brand/**'
+      - 'scripts/check-brand-assets.js'
+      - 'package.json'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+# Least privilege, plus the OIDC token deploy-pages needs.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time; never cancel an in-flight deploy.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --no-fund --no-audit
+      - run: npm run brand:build
+      - run: npm run brand:check
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: brand-dist
+      - id: deploy
+        uses: actions/deploy-pages@v5

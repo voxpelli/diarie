@@ -21,6 +21,14 @@ export default [
     // @voxpelli/typed-utils use, and it is why the ignore is not a bare `*.d.ts`.
     ignores: ['lib/**/*.d.ts', 'lib/**/*.d.ts.map', '!lib/**/*-types.d.ts'],
   },
+  {
+    name: 'diarie/build-output',
+    // brand-dist/ is generated deploy output (copied source + generated stamp/favicons). It is
+    // gitignored, so ast-grep and remark already skip it, and it holds no hand-written JS today —
+    // but excluding it here keeps "don't lint built output" structural, not incidental on the day a
+    // stray `.js` lands there. It's the one build dir a tool could otherwise wander into.
+    ignores: ['brand-dist/'],
+  },
   ...voxpelli({
     noMocha: true,
     // Exactly the root's old `diarie/**/*.js` glob, expressed from inside. Test files are included

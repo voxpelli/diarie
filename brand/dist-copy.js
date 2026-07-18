@@ -14,9 +14,11 @@ import { fileURLToPath } from 'node:url';
 const SRC = new URL('./', import.meta.url); // brand/
 const DIST = new URL('../brand-dist/', import.meta.url); // repo-root sibling
 
-// The deployable set (diarie.dev root). CNAME/.nojekyll join this once the
-// deploy workflow lands; generated favicons are written by brand:favicon.
-const ASSETS = ['index.html', 'og.png', 'fonts'];
+// The deployable set (diarie.dev root). `CNAME` pins the custom domain (Pages
+// removes it on deploy if the artifact lacks it); `.nojekyll` is belt-and-suspenders
+// for the artifact deploy. Generated favicons are written by brand:favicon.
+// brand-book.html is deliberately NOT here — it stays a file:// local reference.
+const ASSETS = ['index.html', 'og.png', 'fonts', 'CNAME', '.nojekyll'];
 
 await rm(DIST, { recursive: true, force: true });
 await mkdir(DIST, { recursive: true });
