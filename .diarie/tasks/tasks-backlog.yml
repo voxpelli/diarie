@@ -1017,3 +1017,21 @@ tasks:
       For now the README carries only the plain UNLINKED shields badge; this row is the durable home
       for the fuller adoption once the honest 3-vs-4 call is made.
     updated: '2026-07-19'
+  - id: diarie-tgl
+    title: Tangled dual-home — public repo on tangled.org, GitHub the private publish backend
+    status: in_progress
+    type: task
+    priority: medium
+    labels:
+      - chore
+    acceptance_criteria:
+      - "DONE 2026-07-19: repointed every public-facing diarie-repo reference from the (now-private) GitHub repo to https://tangled.org/voxpelli.com/diarie — package.json repository.url + bugs.url, and brand/index.html's three source links (footer 'github' → 'tangled'). External links (neostandard/esm/types-in-js badges, beads, Fraunces + Fragment-Mono upstreams) left untouched"
+      - "DONE 2026-07-19: added the tangled remote (git@tangled.org:did:plc:tnxetmdxcteq2uyf56rvknbu) and set origin to push-to-both (GitHub + tangled); pushed full history to both"
+      - "MODEL: GitHub stays PRIVATE = the npm-OIDC-publish + GitHub-Pages backend (Spindle CI cannot be an npm trusted publisher — GH Actions / GitLab / CircleCI only). Tangled is the SOLE public repo. Accepted trade: no npm provenance, no DeepWiki (both need a public GitHub)"
+      - "DEFERRED — release-please drift: release-please pushes version-bump commits + tags to GitHub SERVER-SIDE, which a local push-to-both never carries to tangled. Fix by either a GitHub Action mirroring GitHub→tangled after each main push (needs a tangled push credential as a GH secret), or a manual `git fetch origin && git push tangled main --tags` after each release"
+      - "DEFERRED — site hosting: tangled can also host diarie.dev (user noted 2026-07-19); it is currently on GitHub Pages. Evaluate moving or mirroring the static deploy to tangled as a later step"
+    description: >-
+      diarie's founding tenet is lock-in resistance / standards over products, so the public home
+      moves to tangled.org (git-native on the AT Protocol, self-hostable knots) while GitHub is
+      demoted to a private CI / publish / Pages backend. Decided 2026-07-19.
+    updated: '2026-07-19'
