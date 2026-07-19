@@ -263,14 +263,18 @@ p+.term,p+.codes{margin-top:1.5rem}
   text-rendering:geometricPrecision;
 }
 @media (prefers-reduced-motion:no-preference){
-  .anim.stamps-armed .stamp{opacity:0;transform:rotate(var(--rr,var(--r,0deg))) scale(1.16)}
+  /* Additive entrance: the stamps are visible at rest and press down like a
+     registrar's stamp when scrolled into view — transform only, no opacity
+     gate. So no context that skips the scroll reveal (headless capture,
+     reader mode, a preview crawler, the pre-scroll first paint) ever renders
+     the refusals blank; the reveal enhances an already-visible default. */
   .anim.stamps-armed .stamps.in .stamp{
     animation:stampla var(--dur-beat) var(--ease-lysning) var(--d,0ms) both;
   }
   @keyframes stampla{
-    0%{opacity:0;transform:rotate(var(--rr,var(--r,0deg))) scale(1.16)}
-    62%{opacity:1;transform:rotate(var(--rr,var(--r,0deg))) scale(.985)}
-    100%{opacity:1;transform:rotate(var(--rr,var(--r,0deg))) scale(1)}
+    0%{transform:rotate(var(--rr,var(--r,0deg))) scale(1.14)}
+    62%{transform:rotate(var(--rr,var(--r,0deg))) scale(.985)}
+    100%{transform:rotate(var(--rr,var(--r,0deg))) scale(1)}
   }
 }
 
