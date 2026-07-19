@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>diarie — foundations</title>
+<meta name="description" content="The diarie token layer as a specimen sheet: palette, the two type voices, the exit-code accent contract, and the paper-context flip.">
+<link rel="icon" href="diarie-favicon.svg" type="image/svg+xml">
+
+<!-- Repo-only reference page (not in dist-copy.js's deploy allowlist, like
+     brand-book.html). A compact rendering of the token layer as a specimen
+     sheet — the same artifact synced to claude.ai/design. Canonical values
+     live in tokens.css; when this page and that file disagree, the file wins. -->
+<link rel="preload" href="fonts/Fraunces-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/FragmentMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  @font-face{font-family:"Fraunces";font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/Fraunces-VF.woff2) format("woff2")}
+  @font-face{font-family:"Fraunces";font-style:italic;font-weight:100 900;font-display:swap;src:url(fonts/Fraunces-Italic-static.woff2) format("woff2")}
+  @font-face{font-family:"Fragment Mono";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/FragmentMono-Regular.woff2) format("woff2")}
+
+  /* Foundational base — the on-brand defaults (mirrors index.html / styles.css). */
+  *{box-sizing:border-box;margin:0}
+  body{
+    background:var(--grund);color:var(--text);
+    font-family:var(--stil-arkiv);font-variation-settings:var(--snitt-brodtext);
+    font-size:1.0625rem;line-height:1.65;
+    -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  }
+  code{font-family:var(--stil-lasare);background:var(--yta-2);border-radius:2px;padding:.08em .32em;font-size:.86em;box-shadow:inset 0 0 0 .5px var(--kant)}
+  ::selection{background:var(--lysning-4);color:var(--papper)}
+
+  .sheet-pad{padding:2.4rem 2rem;max-width:60rem;margin:0 auto}
+  .head{display:flex;align-items:baseline;gap:1rem;flex-wrap:wrap;margin-bottom:.4rem}
+  .ordm{font-variation-settings:var(--snitt-ordmarke);font-size:clamp(2.6rem,7vw,4rem);line-height:1;letter-spacing:-.01em}
+  .sub{font-family:var(--stil-lasare);font-size:.82rem;letter-spacing:.12em;text-transform:uppercase;color:var(--hektograf-ljus)}
+  .lead{color:var(--text-2);max-width:46rem;margin-bottom:2.8rem}
+
+  h2.rub{font-variation-settings:var(--snitt-rubrik);font-size:1.35rem;line-height:1.2;margin:2.6rem 0 1.1rem}
+  .note{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);margin-top:.5rem}
+
+  /* Swatches */
+  .swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(11rem,1fr));gap:.7rem}
+  .sw{border:var(--hallinje) solid var(--kant);border-radius:var(--radie);overflow:hidden;background:var(--yta)}
+  .sw .chip{height:3.4rem}
+  .sw .meta{padding:.55rem .7rem;font-family:var(--stil-lasare);font-size:.72rem;line-height:1.45}
+  .sw .tok{color:var(--text);display:block}
+  .sw .hex{color:var(--text-3)}
+  .sw .role{color:var(--text-2);display:block;margin-top:.2rem;font-size:.68rem}
+
+  /* Type specimen */
+  .type-row{border-top:var(--hallinje) solid var(--kant);padding:1.1rem 0}
+  .type-row:last-child{border-bottom:var(--hallinje) solid var(--kant)}
+  .type-tag{font-family:var(--stil-lasare);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:.35rem}
+  .spec-ordm{font-variation-settings:var(--snitt-ordmarke);font-size:3rem;line-height:1}
+  .spec-rub{font-variation-settings:var(--snitt-rubrik);font-size:1.6rem;line-height:1.15}
+  .spec-brod{font-variation-settings:var(--snitt-brodtext);font-size:1.0625rem;line-height:1.6;color:var(--text)}
+
+  /* Terminal — the reader voice */
+  .term{background:var(--yta-2);border-radius:var(--radie);padding:1.1rem 1.2rem;font-family:var(--stil-lasare);font-size:.85rem;line-height:1.75;box-shadow:inset 0 0 0 .5px var(--kant)}
+  .term .p0{color:var(--fosfor)}
+  .term .p1{color:var(--barnsten)}
+  .term .p2{color:var(--stampel-ljus)}
+  .term .struct{color:var(--lavendel)}
+  .term .muted{color:var(--text-3)}
+
+  /* Exit-code legend */
+  .exits{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:.7rem;margin-top:.4rem}
+  .exit{background:var(--yta);border:var(--hallinje) solid var(--kant);border-radius:var(--radie);padding:1rem 1.1rem}
+  .exit .num{font-variation-settings:var(--snitt-ordmarke);font-size:2.4rem;line-height:1}
+  .exit.e0 .num{color:var(--exit-0)}
+  .exit.e1 .num{color:var(--exit-1)}
+  .exit.e2 .num{color:var(--exit-2)}
+  .exit .lbl{font-family:var(--stil-lasare);font-size:.74rem;color:var(--text-2);margin-top:.4rem;line-height:1.4}
+  .exit .lbl b{color:var(--text);font-weight:400}
+
+  /* Paper specimen — the .pa-papper flip */
+  .sheet{border-radius:var(--radie);padding:1.6rem 1.7rem;box-shadow:0 0 0 6px var(--lysning-2);transform:rotate(-0.8deg);max-width:30rem}
+  .sheet .k{color:var(--hektograf)}
+  .sheet .tag{font-family:var(--stil-lasare);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3)}
+  .sheet pre{font-family:var(--stil-lasare);font-size:.82rem;line-height:1.7;margin-top:.5rem}
+  .flip-wrap{display:flex;justify-content:center;padding:1.4rem 0 .4rem}
+</style>
+</head>
+<body>
+<div class="sheet-pad">
+
+  <div class="head">
+    <span class="ordm">diarie</span>
+    <span class="sub">foundations</span>
+  </div>
+  <p class="lead">The token layer as a specimen sheet — pressed flat, backlit, honest.
+    Every color, type cut and accent below is a live <code>var(--token)</code> from
+    <code>tokens.css</code> — the brand as CSS.</p>
+
+  <h2 class="rub">Palette</h2>
+  <div class="swatches">
+    <div class="sw"><div class="chip" style="background:var(--arkiv)"></div><div class="meta"><span class="tok">--arkiv</span><span class="hex">#171126</span><span class="role">page ground</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--yta)"></div><div class="meta"><span class="tok">--yta</span><span class="hex">#1F1733</span><span class="role">card surface</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--yta-2)"></div><div class="meta"><span class="tok">--yta-2</span><span class="hex">#2A1F45</span><span class="role">code / terminal</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--papper)"></div><div class="meta"><span class="tok">--papper</span><span class="hex">#EFE6D2</span><span class="role">paper / text on dark</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--lavendel)"></div><div class="meta"><span class="tok">--lavendel</span><span class="hex">#B7ABDD</span><span class="role">secondary · blocked</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--hektograf-ljus)"></div><div class="meta"><span class="tok">--hektograf-ljus</span><span class="hex">#9C90C4</span><span class="role">muted text</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--hektograf)"></div><div class="meta"><span class="tok">--hektograf</span><span class="hex">#6B4FC8</span><span class="role">copy-ink · borders</span></div></div>
+  </div>
+
+  <h2 class="rub">The halo — stepped light, never a gradient</h2>
+  <div class="swatches">
+    <div class="sw"><div class="chip" style="background:var(--lysning-1)"></div><div class="meta"><span class="tok">--lysning-1</span><span class="hex">#221940</span><span class="role">outer step</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--lysning-2)"></div><div class="meta"><span class="tok">--lysning-2</span><span class="hex">#2E2257</span><span class="role">step 2</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--lysning-3)"></div><div class="meta"><span class="tok">--lysning-3</span><span class="hex">#3C2D6E</span><span class="role">step 3</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--lysning-4)"></div><div class="meta"><span class="tok">--lysning-4</span><span class="hex">#4B3A87</span><span class="role">inner step</span></div></div>
+  </div>
+
+  <h2 class="rub">The accents have jobs — the exit-code contract</h2>
+  <p class="note">Each intense accent carries a CLI exit code. None is decorative.</p>
+  <div class="exits">
+    <div class="exit e0"><div class="num">0</div><div class="lbl"><b>--fosfor</b> · the answer, on stdout · <b>ready</b></div></div>
+    <div class="exit e1"><div class="num">1</div><div class="lbl"><b>--barnsten</b> · you asked wrong · stale claims</div></div>
+    <div class="exit e2"><div class="num">2</div><div class="lbl"><b>--stampel</b> · it ran, the answer is no · the rejection stamp</div></div>
+  </div>
+
+  <h2 class="rub">Two voices, no third</h2>
+  <div class="type-row">
+    <div class="type-tag">Fraunces · archive voice · ordmärke cut</div>
+    <div class="spec-ordm">the reader is honest</div>
+  </div>
+  <div class="type-row">
+    <div class="type-tag">Fraunces · rubrik cut</div>
+    <div class="spec-rub">A public record of your own work</div>
+  </div>
+  <div class="type-row">
+    <div class="type-tag">Fraunces · brödtext cut</div>
+    <div class="spec-brod">Pressed flat, backlit, and honest. Wonk and softness turn off at reading sizes — character belongs at display, never in running text.</div>
+  </div>
+  <div class="type-row">
+    <div class="type-tag">Fragment Mono · reader voice — what the CLI reports</div>
+    <div class="term">
+<span class="muted">$</span> diarie ready<br>
+<span class="p0">●</span> diarie-7   <span class="struct">write the foundations card</span>   <span class="muted">ready</span><br>
+<span class="p1">●</span> diarie-4   <span class="struct">re-verify contrast table</span>   <span class="p1">stale</span><br>
+<span class="p2">✗</span> diarie-9   <span class="struct">store not found</span>   <span class="p2">ENOSTORE</span>
+    </div>
+  </div>
+
+  <h2 class="rub">Paper context — the <code>.pa-papper</code> flip</h2>
+  <p class="note">Add <code>class="pa-papper"</code> to any container and the role tokens flip: ink on paper, hektograf links.</p>
+  <div class="flip-wrap">
+    <div class="sheet pa-papper" style="background:var(--grund);color:var(--text)">
+      <span class="tag">specimen · dnr 0.2.0</span>
+      <pre><span class="k">type:</span> task
+<span class="k">id:</span> diarie-7
+<span class="k">status:</span> pending
+<span class="k">title:</span> the herbarium sheet, flipped</pre>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

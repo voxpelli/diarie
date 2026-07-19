@@ -1,0 +1,6 @@
+{
+  "projectId": "439660e3-68de-4a4a-bc61-bd6bae5e89dc",
+  "name": "diarie brand tokens",
+  "shape": "custom",
+  "note": "Off-script tokens/styles-only sync. diarie has no component library; this project carries the token layer, self-hosted fonts, brand styles, guidelines, and ONE hand-authored preview card (components/foundations/Foundations/Foundations.html — a Foundations specimen: palette, type voices, exit-code mapping, .pa-papper flip; it links ../../../styles.css and was browser-verified). The bundle is built by hand into scratchpad ds-bundle/ from brand/tokens.css, brand/tokens.json, brand/fonts/, BRAND.md and brand/DESIGN.md; the durable source of the Foundations card is brand/foundations.html (a standalone repo-only reference page, not in dist-copy.js's deploy allowlist); on re-sync, adapt it to the bundle card by swapping its tokens.css link + inline @font-face for a `../../../styles.css` link, dropping the favicon/preload lines, and re-adding the `<!-- @dsCard group=\"Brand\" -->` first line. No converter run and no _ds_sync.json anchor, so a re-sync re-verifies everything (correct for this shape). Source of truth: brand/ in this repo."
+}
