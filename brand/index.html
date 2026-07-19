@@ -345,17 +345,17 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
 }
 @media print{
   :root{--korn:0}
-  body{background:#fff;color:#171126;padding:0}
+  body{background:var(--print-ground);color:#171126;padding:0}
   body::after,.env,.ledger,nav,.install,.hero-links{display:none}
   .stamps .stamp{opacity:1;transform:none;animation:none;color:#A83732;border-color:#A83732}
   .hero,section{padding:1.2rem 0}
   h1,h2,.tagline{color:#171126}
   .muted,.dim,.facts p,.qa p,.aud p,.code p,.type p{color:#3a3060}
-  .term{background:#f2ecdd;color:#171126;border:.5px solid #999}
+  .term{background:#f2ecdd;color:#171126;border:.5px solid var(--print-rule)}
   .term .c,.term .g,.term .k,.term .r{color:#171126}
-  .code,.type,.aud>div{border:.5px solid #999;background:#fff}
+  .code,.type,.aud>div{border:.5px solid var(--print-rule);background:var(--print-ground)}
   a{color:#171126}
-  .lineage a::after,footer a::after{content:" (" attr(href) ")";font-size:.75em;color:#666}
+  .lineage a::after,footer a::after{content:" (" attr(href) ")";font-size:.75em;color:var(--print-muted)}
   .dnr{--st-line:#A83732;--st-text:#A83732}
   .dnr-scene::before,.dnr-scene::after{background:none}
   .hl{background:#E6DCF5}

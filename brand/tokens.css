@@ -142,3 +142,18 @@
     --dur-reveal: 0ms;
   }
 }
+
+/* Print sub-palette. Print needs literal neutrals the dark screen identity
+   deliberately lacks: a white paper ground, a hairline rule, a muted
+   annotation ink for expanded URLs. Kept as named --print-* tokens — defined
+   here (one checkable place) and referenced only inside the pages' @media print
+   blocks, never added to the screen `colors` palette. That way the value lives
+   in the system without globally allowing bare #fff / #999 / #666 as screen
+   colours (a stray one elsewhere still trips the design-system check). */
+@media print {
+  :root {
+    --print-ground: #fff;   /* paper white — the screen ground is dark (--arkiv) */
+    --print-rule:   #999;   /* hairline rule on paper */
+    --print-muted:  #666;   /* muted ink for printed URL annotations */
+  }
+}
