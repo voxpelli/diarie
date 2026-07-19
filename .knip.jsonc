@@ -1,8 +1,12 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
 
-  "entry": ["lib/index.js", "lib/schema.js", "brand/update-stamp.js", "brand/dist-copy.js", "brand/generate-favicons.js"],
-  "project": ["cli.js", "lib/**/*.js", "brand/*.js"],
+  // No explicit `entry`: knip auto-detects every entry point from package.json —
+  // lib/index.js + lib/schema.js via `exports`, cli.js via `bin`, and the three
+  // brand/*.js via the `brand:*` scripts that invoke them. `cli.js` is likewise
+  // omitted from `project` (the bin entry already covers it). knip flagged all of
+  // these as redundant patterns; this is that cleanup.
+  "project": ["lib/**/*.js", "brand/*.js"],
 
   // `@voxpelli/generate-favicon` is CLI-only (no exports) and is invoked as a bare binary via
   // execFileSync in brand/generate-favicons.js, so knip cannot trace it structurally and would
