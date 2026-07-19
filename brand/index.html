@@ -606,7 +606,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
       <div class="term" role="img" aria-label="JavaScript: importing computeReady and loadTasks from diarie">
 <pre><span class="k">import</span> { computeReady, loadTasks } <span class="k">from</span> <span class="g">'diarie'</span>
 
-<span class="k">const</span> { tasks } = <span class="k">await</span> loadTasks(<span class="g">'/path/to/project'</span>)
+<span class="k">const</span> tasks = <span class="k">await</span> loadTasks(<span class="g">'/path/to/project'</span>)
 <span class="k">const</span> { ready, blocked, needsAttention } = computeReady(tasks)</pre>
       </div>
       <p class="muted" style="margin-top:1.1rem"><code>needsAttention</code> is the third
