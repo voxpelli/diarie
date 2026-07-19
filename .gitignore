@@ -28,6 +28,13 @@ node_modules/
 .impeccable/
 .cache/
 
+# impeccable's DESIGN.md discovery symlink → brand/DESIGN.md (the canonical, tracked, linted copy).
+# Local-only glue so `/impeccable` resolves the design system. Committing it would double-lint the
+# same content from the wrong base dir — remark-validate-links resolves brand/'s relative links from
+# the repo root and fails. No coverage lost: brand/DESIGN.md stays the one linted copy. Regenerated
+# by `/impeccable init`.
+/DESIGN.md
+
 # The brand deploy build output. `brand:build` regenerates it (copy of the deployable source +
 # freshly generated stamp + favicons); CI builds it and deploys it to diarie.dev via pages.yml.
 # A DELIBERATE lint-scope exclusion per the warning above: it is generated, so linting the copies
