@@ -223,6 +223,11 @@ p+.term,p+.codes{margin-top:1.5rem}
 .sheet-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:2.6rem;align-items:start}
 .sheet-grid>*,.codes>*,.types>*,.aud>*,.qa>*{min-width:0}
 .sheet{
+  /* paper-context inks, named locally (the standalone page inlines only the
+     tokens it uses; these mirror tokens.css .pa-papper --text-2/--text-3). */
+  --papper-ink-2:#4A3B6B;
+  --papper-ink-3:#6B5E92;
+  --papper-hl:#E3D3F2;
   background:var(--papper);color:var(--arkiv);border-radius:6px;
   padding:1.4rem 1.5rem;position:relative;
   box-shadow:0 0 0 6px var(--lysning-2);
@@ -238,11 +243,11 @@ p+.term,p+.codes{margin-top:1.5rem}
 .granskad{flex:none;align-self:center;display:block;--st-line:var(--stampel-mork);--st-text:var(--stampel-mork)}
 .sheet pre{font-size:.85rem;line-height:1.65;overflow-x:auto;text-rendering:geometricPrecision}
 .sheet .y-k{color:var(--hektograf)}
-.sheet .y-c{color:#6B5E92;font-style:italic}
-.sheet .y-hl{background:#E3D3F2;border-radius:3px;padding:0 .2em}
+.sheet .y-c{color:var(--papper-ink-3);font-style:italic}
+.sheet .y-hl{background:var(--papper-hl);border-radius:3px;padding:0 .2em}
 .sheet-label{
   margin-top:1.1rem;padding-top:.8rem;border-top:.5px dashed rgba(23,17,38,.3);
-  font-family:var(--stil-lasare);font-size:.74rem;color:#4A3B6B;
+  font-family:var(--stil-lasare);font-size:.74rem;color:var(--papper-ink-2);
   display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;
 }
 
