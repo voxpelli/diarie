@@ -86,7 +86,7 @@ it cannot go stale, and you cannot forget to unset it when the blocker lands.
 | `diarie ready`    | List the work that is ready to start · `[--filter <status>] [--blocked] [--strict] [--json]` |
 | `diarie stats`    | Totals, ready, blocked, stale claims · `[--stale] [--days <n>] [--json]`                     |
 | `diarie validate` | Check for dangling deps, bad enums, and cycles · `[--json]`                                  |
-| `diarie migrate`  | One-way import of a [beads](https://github.com/steveyegge/beads) export                      |
+| `diarie migrate`  | One-way import of a [beads](https://github.com/gastownhall/beads) export                     |
 
 `--root <dir>` points at a project explicitly; otherwise `diarie` searches upward from the cwd, like
 `git` does.
@@ -182,6 +182,37 @@ Two rules the reader follows, which you may want to follow too:
   you whether to care.
 - **Represent the malformed row; never delete it.** `validate` is the authority that rejects. The
   reader's job is to be honest.
+
+## Similar tools
+
+diarie is one point in a growing space of git-native, plain-text trackers — humans and agents
+sharing a backlog that lives in the repo. How it relates to the closest cousins, and why it makes
+the choices it does:
+
+- [Backlog.md](https://github.com/MrLesk/Backlog.md) — the nearest neighbour by a wide margin: the
+  same "the backlog lives in the repo, shared by humans and agents" thesis, down to the same
+  `task` / `doc` / `decision` / `milestone` type model. The difference is what diarie leaves out. A
+  tool this central to your work should be simple and stay out of your way, so diarie is a reader and
+  nothing else: no board, no wizard editing your agent files, no MCP server telling your agents how to
+  work — no opinion about your workflow, only about your data. And it holds exactly one line there: a malformed
+  row is represented and reported (`validate`, the `needsAttention` partition), and a missing store is
+  an *error*, not an empty backlog. That is the whole product.
+- [beads](https://github.com/gastownhall/beads) — a capable issue tracker framed as memory for a
+  coding agent, built on Dolt (a versioned SQL database) with git hooks it installs. diarie is the
+  opposite architectural bet — its own tagline: **no daemon, no database, no git hooks.** Git *is* the
+  database, so there is nothing to run and nothing to sync, and uninstalling leaves the backlog
+  untouched, where a stateful tracker is a migration project to leave. `diarie migrate` imports a beads
+  export for anyone crossing over.
+- [git-bug](https://github.com/git-bug/git-bug) — a distributed, offline-first bug tracker that embeds
+  issues as git *objects*. It shares the "git is the database" idea but resolves it the other way: the
+  data lives in git's object store, reached through git-bug's own commands. diarie keeps the store as
+  ordinary files in the working tree instead — you open `.diarie/tasks/*.yml` in your editor, `cat`
+  it, and read it in a normal diff, with no tool required to see your own backlog.
+- [todo.txt](https://github.com/todotxt/todo.txt) — the minimal end of the same "your tasks are just a
+  text file you own" idea: one line per task, no dependency graph, no types. diarie is a more
+  structured point on that spectrum — a dependency graph (so `ready` is computed, never stored stale),
+  a few exclusive types, and a missing store that is an *error*, not an empty list — without giving up
+  the plain file.
 
 ## License
 
