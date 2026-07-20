@@ -1049,6 +1049,7 @@ tasks:
       - "Filters --status / --type / --label / --match <regex> + --json; 'search' is just --match — do NOT build a bespoke `diarie search` (diarie-qry declined it)"
       - "Four-part command shape (run → setupCommand → doTheWork returns data → formatWorkResult is the only writer); reuse lib/flags/ groups; new lib/commands/list.js"
       - "Output preserves record identity (id/status/type carried per hit) — the record-identity papercut that motivated diarie-qry"
+      - "Coordinates with the extensible-metadata fields (diarie-ext): gains a `--file <path>` filter with diarie-fil and a `--rel <relation>` filter with diarie-lnk once those land"
     description: >-
       The 'no way to list rows' gap in decision diarie-qry is now felt in practice (2026-07-20: user
       wanted to find tasks by keyword mid-discussion, and it recurred from the 2026-07-18 grep
@@ -1117,4 +1118,45 @@ tasks:
       Odd gap: the site sells the philosophy but omits the command list, so the CLI surface is
       undiscoverable from diarie.dev. Add a raw reference section (kept in sync with `diarie --help`)
       so the page documents what diarie actually does, not only why.
+    updated: '2026-07-20'
+  - id: diarie-fil
+    title: Add optional `files` metadata field to tasks (non-gating, shape-only validation)
+    status: pending
+    type: task
+    priority: medium
+    labels:
+      - feature
+    acceptance_criteria:
+      - "Per decision diarie-ext. Add optional `files?: string[]` to TaskRow in lib/schema.js (parallel to labels/deps)"
+      - "validate (lib/validate.js): shape-check it is a list of strings. NEVER existence-check against the working tree — tasks legitimately name files to be created (e.g. diarie-rgc names lib/commands/register.js before it exists)"
+      - "NON-GATING: nothing in the ready-walk reads it; a stale files list cannot affect what is workable"
+      - "Fold a `--file <path>` filter into diarie list (diarie-lst)"
+      - "Backfill today's rows as the first users once the field lands (diarie-cmd→brand/index.html; diarie-xid→lib/schema.js,lib/validate.js; diarie-rgc→lib/commands/register.js,cli.js; diarie-lst→lib/commands/list.js)"
+      - "Update README/CLAUDE.md schema docs in the same change; tests: shape pass/fail, and a to-be-created path is NOT flagged"
+    description: >-
+      Per diarie-ext: a structured list of directly-affected files, so work can be filtered by path
+      and parallel waves can partition by file (diarie's own CLAUDE.md contract) — which git cannot
+      answer for pending work. Optional, informational, never existence-checked.
+    updated: '2026-07-20'
+  - id: diarie-lnk
+    title: Add optional `links` metadata field to tasks — open web-linking relations (rel + internal ref / external href)
+    status: pending
+    type: task
+    priority: medium
+    labels:
+      - feature
+    deps:
+      - diarie-xid
+    acceptance_criteria:
+      - "Per decision diarie-ext. Add optional `links?: Link[]` to TaskRow (+ a Link typedef) in lib/schema.js. Each link: a non-empty `rel` (OPEN vocabulary — IANA relations + custom, NOT a closed enum) and exactly ONE target"
+      - "Settle the internal-target key: `ref:` recommended (entity-generic — points at any task/decision/doc/milestone id), NOT `task:` (the motivating example wrote `task: diarie-reg` but diarie-reg is a decision)"
+      - "validate (lib/validate.js): shape-check rel + one-of(ref|href); href is URI-shaped and NEVER fetched; an internal ref IS resolved against the unified id authority (diarie-xid) — a dangling internal link is a reported broken reference (like a dangling dep). All NON-GATING for the ready-walk"
+      - "deps/parent stay the first-class COMPUTED relations; links is the OPEN non-computed space. Do NOT fold deps/parent into links here — that unification is a separate open decision (diarie-rel)"
+      - "Fold a `--rel <relation>` filter into diarie list (diarie-lst)"
+      - "Update README/CLAUDE.md schema docs in the same change; tests: shape pass/fail, open rel accepted, dangling internal ref caught, external href not fetched"
+    description: >-
+      Per diarie-ext: a typed-relation field on the Web Linking model (RFC 8288 rel/href), letting a
+      task carry related/alternate/see-also relations to other entities or external URLs — a
+      user-extensible, standards-based reference layer. Internal refs resolve through the unified
+      diarienummer authority, hence the dep on diarie-xid.
     updated: '2026-07-20'
