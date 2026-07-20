@@ -115,8 +115,11 @@ collaborators-only). README, `CONTRIBUTING.md`, and the diarie.dev footer point 
 Tangled; keep those pointers **host-neutral** (the same files publish to both forges — never write
 "this repo is a mirror").
 
-- **Releases are automated** (release-please + npm OIDC on GitHub) — never `npm publish` by hand. So
-  version tags and the `release-please--*` branch are born **server-side on GitHub**.
+- **GitHub exists primarily as the release backend.** npm OIDC trusted publishing works from GitHub
+  Actions (and GitLab/CircleCI) but **not from Tangled**, so the release-please + OIDC workflow must
+  run on GitHub — that is the reason to keep the mirror at all. Releases are automated (never
+  `npm publish` by hand); version tags and the `release-please--*` branch are born **server-side on
+  GitHub**.
 - **Tangled has no pull-mirror**, so those GitHub-born refs reach it only when pushed — keeping
   Tangled in sync is a manual push after each release (mechanism deferred, row `diarie-tgl`). Never a
   whole-repo `--mirror`/`--all` push: it would leak the release-please branch to Tangled.
