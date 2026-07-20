@@ -1055,3 +1055,25 @@ tasks:
       session) — the trigger the decision named for building (b). Enumerating/filtering rows has no
       CLI surface today; line-oriented grep loses record identity.
     updated: '2026-07-20'
+  - id: diarie-rgc
+    title: Build `diarie register` — create-only registration verb (allocate branch-safe diarienummer + persist initial record)
+    status: pending
+    type: task
+    priority: high
+    labels:
+      - feature
+    acceptance_criteria:
+      - "Implements decision diarie-reg. New lib/commands/register.js in the four-part shape (run → setupCommand → doTheWork RETURNS DATA → formatWorkResult is the only writer); wired into cli.js; reuse lib/flags/ groups"
+      - "Mints a SHORT, convention-consistent, BRANCH-MERGE-SAFE id (random over the short id space — NOT auto-increment, which collides across branches on merge); shape from lib/schema.js ID_RE (never forked); checked free across ALL surfaces (task rows + decisions/ + docs/ filenames). Accepts explicit --id; a taken --id refuses with {code:'EEXIST'} on stdout + non-zero exit, mirroring init"
+      - "POSSIBLE, NOT REQUIRED: the store stays hand-writable; nothing in read/validate depends on a row having been created via register — it is one door in, not a gate"
+      - "Writes a schema-valid skeleton row (REQUIRED_FIELDS + updated:) to the correct tasks-<slug>.yml (--slug, default backlog like init) at the right indentation. TARGETED write preserving the comment header, existing rows, and ordering — NEVER js-yaml load→dump. Handle the fresh-store `tasks: []` anchor (rewrite that flow line into a block sequence — the only existing-content change permitted). Atomic write; one owner per file"
+      - "Does NOT set or modify any field on an existing row (register vs revise): no status/assign/close/retitle — those stay in the editor"
+      - "Prints the diarienummer (id) + target file; --json emits {id, file, row}. doTheWork returns {id,file,row} so it is assertable in-process (no spawn, no stdout capture)"
+      - "Tests (test/*.spec.js, node:test): empty-store first-registration (the tasks:[] anchor), populated-store append, explicit --id, EEXIST refusal, generated-id shape/uniqueness, header+ordering preserved, output round-trips `diarie validate`"
+      - "Docs IN THE SAME CHANGE that ships the command (not before): rewrite README '## The write side is your editor' from 'no writes' to the register-vs-revise boundary; update CLAUDE.md's 'no CRUD helper' line; add register to any prose-command surfaces and --help"
+    description: >-
+      Decision diarie-reg accepted a create-only registration verb: allocate a branch-safe
+      diarienummer and persist the initial record atomically, bounded at register-vs-revise. The hard
+      part is the write (preserve the comment header + the fresh-store tasks:[] anchor without a
+      js-yaml round-trip), not the id. Optional by design — the files stay the API.
+    updated: '2026-07-20'
