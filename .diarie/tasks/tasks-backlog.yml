@@ -1018,7 +1018,7 @@ tasks:
       for the fuller adoption once the honest 3-vs-4 call is made.
     updated: '2026-07-19'
   - id: diarie-tgl
-    title: Tangled dual-home — public repo on tangled.org, GitHub the private publish backend
+    title: Tangled dual-home — tangled.org is the dev home, GitHub a public mirror + publish backend
     status: in_progress
     type: task
     priority: medium
@@ -1027,11 +1027,13 @@ tasks:
     acceptance_criteria:
       - "DONE 2026-07-19: repointed every public-facing diarie-repo reference from the (now-private) GitHub repo to https://tangled.org/voxpelli.com/diarie — package.json repository.url + bugs.url, and brand/index.html's three source links (footer 'github' → 'tangled'). External links (neostandard/esm/types-in-js badges, beads, Fraunces + Fragment-Mono upstreams) left untouched"
       - "DONE 2026-07-19: added the tangled remote (git@tangled.org:did:plc:tnxetmdxcteq2uyf56rvknbu) and set origin to push-to-both (GitHub + tangled); pushed full history to both"
-      - "MODEL: GitHub stays PRIVATE = the npm-OIDC-publish + GitHub-Pages backend (Spindle CI cannot be an npm trusted publisher — GH Actions / GitLab / CircleCI only). Tangled is the SOLE public repo. Accepted trade: no npm provenance, no DeepWiki (both need a public GitHub)"
-      - "DEFERRED — release-please drift: release-please pushes version-bump commits + tags to GitHub SERVER-SIDE, which a local push-to-both never carries to tangled. Fix by either a GitHub Action mirroring GitHub→tangled after each main push (needs a tangled push credential as a GH secret), or a manual `git fetch origin && git push tangled main --tags` after each release"
+      - "MODEL (updated 2026-07-20): GitHub is now PUBLIC as a mirror — issues disabled, PR creation collaborators-only (GitHub's per-repo 'Creation allowed by: Collaborators only' setting, a hard block, not a policy) — with tangled.org as the development home for issues + PRs. GitHub remains the npm-OIDC-publish + GitHub-Pages backend (Spindle CI cannot be an npm trusted publisher — GH Actions / GitLab / CircleCI only). Going public reverses the earlier private-only trade: npm provenance + DeepWiki are available again. Contributors are steered to Tangled from a README note, a new CONTRIBUTING.md, and the diarie.dev footer 'github mirror' link (docs/brand worded host-neutrally since the same files publish to both forges)"
+      - "release-please drift: version tags are born on GitHub SERVER-SIDE (OIDC), so a local push-to-both never carries them to tangled. EXISTING DRIFT RECONCILED 2026-07-20 — `git push origin --tags` fanned v0.1.0 + v0.2.0 to tangled; tangled now has main + both tags and (correctly) no release-please branch. ONGOING MECHANISM still DEFERRED (user chose 'decide later' 2026-07-20): either (a) a GitHub Action pushing main + refs/tags/* to tangled after each release — needs a tangled SSH deploy key as a GH secret; must use explicit refspecs, NEVER --mirror/--all which would leak the GitHub-only release-please branch — or (b) a manual `git fetch origin --tags && git push origin --tags` after each release. Tangled has NO server-side pull-mirror (confirmed via its docs), so tags MUST be pushed. A git pre-/post-push hook CANNOT solve this — CI-born tags never pass through a local push"
       - "DEFERRED — site hosting: tangled can also host diarie.dev (user noted 2026-07-19); it is currently on GitHub Pages. Evaluate moving or mirroring the static deploy to tangled as a later step"
     description: >-
-      diarie's founding tenet is lock-in resistance / standards over products, so the public home
-      moves to tangled.org (git-native on the AT Protocol, self-hostable knots) while GitHub is
-      demoted to a private CI / publish / Pages backend. Decided 2026-07-19.
-    updated: '2026-07-19'
+      diarie's founding tenet is lock-in resistance / standards over products, so the development
+      home is tangled.org (git-native on the AT Protocol, self-hostable knots). Decided 2026-07-19
+      to demote GitHub to a CI / publish / Pages backend; on 2026-07-20 GitHub was made a PUBLIC
+      mirror (issues off, PRs collaborators-only) rather than kept private, with contributors pointed
+      to Tangled for issues + PRs.
+    updated: '2026-07-20'
