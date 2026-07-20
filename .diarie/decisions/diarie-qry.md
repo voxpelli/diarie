@@ -16,6 +16,10 @@ does not carry the row's `id` / `status` / `type`, and a hit inside a `descripti
 orphaned from its header. So "just grep the store" underserves the store's structure. Whether
 diarie should close that gap in the CLI is the open question.
 
+**Trigger fired 2026-07-20.** The "no way to list rows" gap was felt again — wanting to find tasks
+by keyword mid-discussion — the condition this record named for building option (b). Now tracked as
+task `diarie-lst`; the recommendation stands (build (b) `diarie list --match`, not a bespoke search).
+
 ## Rationale
 
 diarie's reads earn their place by COMPUTING something grep cannot: `ready` is a pure function of

@@ -107,10 +107,27 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
   `brand/DESIGN.md` additionally carries a separate `@google/design.md` lint (its own header records
   the accepted-warnings status) — that is NOT part of `check:md`.
 
+## Remotes & publishing (dual-home)
+
+`diarie` is public on **Tangled** (tangled.org/voxpelli.com/diarie — the development home for
+issues + PRs), **npm**, and **GitHub** (voxpelli/diarie — a mirror: issues disabled, PR creation
+collaborators-only). README, `CONTRIBUTING.md`, and the diarie.dev footer point contributors to
+Tangled; keep those pointers **host-neutral** (the same files publish to both forges — never write
+"this repo is a mirror").
+
+- **Releases are automated** (release-please + npm OIDC on GitHub) — never `npm publish` by hand. So
+  version tags and the `release-please--*` branch are born **server-side on GitHub**.
+- **Tangled has no pull-mirror**, so those GitHub-born refs reach it only when pushed — keeping
+  Tangled in sync is a manual push after each release (mechanism deferred, row `diarie-tgl`). Never a
+  whole-repo `--mirror`/`--all` push: it would leak the release-please branch to Tangled.
+- **Remote names and any push fan-out are per-checkout** (local git config, not committed) — run
+  `git remote -v` to see this checkout's setup; a fresh clone has only the remote it came from.
+
 ## Guardrails
 
 - Use ESM syntax only. Keep changes minimal and consistent with the surrounding file's style.
 - Add tests for new behaviour (`test/*.spec.js`, `node:test`); validate with `npm test` before finishing.
 - This repo tracks its own work in `.diarie/` — say "record a task" / "add a row", never "file a bead".
-- `private: true` and the npm name gate stay until the maintainer lifts them; never `npm publish` or
-  push without an explicit, in-the-moment go-ahead.
+- The old `private`/npm-name gate is **lifted** — `diarie` is public on Tangled, npm, and GitHub.
+  Releases go through release-please (see Remotes & publishing); never `npm publish` by hand,
+  and never push without an explicit, in-the-moment go-ahead.

@@ -58,3 +58,9 @@ UPSTREAM-*.md
 lib/**/*.d.ts
 lib/**/*.d.ts.map
 !lib/**/*-types.d.ts
+
+# Personal, per-checkout Claude notes (this clone's remote names + push fan-out, which must NOT go in
+# the committed CLAUDE.md — remote names are local to a clone). The `.claude.local.md` convention.
+# A DELIBERATE lint-scope exclusion per the warning above: it is personal scratch, not shared prose,
+# so remark (check:md, .gitignore-bounded) should not see it.
+.claude.local.md
