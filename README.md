@@ -15,6 +15,10 @@ refuses to lie to you when the store is broken. That is the whole product.
 You write to it with your editor. There is no `diarie add`, deliberately — see
 [The write side is your editor](#the-write-side-is-your-editor).
 
+> **Issues and pull requests live on [Tangled](https://tangled.org/voxpelli.com/diarie)** — not on the
+> [GitHub mirror](https://github.com/voxpelli/diarie), where issues are disabled and only collaborators
+> can open pull requests. See [CONTRIBUTING.md](./CONTRIBUTING.md).
+
 ## Why
 
 Issue trackers want to be the system of record. That means a database, which means a daemon, which
