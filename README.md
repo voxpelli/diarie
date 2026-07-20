@@ -7,6 +7,7 @@
 [![neostandard javascript style](https://img.shields.io/badge/code_style-neostandard-7fffff?style=flat&labelColor=ff80ff)](https://github.com/neostandard/neostandard)
 [![Module type: ESM](https://img.shields.io/badge/module%20type-esm-brightgreen)](https://github.com/voxpelli/badges-cjs-esm)
 [![Types in JS](https://img.shields.io/badge/types_in_js-yes-brightgreen)](https://github.com/voxpelli/types-in-js)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/voxpelli/diarie)
 ![human-directed, AI-built](https://img.shields.io/badge/human--directed-AI--built-6B4FC8?style=flat)
 
 Your backlog is a YAML file in your repo. `diarie` reads it, tells you what is ready to work on, and
