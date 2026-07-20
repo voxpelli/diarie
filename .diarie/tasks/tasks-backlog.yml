@@ -1077,3 +1077,42 @@ tasks:
       part is the write (preserve the comment header + the fresh-store tasks:[] anchor without a
       js-yaml round-trip), not the id. Optional by design — the files stay the API.
     updated: '2026-07-20'
+  - id: diarie-xid
+    title: Unify all id logic into one diarienummer system (shape + namespacing + generation + uniqueness), and extend `diarie validate` to cross-entity-type uniqueness
+    status: pending
+    type: task
+    priority: medium
+    labels:
+      - feature
+    acceptance_criteria:
+      - "CORE: consolidate the scattered id logic into a SINGLE diarienummer authority (a module, mirroring how lib/schema.js is THE vocabulary authority) — shape (ID_RE), namespacing (slug/id vs bare decision/doc ids), branch-safe GENERATION (for register), and UNIQUENESS validation. Today this is fragmented: validate's within-file dup check, register's (diarie-rgc) free-check, ID_RE in schema, and the implicit filename===frontmatter-id rule all live apart and can drift"
+      - "Both consumers draw from the one authority — never fork it: `diarie register` (diarie-rgc) allocates through it; `diarie validate` checks through it. Allocation and validation share one definition of 'a valid, free diarienummer' so they cannot disagree"
+      - "Adds the missing cross-surface uniqueness: today validate (lib/validate.js) only catches duplicate task ids WITHIN a file; nothing checks a task id against a decision/doc id, and decision/doc frontmatter is not validated at all (surfaced by the diarie-reg deliberation). Collect ids from ALL surfaces — task rows in tasks-*.yml PLUS decision/doc ids (their <id>.md filename AND frontmatter id — reconcile filename === frontmatter id as its own check) — and report any diarienummer used by more than one entity"
+      - "Decide severity deliberately: a cross-type collision does not break the ready-walk (deps resolve only among task rows) but creates prose/reference ambiguity — a real integrity finding. Emit via the existing gate (exit 2 for an invalid store), naming the consequence, never a silent pass"
+      - "This is the integrity-gate counterpart to diarie-reg: register PREVENTS the collision at creation, validate CATCHES it if introduced by hand. Belt and suspenders — register is optional, so validate must still guard"
+      - "Tests: task-vs-decision id clash, filename≠frontmatter-id, malformed id shape, clean store passes; assert doTheWork data + exit code; and that register + validate agree on the same fixtures (one authority)"
+    description: >-
+      The diarie-reg deliberation verified a real hole AND a fragmentation: the store loader globs
+      only tasks-*.yml, nothing validates decision/doc frontmatter or cross-surface id uniqueness,
+      and id logic is scattered across schema, validate, and (soon) register. Unify it into one
+      diarienummer subsystem that owns shape, namespacing, generation, and uniqueness — the single
+      authority both register and validate consume — then extend validate to check across all three
+      surfaces. On-thesis: a new pass in the existing gate over a shared module, not a new command.
+    updated: '2026-07-20'
+  - id: diarie-cmd
+    title: brand/index.html has no full command reference — add a raw documentation section listing every subcommand
+    status: pending
+    type: task
+    priority: medium
+    labels:
+      - docs
+    acceptance_criteria:
+      - "diarie.dev (brand/index.html) markets the thesis but never lists the actual CLI surface — a visitor cannot see what commands exist. Add at least one pure reference/'raw docs' section enumerating every subcommand (init, ready, stats, validate, migrate — plus register and list once they ship) with a one-line purpose and its key flags"
+      - "Source of truth is the real CLI: reconcile every documented command/flag against `diarie --help` (and each subcommand's --help) before publishing — never document a command that does not exist or a flag spelled wrong. Run each command"
+      - "Respect the brand: brand/index.html is the designer's bespoke artifact — follow DESIGN.md tokens/type/spacing, do not hand-roll a foreign style. It is a content addition, coordinated with /design-sync, not an auto-run"
+      - "Keep the exit-code contract visible if it fits the section (0 success / 1 InputError with ENOSTORE|EUSAGE|EEXIST / 2 ResultError) — machine consumers branch on these; the site should say so"
+    description: >-
+      Odd gap: the site sells the philosophy but omits the command list, so the CLI surface is
+      undiscoverable from diarie.dev. Add a raw reference section (kept in sync with `diarie --help`)
+      so the page documents what diarie actually does, not only why.
+    updated: '2026-07-20'
