@@ -1062,6 +1062,8 @@ tasks:
     priority: high
     labels:
       - feature
+    deps:
+      - diarie-xid
     acceptance_criteria:
       - "Implements decision diarie-reg. New lib/commands/register.js in the four-part shape (run → setupCommand → doTheWork RETURNS DATA → formatWorkResult is the only writer); wired into cli.js; reuse lib/flags/ groups"
       - "Mints a SHORT, convention-consistent, BRANCH-MERGE-SAFE id (random over the short id space — NOT auto-increment, which collides across branches on merge); shape from lib/schema.js ID_RE (never forked); checked free across ALL surfaces (task rows + decisions/ + docs/ filenames). Accepts explicit --id; a taken --id refuses with {code:'EEXIST'} on stdout + non-zero exit, mirroring init"
