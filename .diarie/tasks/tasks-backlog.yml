@@ -842,7 +842,7 @@ tasks:
       - "validate `.diarie/decisions/*.md` frontmatter against the schema (id/title/status/type/priority/updated; VALID_STATUSES/VALID_TYPES) — `diarie validate` currently reads ONLY `tasks-*.yml`, so a malformed decision file ships unchecked"
       - "the check lives IN the CLI (extend `diarie validate` to read decisions, or a new `diarie lint`) so it TRAVELS with `git subtree split` — retiring the root `check:md-decisions` stopgap, a bolt-on remark run that does NOT travel (the vp-beads-asg extraction hazard)"
       - "markdown-body linting is secondary; the load-bearing gap is decision FRONTMATTER validation, which nothing checks today (check:md ignores `.diarie/`; validate skips decisions)"
-      - "settle the decision-status vocabulary first (vp-beads-dlf, root store) — a decision-lint that enforces a status enum must agree on what that enum is"
+      - "settle the decision-status vocabulary first (decision diarie-dsv — the local home for what was the cross-repo vp-beads-dlf thread) — a decision-lint that enforces a status enum must agree on what that enum is"
       - "breadth: cover id-uniqueness ACROSS tasks+decisions (a decision `id` can silently collide with a task-row `id`) and dep/parent RESOLUTION in decision frontmatter — a hand-edited decision can carry a dangling `deps`/`parent` or invalid `status`/`type` that validate never opens the file to see, not just enum membership"
     description: >-
       Decision files (`.diarie/decisions/*.md`) are validated by NOTHING today: `check:md`
@@ -1079,6 +1079,11 @@ tasks:
       diarienummer and persist the initial record atomically, bounded at register-vs-revise. The hard
       part is the write (preserve the comment header + the fresh-store tasks:[] anchor without a
       js-yaml round-trip), not the id. Optional by design — the files stay the API.
+
+
+      Dogfooding evidence (2026-07-20): adding two rows by hand this session meant scanning every
+      existing id for a free diarienummer and hunting the append point in a 1163-line store — precisely
+      the friction register removes.
     updated: '2026-07-20'
   - id: diarie-xid
     title: Unify all id logic into one diarienummer system (shape + namespacing + generation + uniqueness), and extend `diarie validate` to cross-entity-type uniqueness
@@ -1159,4 +1164,31 @@ tasks:
       task carry related/alternate/see-also relations to other entities or external URLs — a
       user-extensible, standards-based reference layer. Internal refs resolve through the unified
       diarienummer authority, hence the dep on diarie-xid.
+    updated: '2026-07-20'
+  - id: diarie-unk
+    title: '`diarie validate` should catch unknown/mistyped task keys (allowlist) — decide error-vs-warning + the --strict question'
+    status: pending
+    type: task
+    priority: medium
+    labels:
+      - feature
+    acceptance_criteria:
+      - "Add a canonical KNOWN_FIELDS set to lib/schema.js — REQUIRED_FIELDS plus every optional field (priority/type/deps/parent/labels/acceptance_criteria/agent/updated/description). schema.js:36-38 ALREADY reserves this allowlist and its `description` exemption; derive from the one authority so add-a-field and allow-a-field are one edit and cannot drift"
+      - "validate.js: flag any task key not in KNOWN_FIELDS, naming the key + row — a mistyped `descrption`/`titel`/`updted` is silent data loss today (the loader drops it, validate never checks). This is the unknown-key half of the open question already sitting in diarie-rdr's AC and schema.js:36-38"
+      - "DECIDE error-vs-warning deliberately (do NOT default it): task fields are a CLOSED schema (unlike open-vocabulary `labels` VALUES, diarie-lbl), so an unknown key is unambiguously wrong — which argues for an ERROR (exit 2 via ResultError), caught by `check:tasks` (bare `node cli.js validate`) by default"
+      - "IF warning instead: `check:tasks` runs bare `validate` with NO flags, and warnings do NOT affect its exit — `validate` carries only json+root; --strict is a `ready` flag, NOT validate (verified 2026-07-20). Warning-only would exit 0 and WHISPER the typo, the exact drop-without-report the founding thesis forbids — so it REQUIRES also adding --strict to validate (mirroring ready's verdict-on-the-result) AND running `validate --strict` in check:tasks"
+      - "SCOPE: task rows in tasks-*.yml only. Decision/doc FRONTMATTER is out of scope — validate does not load those files yet (diarie-dlm / diarie-xid own that); an unknown-key check there rides on decision-frontmatter loading landing first"
+      - "Coordinate with diarie-fil/diarie-lnk: when `files`/`links` land they join KNOWN_FIELDS in schema.js — one authority, so the unknown-key check learns the new fields for free"
+      - "Tests: a fixture with a typo'd key is caught (mutation-verified able to go red), a clean store passes, and whichever severity is chosen is asserted on the exit code (error → exit 2 bare; warning → exit 0 bare + exit 2 under --strict)"
+    description: >-
+      Requested 2026-07-20 out of the decision-status review (decision diarie-dsv). Task rows have a
+      CLOSED field schema, but validate checks only REQUIRED_FIELDS presence + enum values on the
+      KNOWN keys — a misspelled key sails through and is then silently dropped by the loader, the exact
+      silent-data-loss class this tracker exists to abolish. schema.js:36-38 already reserves the
+      allowlist (with the `description` exemption) for precisely this check. Distinct from diarie-rdr
+      (loader drops a KNOWN field of the wrong TYPE) and diarie-lbl (open-vocabulary label VALUES); this
+      is unknown KEYS against a closed schema. The user framed it as "a --strict mode or such" — but
+      --strict today is a `ready` flag, not a `validate` one, so the row must first decide
+      error-vs-warning (the closed schema argues error) and, only if warning, add --strict to validate
+      rather than assume it exists.
     updated: '2026-07-20'
