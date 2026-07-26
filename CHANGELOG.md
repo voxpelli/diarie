@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.2](https://github.com/voxpelli/diarie/compare/v0.2.1...v0.2.2) (2026-07-26)
+
+
+### 🩹 Fixes
+
+* provenance requires GH repo URL ([e74e7ac](https://github.com/voxpelli/diarie/commit/e74e7acf87b828cf7b32f919039db1070ea244c2))
+
+
+### 📚 Documentation
+
+* **diarie:** file diarie-mex (keep bd's TYPE_MAP out of diarie's public exports) ([2387403](https://github.com/voxpelli/diarie/commit/23874039df637445a7fd6f0c2b1aff3c55ecaec6))
+
 ## [0.2.1](https://github.com/voxpelli/diarie/compare/v0.2.0...v0.2.1) (2026-07-20)
 
 
