@@ -6,7 +6,7 @@
   "homepage": "https://diarie.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://tangled.org/voxpelli.com/diarie.git"
+    "url": "https://github.com/voxpelli/diarie.git"
   },
   "bugs": {
     "url": "https://tangled.org/voxpelli.com/diarie/issues"
