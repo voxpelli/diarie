@@ -1095,6 +1095,22 @@ describe('the diarium pair: two forms, one store', () => {
     assert.match(parsed.error, /\.diarie/);
   });
 
+  it('a FILE named like a store is not a store — ENOSTORE, never a confident empty backlog', (t) => {
+    // `existsSync` answers "is there anything here"; a store is not anything, it is a
+    // DIRECTORY. A plain file named `diarium` (a stray note, a shell redirect that lost its
+    // argument) made the store "resolve", `tasks/` then read as absent-and-therefore-empty,
+    // and the reader printed `{"ready":[]}` exit 0. The founding defect reached through a
+    // filesystem detail — and the visible form of the pair collides with an ordinary filename
+    // far more readily than `.diarie` ever did.
+    const dir = tmpDir(t, 'diarie-pair-file-');
+    writeFileSync(join(dir, 'diarium'), 'not a store\n');
+
+    const { code, out } = run(READY, ['--json'], dir);
+    const parsed = JSON.parse(out);
+    assert.equal(code, 1, 'a file passed as a store and produced an answer');
+    assert.equal(parsed.code, 'ENOSTORE');
+  });
+
   it('a legacy store HALTS the walk — it never resolves an ancestor store instead', (t) => {
     // The sharp one. Without the halt, a project holding `.diarie/` nested under some
     // parent that holds a `diarium/` would silently read the PARENT's backlog: a real
@@ -1123,6 +1139,31 @@ describe('DIARIUM_ROOT (renamed from TASKS_ROOT)', () => {
     assert.equal(code, 1);
     assert.equal(parsed.code, 'EUSAGE');
     assert.match(parsed.error, /DIARIUM_ROOT/);
+  });
+
+  it('a stale TASKS_ROOT pointing SOMEWHERE ELSE is caught even when DIARIUM_ROOT is set', (t) => {
+    // The case the first version of this guard missed. It returned as soon as DIARIUM_ROOT was
+    // present, so a shell exporting both — aimed at two different projects — got no complaint
+    // and read the wrong one. Whoever set TASKS_ROOT believes it is aiming this command; it is
+    // not, and "it is being ignored" is precisely what they need told.
+    const mine = seedStore(tmpDir(t, 'diarie-envboth-mine-'), 'a',
+      'tasks:\n  - id: T-1\n    title: work\n    status: pending\n    type: task\n');
+    const theirs = seedStore(tmpDir(t, 'diarie-envboth-theirs-'), 'a',
+      'tasks:\n  - id: T-9\n    title: someone else\n    status: pending\n    type: task\n');
+
+    const { code, out } = run(READY, ['--json'], mine, { extraEnv: { TASKS_ROOT: theirs } });
+    const parsed = JSON.parse(out);
+    assert.equal(code, 1, 'read one of the two roots and said nothing about the other');
+    assert.equal(parsed.code, 'EUSAGE');
+    assert.match(parsed.error, /TASKS_ROOT/);
+  });
+
+  it('the two names AGREEING is not a conflict — this is a migration aid, not a ban', (t) => {
+    const dir = seedStore(tmpDir(t, 'diarie-envboth-same-'), 'a',
+      'tasks:\n  - id: T-1\n    title: work\n    status: pending\n    type: task\n');
+    const { code, out } = run(READY, ['--json'], dir, { extraEnv: { TASKS_ROOT: dir } });
+    assert.equal(code, 0);
+    assert.equal(JSON.parse(out).ready.length, 1);
   });
 });
 

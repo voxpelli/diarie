@@ -1,0 +1,37 @@
+id: no-indexed-tracker-dir
+snapshots:
+  ? |
+    const name = TRACKER_DIRS[dotted ? 1 : 0]
+  : labels:
+    - source: 'TRACKER_DIRS[dotted ? 1 : 0]'
+      style: primary
+      start: 13
+      end: 41
+  ? |
+    const storeName = dotted ? TRACKER_DIRS[1] : TRACKER_DIRS[0]
+  : labels:
+    - source: TRACKER_DIRS[1]
+      style: primary
+      start: 27
+      end: 42
+  ? |
+    const tasksDir = join(root, TRACKER_DIRS[0], 'tasks')
+  : labels:
+    - source: TRACKER_DIRS[0]
+      style: primary
+      start: 28
+      end: 43
+  ? |
+    const tasksDir = join(root, TRACKER_DIRS[1], 'tasks')
+  : labels:
+    - source: TRACKER_DIRS[1]
+      style: primary
+      start: 28
+      end: 43
+  ? |
+    stdout.write(`created ${TRACKER_DIRS[0]}/tasks/\n`)
+  : labels:
+    - source: TRACKER_DIRS[0]
+      style: primary
+      start: 24
+      end: 39

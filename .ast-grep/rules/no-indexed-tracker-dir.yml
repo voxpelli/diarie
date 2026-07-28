@@ -1,0 +1,34 @@
+id: no-indexed-tracker-dir
+language: javascript
+message: >-
+  Don't index the store-name pair. `TRACKER_DIRS[0]`/`[1]` picks ONE posture by hand, which is
+  the same defect as a hardcoded `'diarium'` with the constant standing in front of it. Ask
+  `trackerDirIn(root)` for the store that EXISTS, or `defaultTrackerDir(dotted)` for the one to
+  CREATE — both from `diarie/schema` / `diarie`.
+
+  This closes the hole its sibling `no-hardcoded-tracker-dir` cannot see. That rule matches
+  string literals, so importing the constant satisfies it — and `join(root, TRACKER_DIRS[0],
+  'tasks')` then compiles clean, type-checks clean, lints clean, and silently misses every
+  dotted store. Removing the old singular `TRACKER_DIR` was supposed to make form-confusion a
+  compile error; it only made *comparison* confusion one (`=== '.diarie'` → TS2367). Path
+  construction still walked through, which is the channel the defect actually travels.
+
+  The pair is exported and stays exported — consumers migrating off `TRACKER_DIR` are told to
+  import it, and vp-beads does. What is banned is picking a member out of it, because a pair
+  read one element at a time is just a constant again.
+severity: error
+# No `files:` — this config's `ast-grep scan` walks the whole package, so a glob could only
+# create a way for the rule to point at nothing. (Same reasoning as its sibling.)
+ignores:
+  # The definition itself: `TRACKER_LABEL` is built from the pair, and `defaultTrackerDir` is
+  # the sanctioned index — having exactly one is the point of having it at all.
+  - "lib/schema.js"
+  # `trackerDirIn`/`TwoStoresError` resolve the pair against the filesystem. This is the module
+  # the rule exists to funnel everyone else INTO; it cannot also be forbidden from touching the
+  # thing it resolves.
+  - "lib/store.js"
+  # A test that pins the literal names is the POINT — deriving them from the constant proves
+  # only that the constant equals itself. Both spec files say so in a comment.
+  - "test/**/*.js"
+rule:
+  pattern: TRACKER_DIRS[$IDX]

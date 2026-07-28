@@ -1,0 +1,38 @@
+id: no-indexed-tracker-dir
+valid:
+  # Which form EXISTS is a question for the filesystem.
+  - |
+    const store = trackerDirIn(root)
+    const tasksDir = join(store.path, 'tasks')
+  # Which form to CREATE is a question for the posture flag, asked by name.
+  - |
+    const name = defaultTrackerDir(dotted)
+  # Enumerating the WHOLE pair is fine — that is a pair being used as a pair.
+  - |
+    const candidates = [...TRACKER_DIRS, ...LEGACY_TRACKER_DIRS]
+  - |
+    const found = TRACKER_DIRS.map(name => join(dir, name)).filter(isDirectory)
+  # Membership, via the schema's own guard.
+  - |
+    if (isAnyStoreDir(segment)) refuse()
+  # A JSDoc type reference is a comment, not a subscript expression.
+  - |
+    /** @returns {v is TRACKER_DIRS[number]} */
+    const isTrackerDir = (v) => guardedArrayIncludes(TRACKER_DIRS, v)
+invalid:
+  # THE defect: well-typed, compiles clean, misses every dotted store.
+  - |
+    const tasksDir = join(root, TRACKER_DIRS[0], 'tasks')
+  # The dotted half is no better — picking either by hand is picking.
+  - |
+    const tasksDir = join(root, TRACKER_DIRS[1], 'tasks')
+  # The posture ternary, spelled out. This is what `defaultTrackerDir` replaced, and it is
+  # what let `migrate --force` write a SECOND store beside a dotted one.
+  - |
+    const storeName = dotted ? TRACKER_DIRS[1] : TRACKER_DIRS[0]
+  # Inside a template literal, where it reads as prose and hides best.
+  - |
+    stdout.write(`created ${TRACKER_DIRS[0]}/tasks/\n`)
+  # A computed index is still an index.
+  - |
+    const name = TRACKER_DIRS[dotted ? 1 : 0]

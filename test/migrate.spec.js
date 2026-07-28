@@ -24,6 +24,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { env } from 'node:process';
 import { fileURLToPath } from 'node:url';
 import {
   existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync,
@@ -332,6 +333,22 @@ describe('CLI guards (the two data-loss stops)', () => {
     }
   });
 
+  it('an EMPTY store directory still trips the overwrite guard', (t) => {
+    // The guard used to count `tasks-*.yml` files, so a store whose `tasks/` was empty — a
+    // fresh `diarie init`, or a project keeping only decisions so far — read as "nothing
+    // here" and got a second store written beside it. `init` refuses this exact disk state;
+    // two store-creating commands disagreeing about what a store IS is how a repo ends up
+    // with two of them.
+    const dir = tmpDir(t);
+    mkdirSync(join(dir, '.diarium', 'decisions'), { recursive: true });
+
+    const { code, out } = run(['--root', dir]);
+    assert.equal(code, 1);
+    assert.match(out, /refusing to overwrite/);
+    assert.match(out, /no task files/, 'the message must survive having no filenames to list');
+    assert.ok(!existsSync(join(dir, 'diarium')), 'wrote a second store beside the empty one');
+  });
+
   it('a bare run (no --root) targets CWD, not the script\'s own repo', (t) => {
     // Without --root the target is CWD, never the plugin checkout — so a forgotten
     // --root cannot clobber the tracker of whatever repo happens to ship this script.
@@ -352,6 +369,85 @@ describe('USAGE ⇔ parser parity (vp-beads-mig)', () => {
 });
 
 const CLI = fileURLToPath(new URL('../cli.js', import.meta.url));
+
+/**
+ * The same run, through `cli.js` — the boundary where the `{error, code}`-on-stdout contract
+ * is actually produced. `run` above drives `bootstrap.js` directly, which prints a human
+ * sentence and has never produced that contract; asserting a `code` against it passes for the
+ * wrong reason (see `migrateOne`'s `viaCli`).
+ *
+ * @param {string[]} args
+ * @returns {{ code: number|null, stdout: string, out: string }}
+ */
+const runCli = (args) => {
+  const r = spawnSync('node', [CLI, 'migrate', EXPORT, ...args], { encoding: 'utf8' });
+  return { code: r.status, stdout: r.stdout ?? '', out: (r.stdout ?? '') + (r.stderr ?? '') };
+};
+
+describe('migrate and the store already on disk (the posture is not the flag\'s to choose)', () => {
+  it('--force against a DOTTED store rewrites THAT store, never a second one beside it', (t) => {
+    // The whole finding. `storeName` came from `--dotted` alone, so `--force` — documented as
+    // "redo a botched migration" — did not overwrite a `.diarium/` store: it created
+    // `diarium/` beside it, exited 0, and reported success. The next `diarie ready` in that
+    // repo then hard-failed ETWOSTORES with the real backlog unreadable.
+    const dir = tmpDir(t);
+    assert.equal(run(['--root', dir, '--dotted']).code, 0, 'seeding the dotted store failed');
+
+    // NOTE: no --dotted on the re-run. What is on disk decides.
+    const { code, out } = run(['--root', dir, '--force']);
+
+    assert.equal(code, 0);
+    assert.ok(existsSync(join(dir, '.diarium', 'tasks', 'tasks-backlog.yml')), 'stopped rewriting the real store');
+    // THE assertion — the two above pass on the broken code too.
+    assert.ok(!existsSync(join(dir, 'diarium')), 'wrote a SECOND store; `diarie ready` here is now ETWOSTORES');
+    assert.match(out, /--force: rewriting the store already at .*\.diarium/, '--force waved something past in silence');
+  });
+
+  it('--dotted at a repo whose store is VISIBLE refuses — posture flips with git mv, not a flag', (t) => {
+    // Obeying the flag writes a second store; ignoring it drops an explicit instruction
+    // without a word. Neither is available, so it refuses and names the rename.
+    const dir = tmpDir(t);
+    assert.equal(run(['--root', dir]).code, 0, 'seeding the visible store failed');
+
+    const { code, stdout } = runCli(['--root', dir, '--dotted', '--json']);
+    const parsed = JSON.parse(stdout);
+
+    assert.equal(code, 1);
+    assert.equal(parsed.code, 'EUSAGE');
+    assert.match(parsed.error, /already this project's store/);
+    assert.ok(!existsSync(join(dir, '.diarium')), 'obeyed --dotted and created a second store');
+  });
+
+  it('BOTH forms present: ETWOSTORES, and --force cannot license a guess', (t) => {
+    // `--force` answers "overwrite THIS store?". With both forms present there is no "this",
+    // so the ambiguity is resolved before the flag is ever read. (It used to surface as
+    // EEXIST — "a store is in the way" — about a state whose actual problem is that there
+    // are two of them.)
+    const dir = tmpDir(t);
+    mkdirSync(join(dir, 'diarium', 'tasks'), { recursive: true });
+    mkdirSync(join(dir, '.diarium', 'tasks'), { recursive: true });
+
+    const { code, stdout } = runCli(['--root', dir, '--force', '--json']);
+    assert.equal(code, 1);
+    assert.equal(JSON.parse(stdout).code, 'ETWOSTORES');
+  });
+
+  it('an ignored DIARIUM_ROOT is REPORTED — migrate reads no environment, and says so', (t) => {
+    // Deliberate: this is the one command that writes a store from nothing, so the set of
+    // things that can aim it stays as small and visible as possible. But "not read" and "not
+    // mentioned" are different, and this repo's rule is that a dropped value gets named.
+    const dir = tmpDir(t);
+    const elsewhere = tmpDir(t);
+    const r = spawnSync('node', [SCRIPT, EXPORT, '--root', dir], {
+      encoding: 'utf8',
+      env: { ...env, DIARIUM_ROOT: elsewhere },
+    });
+
+    assert.equal(r.status, 0);
+    assert.match(r.stdout, /DIARIUM_ROOT/);
+    assert.ok(!existsSync(join(elsewhere, 'diarium')), 'obeyed the environment');
+  });
+});
 
 describe('a missing input file is an InputError, not a crash (vp-beads-mig)', () => {
   // The archetypal user mistake: point at a file that is not there. It used to reach cli.js as a

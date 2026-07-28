@@ -1,9 +1,15 @@
 id: no-hardcoded-tracker-dir
 valid:
   # The sanctioned forms — the constants, never the literal.
+  #
+  # This case USED to read `join(root, TRACKER_DIRS[0], 'tasks')`, which is valid for THIS rule
+  # (no literal) and a live defect all the same: it picks the visible posture by hand and misses
+  # every dotted store. A rule-test blessing it made the gap look deliberate. The sibling rule
+  # `no-indexed-tracker-dir` now flags exactly that line; this case shows what replaced it.
   - |
-    import { TRACKER_DIRS } from './task-schema.mjs'
-    const tasksDir = join(root, TRACKER_DIRS[0], 'tasks')
+    import { trackerDirIn } from 'diarie'
+    const store = trackerDirIn(root)
+    const tasksDir = join(store.path, 'tasks')
   # Error text names the pair through TRACKER_LABEL, so no message hardcodes a posture.
   - |
     stdout.write(`No ${TRACKER_LABEL} store found — skipping.\n`)

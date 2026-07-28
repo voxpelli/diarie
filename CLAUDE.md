@@ -115,9 +115,13 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
   args) bounded by `.gitignore`, and `check:md` runs `--ignore-path .gitignore`, so adding a broad
   ignore entry SILENTLY shrinks lint coverage with nothing going red. Treat every `.gitignore` line as
   a lint-scope decision. (See `sgconfig.yml`.)
-- **8 ast-grep rules** in `.ast-grep/rules/` guard structural invariants (no hardcoded tracker dir, no
-  unsanctioned `exit(2)`, no CommonJS `require`, no JSDoc `any`/`object` typedef, no computed exit code,
-  no identifier-shadow call, no identical test titles). Each is paired with a rule-test.
+- **9 ast-grep rules** in `.ast-grep/rules/` guard structural invariants (no hardcoded tracker dir, no
+  INDEXED tracker dir, no unsanctioned `exit(2)`, no CommonJS `require`, no JSDoc `any`/`object`
+  typedef, no computed exit code, no identifier-shadow call, no identical test titles). Each is paired
+  with a rule-test. Two of them come in pairs where one closes the other's blind spot —
+  `no-computed-exit-code` guards `no-unsanctioned-exit-2` (which can only see the literal `2`), and
+  `no-indexed-tracker-dir` guards `no-hardcoded-tracker-dir` (which can only see string literals, so
+  `join(root, TRACKER_DIRS[0], 'tasks')` walked past it while missing every dotted store).
 - **Generated `.d.ts`** (`lib/**/*.d.ts`) are gitignored build artifacts, packed via `files`/`prepack`,
   and eslint-ignored — but a hand-written ambient `*-types.d.ts` stays linted and committed.
 - **`check:md` lints every tracked `.md`** (`remark . --frail`, bounded by `.gitignore`) — this

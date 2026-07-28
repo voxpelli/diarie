@@ -262,6 +262,13 @@ describe('init — the store pair', () => {
   });
 
   it('BOTH forms present: ETWOSTORES rather than a third thing on top of an ambiguity', async () => {
+    // IN-PROCESS ONLY, and saying so is the point. This asserts what `doTheWork` THROWS; it
+    // cannot see what `cli.js` PRINTS, and those two disagreed for a whole release: the error
+    // reached cli.js's "genuinely unexpected" branch and produced a stack trace on stderr with
+    // an EMPTY stdout — the `--json` caller's founding defect — while this test stayed green
+    // the entire time. The `{error, code}`-on-stdout contract belongs to `cli.spec.js`'s
+    // error-code table, which drives a spawned binary. Keep both: this one localises the
+    // throw, that one owns the contract. Do not read a green here as the contract holding.
     const root = mkdtempSync(join(tmpdir(), 'diarie-init-both-'));
     scratch.push(root);
     mkdirSync(join(root, 'diarium'), { recursive: true });
@@ -288,7 +295,15 @@ describe('init — the store pair', () => {
       () => initWork({ dotted: false, root, slug: 'backlog' }),
       (/** @type {Error & {code?: string}} */ err) => {
         assert.equal(err.code, 'ELEGACY');
-        assert.match(err.message, /git mv \.diarie diarium/);
+        // ABSOLUTE on both sides. A relative pair is correct only when cwd happens to BE the
+        // root — and this test's root is a tmpdir reached via `--root`, which is the ordinary
+        // case for every automated caller. Pasted from anywhere else, `git mv .diarie diarium`
+        // renames a directory in the wrong project. A suggestion you cannot paste is worse
+        // than no suggestion: it reads as instructions.
+        assert.ok(
+          err.message.includes(`git mv ${join(root, '.diarie')} ${join(root, 'diarium')}`),
+          `both sides of the git mv must be absolute — got: ${err.message}`
+        );
         return true;
       }
     );
