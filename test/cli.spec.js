@@ -25,7 +25,7 @@ import {
   mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync,
 } from 'node:fs';
 
-import { TRACKER_DIRS } from 'diarie/schema';
+import { TRACKER_DIRS, VALID_ERROR_CODES } from 'diarie/schema';
 
 /**
  * Which form of the store pair these tests seed. The reader accepts both; the fixtures on
@@ -1123,5 +1123,97 @@ describe('DIARIUM_ROOT (renamed from TASKS_ROOT)', () => {
     assert.equal(code, 1);
     assert.equal(parsed.code, 'EUSAGE');
     assert.match(parsed.error, /DIARIUM_ROOT/);
+  });
+});
+
+// THE ERROR-CODE CONTRACT, checked at the only place it exists: a spawned `cli.js`.
+//
+// `lib/utils/errors.js` states the invariant — anything reaching cli.js must be an InputError
+// or a ResultError, or it lands in the "genuinely unexpected" branch and answers with a stack
+// trace on stderr and NOTHING on stdout. A `--json` caller reads that as "no data": this
+// package's founding defect, served by its own error handler.
+//
+// It shipped exactly that way. `init` did not resolve its store through `requireRoot`, which
+// was where the conversion lived, so `diarie init --json` in a two-store directory emitted 0
+// bytes of stdout and 1111 bytes of stack trace. The in-process `doTheWork` test passed
+// throughout, because the contract is not produced in `doTheWork`.
+//
+// So this table drives the REAL binary, and its last case asserts the table is COMPLETE
+// against `VALID_ERROR_CODES` — a code nobody proves reachable fails the suite.
+describe('every error code, through the real CLI boundary', () => {
+  /** @type {{ code: string, why: string, run: (t: import('node:test').TestContext) => ReturnType<typeof run> }[]} */
+  const CASES = [
+    {
+      code: 'ENOSTORE',
+      why: 'no store here — the one this package exists for',
+      run: () => run(READY, ['--json'], join(tmpdir(), 'diarie-nonexistent-xyz')),
+    },
+    {
+      code: 'EUSAGE',
+      why: 'you typed it wrong',
+      run: () => run(READY, ['--filter', 'bogus', '--json'], FIXTURES),
+    },
+    {
+      code: 'EEXIST',
+      why: 'init refusing a store that is already there',
+      run: (t) => run(['init'], ['--json'], seedStore(tmpDir(t, 'diarie-code-eexist-'), 'a', 'tasks: []\n')),
+    },
+    {
+      code: 'ETWOSTORES',
+      why: 'both forms of the pair — refusing to guess',
+      run: (t) => run(READY, ['--json'], seedAs(seedAs(tmpDir(t, 'diarie-code-two-'), 'diarium'), '.diarium')),
+    },
+    {
+      code: 'ELEGACY',
+      why: 'init refusing to start a second store beside a retired one',
+      run: (t) => run(['init'], ['--json'], seedAs(tmpDir(t, 'diarie-code-legacy-'), '.diarie')),
+    },
+    {
+      code: 'ELOSSY',
+      why: 'migrate refusing to discard what it cannot carry',
+      run: (t) => {
+        const dir = tmpDir(t, 'diarie-code-lossy-');
+        const file = join(dir, 'export.jsonl');
+        writeFileSync(file, JSON.stringify({
+          _type: 'issue',
+          id: 'x-1',
+          title: 'T',
+          status: 'open',
+          issue_type: 'task',
+          priority: 2,
+          some_future_field: 'authored content',
+        }) + '\n');
+        // `--root` EXPLICITLY, and cwd moved: `migrate` reads no environment at all (so the
+        // harness's env seam does nothing for it) and defaults to the CURRENT DIRECTORY — which
+        // in this suite is the diarie repo, whose own store would answer EEXIST instead.
+        return run(['migrate'], [file, '--root', dir, '--json'], '', { cwd: dir });
+      },
+    },
+  ];
+
+  for (const { code, run: trigger, why } of CASES) {
+    it(`${code} (${why}): JSON on STDOUT, exit 1, no stack trace`, (t) => {
+      const { code: exit, err, out } = trigger(t);
+
+      assert.equal(exit, 1, `expected exit 1, got ${exit}`);
+
+      let parsed;
+      try { parsed = JSON.parse(out); } catch { /* stays undefined */ }
+      assert.ok(parsed, `stdout was not parseable JSON — a --json caller gets nothing:\n${out}`);
+      assert.equal(parsed.code, code);
+
+      // The tell for the founding defect: a stack trace means it fell through to the
+      // "unexpected" branch, whatever else happened to land on stdout.
+      assert.ok(!err.includes('    at '), `leaked a stack trace to stderr:\n${err}`);
+    });
+  }
+
+  it('the table covers EVERY code in the vocabulary', () => {
+    // Without this, adding a code to VALID_ERROR_CODES and forgetting to prove it reachable
+    // leaves the contract documented and unchecked — which is the state that let `init` ship
+    // a stack trace while the docs promised JSON.
+    const covered = new Set(CASES.map(c => c.code));
+    const missing = VALID_ERROR_CODES.filter(c => !covered.has(c));
+    assert.deepEqual(missing, [], `error codes with no CLI-boundary case: ${missing.join(', ')}`);
   });
 });
