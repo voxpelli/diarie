@@ -23,10 +23,6 @@ ignores:
   # The definition itself: `TRACKER_LABEL` is built from the pair, and `defaultTrackerDir` is
   # the sanctioned index — having exactly one is the point of having it at all.
   - "lib/schema.js"
-  # `trackerDirIn`/`TwoStoresError` resolve the pair against the filesystem. This is the module
-  # the rule exists to funnel everyone else INTO; it cannot also be forbidden from touching the
-  # thing it resolves.
-  - "lib/store.js"
   # A test that pins the literal names is the POINT — deriving them from the constant proves
   # only that the constant equals itself. Both spec files say so in a comment.
   - "test/**/*.js"

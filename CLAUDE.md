@@ -131,11 +131,13 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
   a lint-scope decision. (See `sgconfig.yml`.)
 * **When a change ADDS to a vocabulary** (exit codes, a `VALID_*` enum, flags), grep the set's OTHER
   members, not the new name — that is what finds the surfaces that enumerate it. A token-grep cannot.
-* **9 ast-grep rules** in `.ast-grep/rules/` guard structural invariants (no hardcoded tracker dir, no
-  INDEXED tracker dir, no unsanctioned `exit(2)`, no CommonJS `require`, no JSDoc `any`/`object`
-  typedef, no computed exit code, no identifier-shadow call, no identical test titles). Each is paired
-  with a rule-test; two pairs exist where one rule closes another's blind spot — each rule's own
-  message says which.
+* **ast-grep runs 10 rules from TWO ruleDirs** (`sgconfig.yml`). `@voxpelli/ast-grep-rules` owns the
+  3 house conventions (no JSDoc `any`, no `object` typedef, no inline JSDoc `import()`), tested
+  upstream. `.ast-grep/rules/` owns the 7 that encode diarie's OWN invariants — no hardcoded tracker
+  dir, no INDEXED tracker dir, no unsanctioned `exit(2)`, no computed exit code, no CommonJS
+  `require`, no identifier-shadow call, no identical test titles — and each of those is paired with a
+  rule-test, so `ast-grep test` covers 7, not 10. Two pairs exist where one rule closes another's
+  blind spot; each rule's own message says which.
 * **Generated `.d.ts`** (`lib/**/*.d.ts`) are gitignored build artifacts, packed via `files`/`prepack`,
   and eslint-ignored — but a hand-written ambient `*-types.d.ts` stays linted and committed.
 * **`check:md` lints every tracked `.md`** (`remark . --frail`, bounded by `.gitignore`) — this

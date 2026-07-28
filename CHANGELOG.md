@@ -8,7 +8,7 @@
 
 ### 📚 Documentation
 
-* **diarie:** file diarie-mex (keep bd's TYPE\_MAP out of diarie's public exports) ([2387403](https://github.com/voxpelli/diarie/commit/23874039df637445a7fd6f0c2b1aff3c55ecaec6))
+* **diarie:** file diarie-mex (keep bd's `TYPE_MAP` out of diarie's public exports) ([2387403](https://github.com/voxpelli/diarie/commit/23874039df637445a7fd6f0c2b1aff3c55ecaec6))
 
 ## [0.2.1](https://github.com/voxpelli/diarie/compare/v0.2.0...v0.2.1) (2026-07-20)
 
