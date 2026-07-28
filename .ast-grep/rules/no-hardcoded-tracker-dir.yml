@@ -19,7 +19,7 @@ severity: error
 # re-fork the constant the moment diarie left. Copies drift; a copy is still the only option,
 # because ast-grep sgconfig has no `extends`/`include`.
 #
-# ⚠️ THE COPY IS NOW STALE. This side learned the `diarium` pair on 2026-07-28; the plugin's copy
+# THE COPY IS NOW STALE. This side learned the `diarium` pair on 2026-07-28; the plugin's copy
 # still flags only `.diarie`/`backlog/` and does not know the new names — so it under-guards
 # exactly where it matters. Tracked in SYNERGY-vp-beads.md.
 #

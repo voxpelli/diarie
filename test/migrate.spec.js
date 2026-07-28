@@ -26,11 +26,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync,
+  existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync,
 } from 'node:fs';
 import {
   after, before, describe, it,
 } from 'node:test';
+
+import { load } from 'js-yaml';
 
 import {
   groupTasks, MIGRATE_OPTIONS, normalizeBody, projectLive, splitBody, USAGE,
@@ -376,5 +378,136 @@ describe('a missing input file is an InputError, not a crash (vp-beads-mig)', ()
     const parsed = JSON.parse(r.stdout);
     assert.equal(parsed.code, 'EUSAGE');
     assert.match(parsed.error, /no such bd export file/);
+  });
+});
+
+/**
+ * Write a one-record export and migrate it into a fresh root.
+ *
+ * Inline rather than in `fixtures/bd-export.jsonl`: a record carrying an UNACCOUNTED-FOR
+ * field makes the migration refuse, which would break every other test sharing that fixture.
+ *
+ * @param {import('node:test').TestContext} t
+ * @param {Record<string, unknown>} issue  merged over a minimal valid bd issue
+ * @param {string[]} [args]
+ * @param {boolean} [viaCli]  drive `cli.js` rather than the script directly — see below
+ * @returns {{ code: number|null, out: string, stdout: string, dir: string }}
+ */
+function migrateOne (t, issue, args = [], viaCli = false) {
+  const dir = tmpDir(t);
+  const file = join(dir, 'export.jsonl');
+  writeFileSync(file, JSON.stringify({
+    _type: 'issue',
+    id: 'x-1',
+    title: 'T',
+    status: 'open',
+    issue_type: 'task',
+    priority: 2,
+    ...issue,
+  }) + '\n');
+  // `viaCli` is not a convenience. The `{error, code}`-on-stdout contract is produced by
+  // cli.js's error boundary, NOT by bootstrap.js — which has its own entry point that prints
+  // a human sentence. A `--json` assertion against the script directly tests the wrong thing
+  // and passes for the wrong reason. (The same seam confusion put a stack trace on stderr in
+  // `init`; see the CLI-boundary note in CLAUDE.md.)
+  const entry = viaCli ? CLI : SCRIPT;
+  const argv = viaCli ? [entry, 'migrate', file] : [entry, file];
+  const r = spawnSync('node', [...argv, '--root', dir, ...args], { encoding: 'utf8' });
+  return { code: r.status, out: (r.stdout ?? '') + (r.stderr ?? ''), stdout: r.stdout ?? '', dir };
+}
+
+/**
+ * The migrated task rows from a store the fixture export produced.
+ *
+ * @param {string} dir
+ * @returns {import('../lib/schema.js').TaskRow[]}
+ */
+function rowsIn (dir) {
+  const doc = load(readFileSync(join(dir, 'diarium', 'tasks', 'tasks-backlog.yml'), 'utf8'));
+  return /** @type {import('../lib/schema.js').TaskRow[]} */ (
+    /** @type {{tasks: unknown}} */ (doc).tasks
+  );
+}
+
+describe('the field census (transparency: nothing is discarded quietly)', () => {
+  // The bug this exists for: `projectLive` read acceptance criteria ONLY out of the markdown
+  // body, so bd's standalone `acceptance_criteria` field went straight through to nothing.
+  // Against one real export that silently cost 22 of 41 live tasks their criteria — including
+  // the project's release gate — while the run exited 0 and `diarie validate` passed after it.
+
+  it('reads acceptance criteria from the STANDALONE field, not only the body', (t) => {
+    const dir = tmpDir(t);
+    assert.equal(run(['--root', dir]).code, 0);
+    const row = rowsIn(dir).find(r => r.id === 'fx-acfl');
+    assert.deepEqual(row?.acceptance_criteria, [
+      'the standalone field is read',
+      'bullets and checkboxes are stripped',
+    ]);
+  });
+
+  it('UNIONS both sources — neither may clobber the other', (t) => {
+    // bd can populate the body section AND the standalone field. Letting one win would just
+    // relocate the loss rather than end it.
+    const dir = tmpDir(t);
+    assert.equal(run(['--root', dir]).code, 0);
+    const row = rowsIn(dir).find(r => r.id === 'fx-acbo');
+    assert.deepEqual(row?.acceptance_criteria, ['from the body', 'shared line', 'from the field'],
+      'expected body-first order, the shared line de-duplicated, and the field-only line kept');
+  });
+
+  it('folds `notes` into the description rather than dropping it', (t) => {
+    const dir = tmpDir(t);
+    assert.equal(run(['--root', dir]).code, 0);
+    const row = rowsIn(dir).find(r => r.id === 'fx-acfl');
+    assert.match(row?.description ?? '', /## Notes/);
+    assert.match(row?.description ?? '', /prose bd keeps outside the description/);
+  });
+
+  it('REFUSES on a field it does not account for — including one invented today', (t) => {
+    // The load-bearing case. Nobody wrote a rule for `some_future_field`; the census is driven
+    // by the keys present in the data, so a bd release (or a foreign tracker) that adds a field
+    // surfaces here without this file changing. That is the difference between fixing the bug
+    // and closing the class of bug.
+    const { code, out } = migrateOne(t, { some_future_field: 'authored content' });
+    assert.equal(code, 1);
+    assert.match(out, /refusing to migrate/);
+    assert.match(out, /some_future_field — 1 record\(s\): x-1/);
+  });
+
+  it('a refusal leaves NO TRACE — the next attempt starts from an honest absence', (t) => {
+    const { dir } = migrateOne(t, { some_future_field: 'authored content' });
+    assert.ok(!existsSync(join(dir, 'diarium')), 'wrote a store despite refusing');
+  });
+
+  it('carries the ELOSSY code on the --json channel, as PARSEABLE stdout', (t) => {
+    // Asserted through cli.js, and against stdout ALONE. A human line printed before the throw
+    // would land in front of the JSON and break `jq` — which is how a refusal comes to read as
+    // "no data" to the caller. That happened while writing this test.
+    const { code, stdout } = migrateOne(t, { some_future_field: 'x' }, ['--json'], true);
+    assert.equal(code, 1);
+    assert.equal(JSON.parse(stdout).code, 'ELOSSY');
+  });
+
+  it('--lossy proceeds, and still NAMES every field it drops', (t) => {
+    const { code, dir, out } = migrateOne(t, { some_future_field: 'x' }, ['--lossy']);
+    assert.equal(code, 0);
+    assert.match(out, /some_future_field — 1 record\(s\): x-1/);
+    assert.ok(existsSync(join(dir, 'diarium', 'tasks', 'tasks-backlog.yml')));
+  });
+
+  it('`defer_until` is residue, not silently allowlisted', (t) => {
+    // Authored intent ("not before this date") with no home in the schema. It is deliberately
+    // absent from IGNORED_BD_FIELDS: when in doubt a field must surface and refuse, because
+    // that is the failure direction that can be corrected afterwards.
+    assert.equal(migrateOne(t, { defer_until: '2027-01-01' }).code, 1);
+  });
+
+  it('bookkeeping fields are reported as knowingly-ignored, and do NOT refuse', (t) => {
+    // The counterweight: bd stamps owner/created_at/created_by on every record, so refusing on
+    // those would make --lossy mandatory ceremony and strip ELOSSY of all meaning.
+    const { code, out } = migrateOne(t, { owner: 'a@b.c', created_by: 'a@b.c', dependency_count: 3 });
+    assert.equal(code, 0);
+    assert.match(out, /not carried over/);
+    assert.match(out, /owner — 1 record\(s\)/);
   });
 });
