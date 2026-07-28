@@ -39,7 +39,9 @@ verb:
   `.github/workflows/pages.yml` (GitHub Pages, `deploy-pages@v5`), **not** in `npm test` (the local gate
   never builds `brand-dist/`). A mutating generator must never join `check:*`/`test:*`. If the build
   ever outgrows plain-Node copy+stamp+favicon, adopt domstack (already the `serve` tool) rather than
-  hand-rolling more.
+  hand-rolling more. Consequence: **no gate can catch a false claim in `brand/`** (only `check:md`
+  reaches its `.md`), and diarie.dev documents the CLI contract — so grep `brand/` by hand on any
+  CLI-surface change, and `npm run serve` to read what you touched.
 
 🚨 **Do NOT re-add a `check:test` script.** Tests deliberately do not live inside `check`: CI runs them
 via the dedicated `nodejs.yml`/`test-ci` job, and `npm test` is the local full gate. `check:test` once
@@ -51,19 +53,23 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
 - **`lib/schema.js` is THE AUTHORITY.** `VALID_TYPES`, `VALID_STATUSES`, `VALID_PRIORITIES`,
   `REQUIRED_FIELDS`, and the store-name pair `TRACKER_DIRS` (`['diarium', '.diarium']`, visible
   first) live here; every reader/validator/migrator derives its vocabulary from it — never fork it.
-  `TRACKER_LABEL` is the pair as one clause for error text, and `LEGACY_TRACKER_DIRS` (`.diarie`) is
-  detected only to NAME the migration. The store names live ONLY here; an ast-grep rule
-  (`no-hardcoded-tracker-dir`) bans hardcoding them anywhere else — which is why messages
-  interpolate `TRACKER_LABEL` instead of spelling the store out, so `store.js` and `init.js` stay
-  guarded rather than exempted.
-- **Which form is on disk is a FACT, not a constant.** `trackerDirIn(root)` in `lib/store.js` is the
-  one place that resolves it (and the one that throws `ETWOSTORES` when both exist). There is no
-  singular `TRACKER_DIR` any more, deliberately: a name that can only answer for one of two forms
-  would silently miss the other.
+  `TRACKER_LABEL` is the pair as one clause for error text. The store names live ONLY here; an
+  ast-grep rule (`no-hardcoded-tracker-dir`) bans hardcoding them anywhere else — which is why
+  messages interpolate `TRACKER_LABEL` instead of spelling the store out, so `store.js` and
+  `init.js` stay guarded rather than exempted.
+- **A guard checks the RETIRED names too** — `isAnyStoreDir` when you are about to HARM a store,
+  `isTrackerDir` only when you are about to USE one. `LEGACY_TRACKER_DIRS` (`.diarie`) is never
+  read, but `init`, migrate's overwrite check and `bd-map.js` all check it.
+- **Which form is on disk is a FACT, not a constant** — and never index the pair.
+  `trackerDirIn(root)` (`lib/store.js`) for the store that EXISTS, throwing `ETWOSTORES` on both;
+  `defaultTrackerDir(dotted)` for the one to CREATE. Disk outranks the flag. There is no singular
+  `TRACKER_DIR`, and `no-indexed-tracker-dir` enforces the rest.
 - **Commands are FOUR parts** (peowly-commands shape): `run()` holds no logic → `setupCommand` parses →
   **`doTheWork` RETURNS DATA and never prints** → **`formatWorkResult` is the only writer**. `doTheWork`
   is exported so the work is assertable in-process (no spawn, no stdout capture). Subcommands: `init`,
   `ready`, `stats`, `validate`, `migrate`. **`migrate` is deliberately NOT four-part** — don't convert it.
+  But **assert every exit code through a spawned `cli.js`** (`test/cli.spec.js`): the `{error, code}`
+  contract is produced at the boundary, not in `doTheWork`, so an in-process test cannot see it.
 - **Flags live in `lib/flags/`** groups (`output`, `store`, `filter`, `staleness` + a barrel). Note the
   load-bearing asymmetry: `ready` resolves the store BEFORE validating `--filter`; `stats` validates
   first — this keeps `{code: ENOSTORE}` winning a double fault. Don't "tidy" it.
@@ -92,6 +98,8 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
   ready/blocked/needsAttention and never block.
 - **Writers mutate the YAML directly (plain Edit/Write). There is deliberately NO CRUD helper** — the
   store is a substrate, not a product with an opinion about how you change it.
+- **`migrate` refuses rather than dropping data it cannot map** (`ELOSSY`; `--lossy` overrides). Its
+  `IGNORED_BD_FIELDS` allowlist is the hazard: every addition is a data-loss decision.
 - **Atomic-write contract**: solo, single-host, no concurrent writers to the same `tasks-<slug>.yml`.
   Anything that fans work out in parallel must partition by file (one owner per slug).
 
@@ -100,12 +108,18 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
 - `0` — success; the answer is on stdout.
 - `1` — `InputError` ("you got it wrong"). Under `--json`, emitted as JSON on **stdout** with a `code`:
   **`ENOSTORE`** (no store here — the most important one), **`EUSAGE`** (bad command/flag, incl. a
-  stale `TASKS_ROOT` in any command that reads the env — `migrate` reads none, by design),
-  **`EEXIST`** (`init` refusing an existing store, in either posture),
+  stale `TASKS_ROOT` in any command that reads the env — `migrate` reads none, by design, and says
+  so), **`EEXIST`** (`init` or `migrate` refusing an existing store, in either posture),
   **`ETWOSTORES`** (both forms of the pair present — refuses to guess), **`ELEGACY`** (`init`
-  refusing to start a second store beside a `.diarie/`).
+  refusing to start a second store beside a `.diarie/`), **`ELOSSY`** (`migrate` refusing to drop
+  data it cannot map).
 - `2` — `ResultError` ("it ran; the answer is no": invalid store, `--strict`). **NOTHING ELSE MAY USE
   2** — it's reserved so CI can tell a dependency cycle from a typo. Only `lib/utils/exit.js` writes it.
+- The vocabulary is `VALID_ERROR_CODES` in `lib/schema.js`; the shapes are `lib/utils/errors.js`,
+  which imports nothing and is the base every layer may depend on. Anything reaching `cli.js` must
+  BE an `InputError` or `ResultError` — the store errors extend it rather than being converted at a
+  call site. Adding a code costs a case in `test/cli.spec.js`'s boundary table, which fails if one
+  goes unexercised. `InputError` is exported from `lib/index.js`.
 
 ## Conventions & gotchas
 
@@ -115,13 +129,13 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
   args) bounded by `.gitignore`, and `check:md` runs `--ignore-path .gitignore`, so adding a broad
   ignore entry SILENTLY shrinks lint coverage with nothing going red. Treat every `.gitignore` line as
   a lint-scope decision. (See `sgconfig.yml`.)
+- **When a change ADDS to a vocabulary** (exit codes, a `VALID_*` enum, flags), grep the set's OTHER
+  members, not the new name — that is what finds the surfaces that enumerate it. A token-grep cannot.
 - **9 ast-grep rules** in `.ast-grep/rules/` guard structural invariants (no hardcoded tracker dir, no
   INDEXED tracker dir, no unsanctioned `exit(2)`, no CommonJS `require`, no JSDoc `any`/`object`
   typedef, no computed exit code, no identifier-shadow call, no identical test titles). Each is paired
-  with a rule-test. Two of them come in pairs where one closes the other's blind spot —
-  `no-computed-exit-code` guards `no-unsanctioned-exit-2` (which can only see the literal `2`), and
-  `no-indexed-tracker-dir` guards `no-hardcoded-tracker-dir` (which can only see string literals, so
-  `join(root, TRACKER_DIRS[0], 'tasks')` walked past it while missing every dotted store).
+  with a rule-test; two pairs exist where one rule closes another's blind spot — each rule's own
+  message says which.
 - **Generated `.d.ts`** (`lib/**/*.d.ts`) are gitignored build artifacts, packed via `files`/`prepack`,
   and eslint-ignored — but a hand-written ambient `*-types.d.ts` stays linted and committed.
 - **`check:md` lints every tracked `.md`** (`remark . --frail`, bounded by `.gitignore`) — this

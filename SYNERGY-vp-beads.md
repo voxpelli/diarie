@@ -3,9 +3,14 @@
 Tracking cross-project synergy with [vp-beads](https://github.com/voxpelli/claude-beads).
 
 diarie was extracted from vp-beads (2026-07-18, `git subtree split`). vp-beads consumes diarie —
-its skills shell out to the `diarie` binary and read the store directly, and it carries `diarie/`
-as a vendored subtree snapshot until diarie publishes. Relationship: `consumer` (the inverse of
-vp-beads's `dependency`).
+its skills shell out to the `diarie` binary and read the store directly. Relationship: `consumer`
+(the inverse of vp-beads's `dependency`).
+
+**It is a plain npm devDep, not a vendored subtree.** vp-beads has `"diarie": "^0.2.0"` in
+`devDependencies` with 0.2.2 installed (verified 2026-07-28); the `diarie/` snapshot the extraction
+left behind is gone. This changes WHEN the divergences below bite: **on version bump, not on this
+commit.** An unreleased break in this repo cannot reach vp-beads, so there is time to land the
+consumer-side fixes before publishing — but no warning at the moment of publish either.
 
 ## Shared Patterns
 
@@ -22,9 +27,14 @@ vp-beads's `dependency`).
   gfm + lint-recommended/consistent + validate-links + list-marker `-`) was copied verbatim from
   vp-beads when `check:md` was re-added after the extraction, but diarie simplified the invocation:
   no `--ignore-pattern` for the store and no `check:md-decisions` split (decision `diarie-tbl` — one
-  pass, no exclusions). Two copies with no shared package will drift; converge on a shared
-  `@voxpelli/remark-config` if a third consumer appears.
-  Status: drifting · Last verified: 2026-07-18
+  pass, no exclusions). Two copies with no shared package will drift; converge on a shared preset.
+  **Correction (2026-07-28): the package named here as `@voxpelli/remark-config` does not exist
+  (npm 404). It is `@voxpelli/remark-preset`, it is published (0.1.1), and vp-beads has ALREADY
+  adopted it** — along with `@voxpelli/ast-grep-rules@^0.1.0`. So the "if a third consumer appears"
+  condition is moot twice over: the shared thing exists, and the other consumer is already on it.
+  diarie is the one still carrying inline copies. Tracked as the bonus item of the diarium-pair
+  plan, deliberately last: it edits the gate, and a green run must mean the same thing after.
+  Status: drifting, one-sided · Last verified: 2026-07-28
 
 ## Divergences
 
