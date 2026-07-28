@@ -1199,3 +1199,76 @@ tasks:
       error-vs-warning (the closed schema argues error) and, only if warning, add --strict to validate
       rather than assume it exists.
     updated: '2026-07-20'
+  - id: diarie-eng
+    title: Reconsider bumping engines.node to the shared-config range, if newer Node APIs justify it
+    status: pending
+    type: task
+    priority: low
+    labels:
+      - chore
+    acceptance_criteria:
+      - "Today diarie declares `^22.13.0 || >=24.0.0`; `@voxpelli/remark-preset` (dev-only) declares the narrower `^22.22.2 || ^24.15.0 || >=26.0.0`. `check:installed-check` runs `--ignore @voxpelli/remark-preset` so a markdown linter does not dictate a published library's runtime support"
+      - "The bump is a CONSUMER-FACING narrowing (it drops Node 22.13-22.21 and 24.0-24.14), so it needs a reason of its own — a Node API diarie would actually use, not merely tidiness. Name the API in this row before acting"
+      - "If bumped: drop the `--ignore` from check:installed-check in the same change and confirm the gate goes green without it — the suppression exists only because of this gap"
+      - "Revival trigger: any Node feature landing in >=22.22 / >=24.15 that would simplify lib/ (candidates to watch rather than assume). No trigger, no bump"
+    description: >-
+      Noted 2026-07-28 while adopting the shared configs. The engines conflict was resolved by
+      ignoring the one dev-only package rather than by narrowing what consumers need, which is the
+      right default for a published library — a lint preset's Node floor is CI's business, not a
+      consumer's. But the wider range is not free either: it is the floor diarie's own code must
+      stay inside. Worth revisiting when there is an actual API gain, never as housekeeping.
+    updated: '2026-07-28'
+  - id: diarie-knp
+    title: Remove the knip suppressions for @voxpelli/remark-preset once knip ships PR #1911
+    status: pending
+    type: task
+    priority: low
+    labels:
+      - chore
+    acceptance_criteria:
+      - "`.knip.jsonc` carries `@voxpelli/remark-preset` in ignoreDependencies AND `remark-@voxpelli/remark-preset` in ignoreUnresolved, purely because knip's remark plugin cannot resolve a SCOPED preset name"
+      - "Fixed upstream in webpro-nl/knip#1911 (merged 2026-07-27), unreleased as of knip 6.29.0 (published 2026-07-22). Trigger: the first knip release containing it"
+      - "Verify by DELETING both entries and running `npm run check:knip` — green means the suppression is obsolete; keep them if it still reports. Do not remove them speculatively on a version number alone"
+      - "Leave the OTHER two ignoreDependencies alone: `@voxpelli/generate-favicon` (bare-binary execFileSync, permanent) and `@voxpelli/ast-grep-rules` (a filesystem path in sgconfig.yml ruleDirs — knip has no ast-grep plugin)"
+    description: >-
+      A suppression with no stated expiry outlives the thing it suppressed. This one has a known fix
+      with a known trigger, so it gets a row rather than a comment alone (the comment in .knip.jsonc
+      points here). Note knip is currently pinned at ^5.88.1 while latest is 6.x — the upgrade is a
+      major bump and its own decision; this row only tracks the suppression, not the upgrade.
+    updated: '2026-07-28'
+  - id: diarie-jsi
+    title: Hoist the 53 inline `import('...').X` JSDoc type refs to top-level `@import`
+    status: pending
+    type: task
+    priority: low
+    labels:
+      - chore
+    acceptance_criteria:
+      - "`@voxpelli/ast-grep-rules`' `no-inline-jsdoc-import` reports 53 sites across lib/ (severity WARNING, so the gate is green — this is a backlog, not a break)"
+      - "Each fix is TWO edits, per the rule's own note: add/extend a top-level `/** @import { NAME } from 'MODULE' */` AND replace the inline ref with the bare NAME. Doing only the second leaves NAME undefined — a tsc error after edit 2 alone means edit 1 is missing, not that the change is wrong"
+      - "Do NOT add a second `@import` line for a module that already has one — that is TS2300"
+      - "The rule already EXCLUDES the two forms that must stay inline: `@typedef {import('mod').X} X` (the inline import IS the definition, and doubles as a re-export) and type-predicate position `v is import('mod').T` (the hoisted form does not resolve there). Do not 'fix' those if some other pass surfaces them"
+      - "Gate: `npm test` green, and the reported count drops to 0 — verify with `npx ast-grep scan --json=compact`"
+    description: >-
+      Surfaced 2026-07-28 by adopting the shared ast-grep rules: `no-inline-jsdoc-import` is coverage
+      diarie never had, and it lands with a 53-site backlog. Mechanical but not autofixable (ast-grep's
+      fix is single-node; the hoist needs an edit elsewhere in the file), which is why the rule ships
+      detection-only. Split by file if parallelised — the atomic-write contract applies to source too.
+    updated: '2026-07-28'
+  - id: diarie-chg
+    title: Decide whether the release-please-generated CHANGELOG.md should be remark-linted
+    status: pending
+    type: task
+    priority: low
+    labels:
+      - chore
+    acceptance_criteria:
+      - "Adopting @voxpelli/remark-preset reformatted CHANGELOG.md (blank lines collapsed, `TYPE_MAP` escaped to `TYPE\\_MAP`). release-please regenerates that file, so every release re-introduces its own formatting and needs a `fix:md` pass — low but recurring friction, and the escape/un-escape cycle churns the diff"
+      - "This is in tension with decision `diarie-tbl` (check:md lints every tracked .md, NO exclusions — 'no unlinted island'). Excluding CHANGELOG.md needs that decision amended, not quietly contradicted"
+      - "The argument for excluding: a GENERATED file is a different category from an authored one — the repo already leaves generated `.d.ts` unlinted. The argument against: the changelog is published prose that people read, and an exclusion is exactly the silent-coverage-shrink `.gitignore` hazard CLAUDE.md warns about"
+      - "Whichever way: record it in diarie-tbl's Revisions rather than only in config, so the next reader sees a decision instead of an oddity"
+    description: >-
+      Surfaced 2026-07-28 by the shared-preset adoption. Not urgent — the current state (linted,
+      reformatted) is consistent and green; the cost is one `fix:md` per release. Filed so the
+      recurring friction is a choice rather than an accident nobody remembers agreeing to.
+    updated: '2026-07-28'

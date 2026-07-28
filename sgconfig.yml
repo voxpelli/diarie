@@ -18,7 +18,15 @@
 # guarded this (vp-beads-flr), but was retired (diarie-agf) as an inconsistent per-tool special case —
 # `check:md` (remark, also `.gitignore`-bounded) had the identical exposure with no floor. Detection is
 # now deliberate discipline: every line in `.gitignore` is a lint-scope decision.
+#
+# TWO ruleDirs, and the split is the whole point. `@voxpelli/ast-grep-rules` owns the HOUSE
+# conventions (JSDoc/ESM style) — one copy, shared with vp-beads, which cannot drift. `.ast-grep/`
+# owns rules that encode DIARIE'S OWN vocabulary and invariants: the store-name pair, the reserved
+# exit 2. No shared package can own those, so they stay local on purpose rather than pending
+# upstreaming. ast-grep has no `extends`, which is why this is two directories rather than one
+# config inheriting another.
 ruleDirs:
+  - node_modules/@voxpelli/ast-grep-rules/rules
   - .ast-grep/rules
 testConfigs:
   - testDir: .ast-grep/rule-tests
