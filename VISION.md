@@ -16,20 +16,20 @@ for where it is going, see the [ROADMAP](./ROADMAP.md); for its visual and verba
 These are promises, not features. They are the reasons to trust diarie with a backlog, and they do not
 change:
 
-- **Git is the database.** The store is ordinary committed files, so a backlog diffs, branches, merges,
+* **Git is the database.** The store is ordinary committed files, so a backlog diffs, branches, merges,
   and code-reviews like the rest of the repo — and outlives the tool.
-- **The CLI reads; your editor writes.** There is no `diarie add` / `close` / `assign`. A CRUD layer would
+* **The CLI reads; your editor writes.** There is no `diarie add` / `close` / `assign`. A CRUD layer would
   make diarie the owner of your data; the point is that you own it.
-- **A missing store is an error, not an empty backlog.** `ENOSTORE` (exit 1) is distinct from a present
-  store with no work (exit 0) — because *"tracks its work elsewhere"* and *"has no work left"* are opposite
+* **A missing store is an error, not an empty backlog.** `ENOSTORE` (exit 1) is distinct from a present
+  store with no work (exit 0) — because _"tracks its work elsewhere"_ and _"has no work left"_ are opposite
   situations, and conflating them is how a broken tracker reads as a clean sprint.
-- **Ready and blocked are computed, never stored.** They are a pure function of the dependency graph, so
+* **Ready and blocked are computed, never stored.** They are a pure function of the dependency graph, so
   they cannot go stale and you cannot forget to unset them.
-- **Four exclusive types; framings are labels.** A type answers *"what kind of thing is this"* (one
-  answer); a label answers *"how should I think about it"* (several).
-- **The reader is honest.** A malformed row is represented, never silently dropped — dropping it hides it
+* **Four exclusive types; framings are labels.** A type answers _"what kind of thing is this"_ (one
+  answer); a label answers _"how should I think about it"_ (several).
+* **The reader is honest.** A malformed row is represented, never silently dropped — dropping it hides it
   from the human whose typo it is. `validate` is the authority that rejects; the reader's job is to report.
-- **diarie degrades; it never forces itself.** A tool that silently treats an absent tracker as an empty
+* **diarie degrades; it never forces itself.** A tool that silently treats an absent tracker as an empty
   one makes a project that tracks its work elsewhere look broken. diarie says so instead.
 
 ## What diarie will never become
@@ -40,16 +40,16 @@ Leaving must always be free.
 
 ## The test for any feature
 
-Before anything is added, it must pass one question: *does this keep the store plain files you own, and the
-CLI a reader over them?* A feature that needs a daemon, a lock, or ownership of your data to work is out of
+Before anything is added, it must pass one question: _does this keep the store plain files you own, and the
+CLI a reader over them?_ A feature that needs a daemon, a lock, or ownership of your data to work is out of
 scope by construction, not by preference. These refusals are firm but not superstitious: like every
 constraint here, one can be reopened — but only against a named trigger that changes the reasoning, never
 talked back in by convenience. The sentence at the top of this file is a design test, not a slogan.
 
 ## Lineage
 
-diarie invents none of this; it applies a canon. Local-first software (Ink & Switch — *you own your data,
-in spite of the cloud*); convivial tools (Ivan Illich — tools that preserve their user's autonomy instead
+diarie invents none of this; it applies a canon. Local-first software (Ink & Switch — _you own your data,
+in spite of the cloud_); convivial tools (Ivan Illich — tools that preserve their user's autonomy instead
 of dominating them, which is precisely why a daemon between you and your files is the thing to refuse);
 calm technology (Weiser & Brown); worse-is-better (Richard Gabriel — the simpler thing that ships and
 stays legible); and the own-your-data ethos of indieweb / POSSE. A backlog is a small place to apply them —

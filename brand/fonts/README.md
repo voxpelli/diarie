@@ -31,6 +31,6 @@ them. This folder is that provision. The exact subset command lives in
 BRAND.md's type chapter.
 
 **Outlined uses.** The wordmark, `og.png`, and the SVG stamps are glyph
-*outlines* baked into documents — per the OFL, documents created with the
+_outlines_ baked into documents — per the OFL, documents created with the
 fonts carry no license obligations. The obligations live here, with the
 font software itself.

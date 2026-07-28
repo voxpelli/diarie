@@ -105,7 +105,7 @@ components:
 
 # diarie — DESIGN.md
 
-*Agent-facing projection of the diarie identity. Canonical sources are
+_Agent-facing projection of the diarie identity. Canonical sources are
 [`tokens.css`](./tokens.css) (values), [`BRAND.md`](../BRAND.md) (rationale),
 and the SVG files (geometry); when this file and those disagree, those win.
 Implementation contract for the built pages: [`HANDOFF.md`](./HANDOFF.md). Border colors are outside
@@ -115,7 +115,7 @@ Lint: `npx @google/design.md lint DESIGN.md` — current status: 0 errors,
 16 accepted warnings (palette members referenced by the page ground, halo,
 borders, and terminal states rather than by schema components — including
 the five `*-p3` tokens, which are consumed by a media gate, not a
-component).*
+component)._
 
 ## Overview
 
@@ -134,11 +134,11 @@ a motif, or an invariant in VISION.md does not belong in the system.
 
 ## Colors
 
-Names are Swedish, ASCII-folded: *arkiv* archive (page ground), *yta*
-surface, *lysning* the stepped backlight (four flat steps, outer → inner,
-never a gradient), *papper* herbarium paper, *hektograf* the violet
-copy-ink of the analog office, *fosfor* terminal phosphor, *bärnsten*
-amber, *stämpel* stamp red.
+Names are Swedish, ASCII-folded: _arkiv_ archive (page ground), _yta_
+surface, _lysning_ the stepped backlight (four flat steps, outer → inner,
+never a gradient), _papper_ herbarium paper, _hektograf_ the violet
+copy-ink of the analog office, _fosfor_ terminal phosphor, _bärnsten_
+amber, _stämpel_ stamp red.
 
 **The highlights have jobs — this is the load-bearing rule.** The accents
 are the CLI's exit-code contract: `fosfor` is exit 0 and `ready`, and

@@ -1,8 +1,8 @@
 # diarie — Brand
 
-*Status: v0.1.1, drawn 2026-07-18 and revised the same day after an external
+_Status: v0.1.1, drawn 2026-07-18 and revised the same day after an external
 audit. Canonical. `brand-book.html` is a rendering of this file and the token
-files; when they disagree, the files win.*
+files; when they disagree, the files win._
 
 This is the visual and verbal identity of diarie, held to the same test as the
 code: **plain files you own, and nothing that owns you back.** The brand is a
@@ -21,27 +21,27 @@ findable, never hidden. That is offentlighetsprincipen, 1766, the world's
 first freedom-of-information law, and it maps onto the invariants one to
 one. A malformed row is represented, never silently dropped. Git is the
 audit log. Every task has its id — its diarienummer. The register aesthetic
-is not decoration on the ethos; it *is* the ethos, 250 years older than the
+is not decoration on the ethos; it _is_ the ethos, 250 years older than the
 tool. When the brand must say one thing, it says this.
 
 **Two supporting motifs**, subordinate to the anchor:
 
-- **Herbarium** — the -arium sibling, an archive of living things — gives
+* **Herbarium** — the -arium sibling, an archive of living things — gives
   the identity its mark and its warmth. Linné's specimen sheets are
   280-year-old plain files: paper, a pressed flower, a label, a stamp —
   still readable, no vendor, no format rot. His taxonomy is diarie's type
   system (one genus per specimen, many descriptors), and the dependency
   graph is the root system, with `ready` above the soil.
-- **Genomlysning** — examining a sheet by backlighting it, which in Swedish
+* **Genomlysning** — examining a sheet by backlighting it, which in Swedish
   is also the word for scrutiny — gives the mark its halo. Not an aura: the
-  light table. The glow *is* the honesty.
+  light table. The glow _is_ the honesty.
 
-One sentence, for when only one fits: *diarie is a public record of your
-own work — pressed flat, backlit, and honest.*
+One sentence, for when only one fits: _diarie is a public record of your
+own work — pressed flat, backlit, and honest._
 
 ## The mark
 
-The mark is a pressed *Linnaea borealis* — the twinflower, named for Linné,
+The mark is a pressed _Linnaea borealis_ — the twinflower, named for Linné,
 his own favorite: a small, modest, Nordic woodland plant. Two nodding bells
 on one forked stem, which is also the tool's central pair — the CLI reads,
 your editor writes. Behind it, the light table: a halo in four flat steps.
@@ -56,19 +56,19 @@ converted to outlines, so neither file needs a font installed.
 
 Rules, few and firm:
 
-- **The halo is stepped, never a gradient.** This is risograph light, not
+* **The halo is stepped, never a gradient.** This is risograph light, not
   lens flare. Four steps: `lysning-1` through `lysning-4`, outer to inner.
-- **The flower is papper or arkiv.** Cream on dark, ink on paper. No third
+* **The flower is papper or arkiv.** Cream on dark, ink on paper. No third
   color, no gradients, no outline version.
-- **Clearspace is one bell-height** on all sides (26 units on the mark's
+* **Clearspace is one bell-height** on all sides (26 units on the mark's
   256 grid). Minimum size: 24 px for the mark, 140 px wide for the lockup.
-- **Don't** detach the bells, tilt the mark, add a drop shadow, place it on
+* **Don't** detach the bells, tilt the mark, add a drop shadow, place it on
   photography, or animate it beyond the one sanctioned reveal (see Motion).
 
 Named honestly, because the reader is honest: the twinflower is not an
 unclaimed symbol. It appears in Linné's own coat of arms (1757) and in the
 Linnean Society of London's heraldry — scientific-heritage bodies, not
-software, so confusion risk is low but not zero. And *Linnea* is among
+software, so confusion risk is low but not zero. And _Linnea_ is among
 Sweden's most common given names: to a Swedish eye the flower reads as
 culturally familiar rather than proprietary. diarie borrows the specimen;
 it does not claim the species.
@@ -76,12 +76,12 @@ it does not claim the species.
 ## Color
 
 Names are Swedish, ASCII-folded in code. The glossary, so nothing is a
-secret handshake: *arkiv* — archive; *yta* — surface; *lysning*, from
-*genomlysning* — backlighting, scrutiny; *papper* — paper; *hektograf* — the
+secret handshake: _arkiv_ — archive; _yta_ — surface; _lysning_, from
+_genomlysning_ — backlighting, scrutiny; _papper_ — paper; _hektograf_ — the
 violet copying-ink of old offices, the color of every stamp pad and
-anilinpenna in every Swedish myndighet of the analog era; *lavendel* —
-lavender; *fosfor* — phosphor, the green of the terminal; *bärnsten* — amber;
-*stämpel* — stamp.
+anilinpenna in every Swedish myndighet of the analog era; _lavendel_ —
+lavender; _fosfor_ — phosphor, the green of the terminal; _bärnsten_ — amber;
+_stämpel_ — stamp.
 
 Canonical values live in [`tokens.css`](./brand/tokens.css) (with
 [`tokens.json`](./brand/tokens.json) as the tooling twin). The palette, with its
@@ -111,12 +111,12 @@ paragraphs. Where the two models disagree, follow APCA.
 **The highlights have jobs.** This is the rule that keeps the palette from
 being a mood board. The accents are the exit-code contract, in color:
 
-- `fosfor` is **exit 0** and `ready` — the answer, on stdout. It speaks for
+* `fosfor` is **exit 0** and `ready` — the answer, on stdout. It speaks for
   the CLI and for nothing else. Never use it decoratively where it could be
   mistaken for "this is workable".
-- `bärnsten` is **exit 1** — you asked wrong (`ENOSTORE`, `EUSAGE`,
+* `bärnsten` is **exit 1** — you asked wrong (`ENOSTORE`, `EUSAGE`,
   `EEXIST`) — and stale claims. Correctable, not condemned.
-- `stämpel` is **exit 2** — it ran, and the answer is no. The stamp belongs
+* `stämpel` is **exit 2** — it ran, and the answer is no. The stamp belongs
   to `validate`, because `validate` is the authority that rejects.
 
 On wide-gamut screens the highlights are served again in OKLCH at higher
@@ -138,10 +138,10 @@ CLI:s actual exit codes.
 
 Two voices, no third — because the architecture has exactly two sides:
 
-- **The archive voice** is [Fraunces](https://github.com/undercasetype/Fraunces)
+* **The archive voice** is [Fraunces](https://github.com/undercasetype/Fraunces)
   (OFL): what the human wrote. Old-style, soft-serifed, a bit wonky — the
   hand in the herbarium label.
-- **The reader voice** is
+* **The reader voice** is
   [Fragment Mono](https://github.com/weiweihuanghuang/fragment-mono) (OFL):
   what the CLI reports. Plain, legible, unornamented — klarspråk as a
   typeface.
@@ -178,7 +178,7 @@ pyftsubset "Fraunces[SOFT,WONK,opsz,wght].ttf" --flavor=woff2 \
 ## Voice
 
 The register is klarspråk. Swedish law requires public language to be
-*vårdat, enkelt och begripligt* — cared-for, simple, comprehensible
+_vårdat, enkelt och begripligt_ — cared-for, simple, comprehensible
 (Språklagen 2009:600, §11) — and a tool named after a myndighet's registry
 writes like one, at its best. The README already does; this section only
 writes the rules down.
@@ -197,30 +197,30 @@ writes the rules down.
 5. **House punctuation:** the em-dash pivot (setup — destination) and the
    colon as the seam between claim and evidence. Both make the reasoning
    visible, which is the point of the reasoning.
-6. **Never anthropomorphize past the one licensed phrase:** *the reader is
-   honest.* The tool has no feelings, only obligations.
+6. **Never anthropomorphize past the one licensed phrase:** _the reader is
+   honest._ The tool has no feelings, only obligations.
 7. **Swedish is seasoning, not gatekeeping.** Loanwords welcome — always
    glossed on first use.
 
-Words that do not appear: *blazing, seamless, powerful, supercharge,
-game-changing, simply, just* (the adverb), and any sentence beginning
+Words that do not appear: _blazing, seamless, powerful, supercharge,
+game-changing, simply, just_ (the adverb), and any sentence beginning
 "Unlock".
 
 ## Motion
 
 Motion follows the same discipline as color: scarce, and with a job.
 
-- **At most three beats per page; the hero owns one.** Everything else is
+* **At most three beats per page; the hero owns one.** Everything else is
   functional transition, not spectacle.
-- **Never on the install command or any call to action.** Motion that leans
+* **Never on the install command or any call to action.** Motion that leans
   on a decision is a dark pattern; diarie does not lean.
-- **One easing:** `--ease-lysning`, `cubic-bezier(0.22, 0, 0.18, 1)` — slow
+* **One easing:** `--ease-lysning`, `cubic-bezier(0.22, 0, 0.18, 1)` — slow
   start, fast middle, very slow stop; the light coming up on the table.
   Never the browser's default `ease`.
-- **Reduced motion is full parity.** `prefers-reduced-motion` gets the
+* **Reduced motion is full parity.** `prefers-reduced-motion` gets the
   complete page, rendered at once — the same information, calm. Degrading
   honestly applies to animation too.
-- **Nothing runs longer than two seconds,** and below-the-fold beats fire
+* **Nothing runs longer than two seconds,** and below-the-fold beats fire
   once per session, not on every scroll.
 
 ## Applications
@@ -271,18 +271,18 @@ CI, version). No stars-counter theater.
 
 Like the roadmap's non-goals, these are identity:
 
-- **No gradient glow.** The halo is stepped or it is not the halo. The
+* **No gradient glow.** The halo is stepped or it is not the halo. The
   sanctioned atmosphere is stepped light at any scale and static print
   grain (`--korn`, ≤ 5 % opacity) — risograph, never lens flare.
-- **No mascot.** The twinflower is a specimen, not a character. It does not
+* **No mascot.** The twinflower is a specimen, not a character. It does not
   wave, wink, or wear a hard hat during errors.
-- **No dark-pattern motion** — no pulsing CTA:s, no fake urgency, no
+* **No dark-pattern motion** — no pulsing CTA:s, no fake urgency, no
   confetti at the moment of a decision.
-- **No tracking, ever,** on any diarie surface. A registry that surveils its
+* **No tracking, ever,** on any diarie surface. A registry that surveils its
   readers has misunderstood which direction the transparency goes.
-- **No third typeface, no second easing, no off-token colors.** Scarcity is
+* **No third typeface, no second easing, no off-token colors.** Scarcity is
   what makes the system legible.
-- **No brand asset behind a login.** The brand is files. Leaving — forking,
+* **No brand asset behind a login.** The brand is files. Leaving — forking,
   re-theming, deleting — must always be free.
 
 ## Lineage

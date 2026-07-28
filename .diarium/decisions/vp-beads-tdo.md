@@ -22,7 +22,7 @@ horizons and are used together:
 **One boundary rule, and it is the whole decision:**
 
 > **An ephemeral todo may never be the only home of a commitment.** If it must outlive the
-> session, it is a `diarie` row. The todo list is a *projection of one claimed row's execution*
+> session, it is a `diarie` row. The todo list is a _projection of one claimed row's execution_
 > — never a second backlog.
 
 The natural shape: `diarie ready` → claim a row (`status: in_progress`) → expand it into
@@ -39,12 +39,12 @@ Wave 1 (a02bcf7) rewrote  "Do NOT use markdown TODOs, ad-hoc task lists, or `bd`
 ```
 
 The clause **predates the migration**, and the cutover commit — whose stated job was to retarget
-the operating instructions *off* bd — carried it forward and **broadened** it. An earlier draft
+the operating instructions _off_ bd — carried it forward and **broadened** it. An earlier draft
 of this decision claimed it was "beads' own colonization language, inherited intact." **That is
 unproven and probably false**: `git log -S 'BEADS INTEGRATION'` finds no managed block ever
 written to this `CLAUDE.md`, and the repo's own notes record that `bd setup claude` installed
 nothing here. Nobody colonized us. **We absorbed a bd-shaped convention on our own and never
-re-examined it** — and then a commit explicitly about *removing* bd's influence renewed it
+re-examined it** — and then a commit explicitly about _removing_ bd's influence renewed it
 without noticing, which is exactly how an inherited assumption survives the thing it came from.
 
 A plugin whose `/deintegrate-beads` skill exists to take one tool's hands off the wheel has no
@@ -52,14 +52,14 @@ business keeping its own there.
 
 **It contradicts two of this project's stated tenets.**
 
-- *Platform proximity* — "trust the platform, distrust layers on top". The built-in tracker
+* _Platform proximity_ — "trust the platform, distrust layers on top". The built-in tracker
   **is** the platform. Banning it to privilege our own layer inverts the tenet exactly.
-- *Substrate-not-opinion* — we do not force `diarie` on projects that track work elsewhere
-  (the whole `### Files-availability convention`). Forcing it on *agents*, against a native
+* _Substrate-not-opinion_ — we do not force `diarie` on projects that track work elsewhere
+  (the whole `### Files-availability convention`). Forcing it on _agents_, against a native
   affordance, is the same imposition wearing different clothes.
 
 **The hazard the ban gropes at is real; the ban is the wrong instrument.** The danger is an
-agent parking a *commitment* in the ephemeral list, where it evaporates at session end and
+agent parking a _commitment_ in the ephemeral list, where it evaporates at session end and
 nobody learns it existed. That is a **boundary** problem. The boundary rule above prevents it
 precisely; a blanket ban prevents it by also destroying a useful, orthogonal tool.
 
@@ -73,22 +73,22 @@ directly, is not a rule worth keeping.
 
 ## Alternatives Considered
 
-- **Keep the blanket ban (beads' behaviour).** Declined. Single-substrate purity is not a
+* **Keep the blanket ban (beads' behaviour).** Declined. Single-substrate purity is not a
   benefit here; it is the vendor reflex the migration was fleeing. The one legitimate worry it
   encodes (commitments dying with the session) is fully covered by the boundary rule, at a
   fraction of the cost.
-- **Ban nothing, say nothing.** Declined. Silence is what lets an agent drift into using the
-  ephemeral list *as* a backlog — the one failure mode that actually matters. The seam has to be
+* **Ban nothing, say nothing.** Declined. Silence is what lets an agent drift into using the
+  ephemeral list _as_ a backlog — the one failure mode that actually matters. The seam has to be
   written down, or it is not a seam.
-- **Mirror todos into `.diarie/` automatically.** Declined, and it is worth naming why: it would
+* **Mirror todos into `.diarie/` automatically.** Declined, and it is worth naming why: it would
   make every incidental step of an agent's reasoning a committed artifact, which is neither
   durable knowledge nor reviewable work. It also re-imports a CRUD/sync layer that
   substrate-not-opinion exists to refuse. The two horizons stay separate on purpose.
 
 ## Affects
 
-- `CLAUDE.md` `### Issue tracking` — the ban is replaced by the seam.
-- Agents working on this repo: `diarie ready` remains the source of work; the built-in tracker
-  is now the sanctioned way to show progress *within* a claimed row.
-- Any project adopting `vp-beads`: the same seam applies, and it is the reason we do not ship
+* `CLAUDE.md` `### Issue tracking` — the ban is replaced by the seam.
+* Agents working on this repo: `diarie ready` remains the source of work; the built-in tracker
+  is now the sanctioned way to show progress _within_ a claimed row.
+* Any project adopting `vp-beads`: the same seam applies, and it is the reason we do not ship
   a `CLAUDE.md` managed block. (See `/deintegrate-beads`, which removes exactly that.)

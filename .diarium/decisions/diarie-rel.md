@@ -24,14 +24,14 @@ the open-relation vision, and new relations addable by convention.
 **But the founding thesis pushes back hard, and it is the deciding constraint.** diarie exists so
 that "a guard that DROPS a value must also REPORT it." A computed dependency encoded as
 `links: [{ rel: blocks, ref: T-0 }]` is vulnerable in a way a dedicated `deps:` key is not: a typo in
-the *value* (`rel: block`, `rel: depends`) silently removes the edge from the ready-computation, and
+the _value_ (`rel: block`, `rel: depends`) silently removes the edge from the ready-computation, and
 `validate` — which already ignores unknown keys and would have no reason to reject an unknown `rel` in
 an OPEN vocabulary — reports nothing. The result is a blocked task surfaced as ready with no error:
 precisely the silent-mislead failure mode the whole tool is built against. A distinct `deps:` key
 cannot be typo'd into invisibility; an open-`rel` link can.
 
-So the open vocabulary that makes `links` valuable for *navigation* is in direct tension with the
-safety a *computed* relation needs. They can only be reconciled by making any computed `rel` a
+So the open vocabulary that makes `links` valuable for _navigation_ is in direct tension with the
+safety a _computed_ relation needs. They can only be reconciled by making any computed `rel` a
 **closed, validated vocabulary** (a typo becomes a validation error, not a silent drop) — at which
 point that subset of `links` is no longer "open," and the clean mental model ("computed relations are
 their own keys; `links` is the open non-computed space") may simply be clearer than "everything is
@@ -57,13 +57,13 @@ resolution logic drifts). The revisit starts from the closed-vocabulary constrai
 
 ## Alternatives Considered
 
-- **Unify now (retire `deps`, express as `rel: blocks`)** — declined for now: the silent-drop risk
+* **Unify now (retire `deps`, express as `rel: blocks`)** — declined for now: the silent-drop risk
   above is unacceptable under an open `rel` vocabulary, and the everyday relation gets more verbose.
-- **Never unify** — not chosen either; the question is left open rather than foreclosed, because the
+* **Never unify** — not chosen either; the question is left open rather than foreclosed, because the
   open-relation vision is a genuine draw and a closed computed-`rel` vocabulary could reconcile it.
 
 ## Affects
 
-- Nothing yet — `diarie-ext` keeps `deps`/`parent` distinct. If decided toward unification later:
+* Nothing yet — `diarie-ext` keeps `deps`/`parent` distinct. If decided toward unification later:
   `lib/schema.js`, `lib/store.js` (id/dep globalization), `lib/validate.js`, the ready-walk, and a
   `diarie migrate` path.

@@ -1,6 +1,6 @@
 # Handoff Spec: diarie.dev + brand-book.html
 
-*Implementation contract for the two built pages. Token values:
+_Implementation contract for the two built pages. Token values:
 [`tokens.css`](./tokens.css) / [`DESIGN.md`](./DESIGN.md). Rationale:
 [`BRAND.md`](../BRAND.md). Both pages are static HTML files reading three
 self-hosted woff2:s from the adjacent `fonts/` directory. The deployed site is
@@ -8,14 +8,14 @@ served as static files — no framework, nothing to run at serve time; a small
 `brand:build` step (`update-stamp.js` + `generate-favicons.js`) regenerates the
 INKOM stamp and favicons into `brand-dist/` before deploy (see Deployment). The
 reference implementation is the spec's executable form, and this document is what
-must survive any rewrite.*
+must survive any rewrite._
 
 ## Overview
 
 `index.html` is diarie.dev: dark ground (the light table), one screen of
 hero followed by nine sections, two motion beats, zero external requests.
 `brand-book.html` is the paper inversion of the same system. Everything
-below applies to index.html unless marked *(book)*.
+below applies to index.html unless marked _(book)_.
 
 ## Layout
 
@@ -78,7 +78,7 @@ literal values in components except the environmental ring tints
 | Copy button                    | default → click  | Clipboard write; label swaps to "copied" for 1600ms — text change only, no motion; the button carries a `min-width` sized for the wider label so the swap can never shift layout or trigger a wrap |
 | Copy button                    | clipboard denied | Fallback: select the command text via Range so manual copy works                                                                                                                                   |
 | Install command                | any              | Never animates, never pulses — hard rule                                                                                                                                                           |
-| Type-specimen sliders *(book)* | input            | Update `font-variation-settings` live; native range = keyboard operable                                                                                                                            |
+| Type-specimen sliders _(book)_ | input            | Update `font-variation-settings` live; native range = keyboard operable                                                                                                                            |
 
 ## Animation / motion
 
@@ -97,7 +97,7 @@ static — full information parity, not a degraded page.
 | tagline / sub       | load                           | fade + 10px rise                                                                                                                                                                                                          | 700/650ms | 880/1000ms        | same             |
 | `.stamps .stamp` ×6 | ≥40% in viewport, once/session | press-through (`stampla`: 1.16 → 0.985 → 1)                                                                                                                                                                               | 700ms     | 0–400ms stagger   | same             |
 
-Follow-through is achieved by varying *durations* across the stagger, never
+Follow-through is achieved by varying _durations_ across the stagger, never
 by a second easing — one curve is brand law. The LCP element (`h1`) may
 never be animated through opacity.
 
@@ -122,42 +122,42 @@ exact sRGB values the hex labels claim.
 
 ## Edge cases
 
-- **No JS**: head script never runs → no `.anim` class → fully static
+* **No JS**: head script never runs → no `.anim` class → fully static
   page; copy buttons present but inert (command remains selectable).
-- **Reduced motion**: durations zeroed via token override + `.anim` never
+* **Reduced motion**: durations zeroed via token override + `.anim` never
   set; identical content.
-- **Blocked storage/private mode**: try/catch around all storage; stamps
+* **Blocked storage/private mode**: try/catch around all storage; stamps
   degrade to always-visible.
-- **Long strings / translations**: no fixed heights; `.term` and `.sheet
+* **Long strings / translations**: no fixed heights; `.term` and `.sheet
   pre` scroll horizontally (`overflow-x:auto`) rather than wrap code.
-- **Slow connection**: HTML ≈50 KiB; the three fonts are preloaded and
+* **Slow connection**: HTML ≈50 KiB; the three fonts are preloaded and
   `font-display: swap` keeps text visible on Georgia/system mono until
   they land, then cache across visits. Revival trigger unchanged:
   cold-mobile LCP > 2.5s.
-- **Link previews**: `og.png` (1200×630) must be deployed at
+* **Link previews**: `og.png` (1200×630) must be deployed at
   `https://diarie.dev/og.png` (with `apple-touch-icon.png` beside it).
-- **WebKit min-content propagation**: iOS Safari lets a `pre` inside a
+* **WebKit min-content propagation**: iOS Safari lets a `pre` inside a
   grid/flex item propagate its widest line through `min-width: auto` even
   when the `pre` scrolls — one long YAML line can widen the whole page.
   Every grid child that can hold code carries `min-width: 0`, and `html`
   carries `overflow-x: clip` as the belt. Field-found on iPhone 17 Pro;
   spec-correct engines never showed it.
-- **Empty/loading/error states**: none exist; the page has no data
+* **Empty/loading/error states**: none exist; the page has no data
   dependencies by design.
 
 ## Accessibility notes
 
-- Landmarks: `header` (nav labelled "Site") → `main` → `footer`; one `h1`;
+* Landmarks: `header` (nav labelled "Site") → `main` → `footer`; one `h1`;
   section `h2`s in document order — focus order follows source order, no
   tabindex anywhere.
-- Decorative visuals (`.env`, leaf rules, tape, `granskad`) are
+* Decorative visuals (`.env`, leaf rules, tape, `granskad`) are
   `aria-hidden`; meaningful visuals (`.mark`, terminals, `.dnr`) carry
   `role="img"` + descriptive `aria-label`.
-- Contrast: every text/background pairing published in BRAND.md with WCAG
+* Contrast: every text/background pairing published in BRAND.md with WCAG
   and APCA values; follow APCA on disagreement. No body-size `stampel` on
   arkiv; no body-size `hektograf` anywhere on dark.
-- `color-scheme: dark` (meta + CSS) so UA controls and scrollbars match.
-- Copy buttons have `aria-label="Copy install command"`; the "copied"
+* `color-scheme: dark` (meta + CSS) so UA controls and scrollbars match.
+* Copy buttons have `aria-label="Copy install command"`; the "copied"
   swap is text content, announced by nature of the button label change.
 
 ## Deployment

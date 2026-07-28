@@ -20,30 +20,30 @@ states rather than by a schema component), not suppressed and not "fixed" into s
 
 ## Rationale
 
-- **No unlinted island.** Excluding the brand docs from remark would create files that ship and
+* **No unlinted island.** Excluding the brand docs from remark would create files that ship and
   are reviewed yet are invisible to the gate — the exact "green over files nobody chose to
   exclude" hazard `vp-beads-imd` tracks. Linting them keeps them honest.
-- **Reformatting was cosmetic.** When the brand files landed, remark reformatted the tables by
+* **Reformatting was cosmetic.** When the brand files landed, remark reformatted the tables by
   cell-padding only (`diff -bw` clean), so bringing them under the linter cost nothing
   semantic.
-- **Accept-with-reason beats suppress.** The 11 design.md warnings carry information; recording
+* **Accept-with-reason beats suppress.** The 11 design.md warnings carry information; recording
   why they are acceptable in the header is more honest than a blanket ignore that a later reader
   cannot distinguish from an overlooked defect.
 
 ## Alternatives Considered
 
-- **Exclude the brand docs from remark** — declined; creates an unlinted island.
-- **Suppress the design.md warnings** — declined; they are legitimate palette references, and
+* **Exclude the brand docs from remark** — declined; creates an unlinted island.
+* **Suppress the design.md warnings** — declined; they are legitimate palette references, and
   accept-with-reason preserves the signal a suppression would erase.
 
 ## Affects
 
-- `diarie/BRAND.md`, `diarie/brand/DESIGN.md`, `diarie/brand/HANDOFF.md`
-- the repository's remark config / `check:md` (and `vp-beads-imd`, which tracks a broader
+* `diarie/BRAND.md`, `diarie/brand/DESIGN.md`, `diarie/brand/HANDOFF.md`
+* the repository's remark config / `check:md` (and `vp-beads-imd`, which tracks a broader
   `check:md` exclusion hole through `--ignore-pattern`)
-- at extraction, diarie's own `check:md` — if it adds one — inherits this posture.
-- **REALIZED 2026-07-18.** diarie's own `check:md` now exists (`remark . --frail --ignore-path
+* at extraction, diarie's own `check:md` — if it adds one — inherits this posture.
+* **REALIZED 2026-07-18.** diarie's own `check:md` now exists (`remark . --frail --ignore-path
   .gitignore`, no per-file exclusions) plus a `fix:md` fixer. The brand docs and every decision
   `.md` are linted under it; on first run it re-padded the brand tables (cosmetic, `diff -bw`
   clean) and `remark-validate-links` caught the `brand/DESIGN.md` `./BRAND.md` → `../BRAND.md`
-  regression. The load-bearing decision-*frontmatter* gap stays open under `diarie-dlm`.
+  regression. The load-bearing decision-_frontmatter_ gap stays open under `diarie-dlm`.
