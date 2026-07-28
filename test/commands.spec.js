@@ -47,8 +47,8 @@ after(() => {
 function storeWith (yaml) {
   const root = mkdtempSync(join(tmpdir(), 'diarie-cmd-'));
   scratch.push(root);
-  mkdirSync(join(root, '.diarie', 'tasks'), { recursive: true });
-  writeFileSync(join(root, '.diarie', 'tasks', 'tasks-backlog.yml'), yaml, 'utf8');
+  mkdirSync(join(root, 'diarium', 'tasks'), { recursive: true });
+  writeFileSync(join(root, 'diarium', 'tasks', 'tasks-backlog.yml'), yaml, 'utf8');
   return root;
 }
 
@@ -160,8 +160,8 @@ describe('validate — doTheWork', () => {
     // lint warning from every machine consumer.
     const root = mkdtempSync(join(tmpdir(), 'diarie-cmd-'));
     scratch.push(root);
-    mkdirSync(join(root, '.diarie', 'tasks'), { recursive: true });
-    writeFileSync(join(root, '.diarie', 'tasks', 'tasks_old.yml'), 'tasks: []\n', 'utf8');
+    mkdirSync(join(root, 'diarium', 'tasks'), { recursive: true });
+    writeFileSync(join(root, 'diarium', 'tasks', 'tasks_old.yml'), 'tasks: []\n', 'utf8');
 
     const result = await validateWork({ root });
 
@@ -180,21 +180,21 @@ describe('init — doTheWork', () => {
     const root = mkdtempSync(join(tmpdir(), 'diarie-init-'));
     scratch.push(root);
 
-    const { created, root: where } = await initWork({ root, slug: 'backlog' });
+    const { created, root: where } = await initWork({ dotted: false, root, slug: 'backlog' });
 
     assert.equal(where, root);
     assert.ok(created.length > 0);
-    assert.ok(existsSync(join(root, '.diarie', 'tasks', 'tasks-backlog.yml')));
-    assert.ok(existsSync(join(root, '.diarie', 'decisions')));
+    assert.ok(existsSync(join(root, 'diarium', 'tasks', 'tasks-backlog.yml')));
+    assert.ok(existsSync(join(root, 'diarium', 'decisions')));
   });
 
   it('honours --slug — the first task file is named, not assumed', async () => {
     const root = mkdtempSync(join(tmpdir(), 'diarie-init-slug-'));
     scratch.push(root);
 
-    await initWork({ root, slug: 'roadmap' });
+    await initWork({ dotted: false, root, slug: 'roadmap' });
 
-    assert.ok(existsSync(join(root, '.diarie', 'tasks', 'tasks-roadmap.yml')));
+    assert.ok(existsSync(join(root, 'diarium', 'tasks', 'tasks-roadmap.yml')));
   });
 
   it('REFUSES an existing store, and the refusal carries EEXIST', async () => {
@@ -204,9 +204,9 @@ describe('init — doTheWork', () => {
     const root = mkdtempSync(join(tmpdir(), 'diarie-init-twice-'));
     scratch.push(root);
 
-    await initWork({ root, slug: 'backlog' });
+    await initWork({ dotted: false, root, slug: 'backlog' });
     await assert.rejects(
-      () => initWork({ root, slug: 'backlog' }),
+      () => initWork({ dotted: false, root, slug: 'backlog' }),
       (/** @type {Error & {code?: string}} */ err) => {
         assert.equal(err.name, 'InputError');
         assert.equal(err.code, 'EEXIST');
@@ -220,9 +220,78 @@ describe('init — doTheWork', () => {
     const root = mkdtempSync(join(tmpdir(), 'diarie-init-valid-'));
     scratch.push(root);
 
-    await initWork({ root, slug: 'backlog' });
+    await initWork({ dotted: false, root, slug: 'backlog' });
     const result = await validateWork({ root });
 
     assert.deepEqual(result.errors, []);
+  });
+});
+
+describe('init — the store pair', () => {
+  // Paths spelled out rather than built from TRACKER_DIRS: these assertions are about the
+  // two NAMES, and deriving them from the constant proves only that it equals itself.
+
+  it('--dotted writes the other posture', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'diarie-init-dotted-'));
+    scratch.push(root);
+
+    const { created } = await initWork({ dotted: true, root, slug: 'backlog' });
+
+    assert.ok(existsSync(join(root, '.diarium', 'tasks', 'tasks-backlog.yml')));
+    assert.ok(!existsSync(join(root, 'diarium')));
+    assert.ok(created.every(f => f.startsWith('.diarium/')), `created reported ${created.join(', ')}`);
+  });
+
+  it('refusing the OTHER posture names the form that is actually there', async () => {
+    // The message must name the FOUND form, not the requested one. Told "`.diarium/`
+    // already exists" after asking for `.diarium/`, you go looking for a bug in the flag
+    // instead of at the visible store sitting in front of you.
+    const root = mkdtempSync(join(tmpdir(), 'diarie-init-other-'));
+    scratch.push(root);
+
+    await initWork({ dotted: false, root, slug: 'backlog' });
+    await assert.rejects(
+      () => initWork({ dotted: true, root, slug: 'backlog' }),
+      (/** @type {Error & {code?: string}} */ err) => {
+        assert.equal(err.code, 'EEXIST');
+        assert.match(err.message, /^diarium\//, 'named the requested form, not the one on disk');
+        assert.match(err.message, /other posture/);
+        return true;
+      }
+    );
+  });
+
+  it('BOTH forms present: ETWOSTORES rather than a third thing on top of an ambiguity', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'diarie-init-both-'));
+    scratch.push(root);
+    mkdirSync(join(root, 'diarium'), { recursive: true });
+    mkdirSync(join(root, '.diarium'), { recursive: true });
+
+    await assert.rejects(
+      () => initWork({ dotted: false, root, slug: 'backlog' }),
+      (/** @type {Error & {code?: string}} */ err) => {
+        assert.equal(err.code, 'ETWOSTORES');
+        return true;
+      }
+    );
+  });
+
+  it('REFUSES beside a legacy store — ELEGACY, not a second backlog', async () => {
+    // The read side answers a legacy store with ENOSTORE, and a helpful caller answers
+    // ENOSTORE by running init. Without this the project ends up with TWO backlogs, the
+    // old one holding all the work and nothing pointing at it.
+    const root = mkdtempSync(join(tmpdir(), 'diarie-init-legacy-'));
+    scratch.push(root);
+    mkdirSync(join(root, '.diarie', 'tasks'), { recursive: true });
+
+    await assert.rejects(
+      () => initWork({ dotted: false, root, slug: 'backlog' }),
+      (/** @type {Error & {code?: string}} */ err) => {
+        assert.equal(err.code, 'ELEGACY');
+        assert.match(err.message, /git mv \.diarie diarium/);
+        return true;
+      }
+    );
+    assert.ok(!existsSync(join(root, 'diarium')), 'created a second store anyway');
   });
 });

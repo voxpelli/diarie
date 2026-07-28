@@ -1,7 +1,7 @@
 /* diarie — design tokens
  *
  * Plain CSS custom properties. No preprocessor, no build step: this file is
- * the brand, the same way `.diarie/` is the backlog. tokens.json carries the
+ * the brand, the same way `diarium/` is the backlog. tokens.json carries the
  * same values in W3C Design Tokens format for tooling; if the two ever
  * disagree, this file wins (prose loses to the store it describes).
  *

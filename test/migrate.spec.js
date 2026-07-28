@@ -240,7 +240,7 @@ describe('CLI guards (the two data-loss stops)', () => {
 
     it('an empty root migrates cleanly', () => {
       const { code } = run(['--root', dir]);
-      assert.ok(code === 0 && existsSync(join(dir, '.diarie', 'tasks', 'tasks-backlog.yml')));
+      assert.ok(code === 0 && existsSync(join(dir, 'diarium', 'tasks', 'tasks-backlog.yml')));
     });
 
     it('re-running over an existing store refuses (exit 1, names the files)', () => {
@@ -266,7 +266,7 @@ describe('CLI guards (the two data-loss stops)', () => {
     const { code, out } = run(['--root', dir]);
     assert.ok(
       code === 0 &&
-      existsSync(join(dir, '.diarie', 'tasks', 'tasks-backlog.yml')) &&
+      existsSync(join(dir, 'diarium', 'tasks', 'tasks-backlog.yml')) &&
       /gitignored/.test(out) && /bd-final-export\.jsonl/.test(out)
     );
   });
@@ -285,7 +285,7 @@ describe('CLI guards (the two data-loss stops)', () => {
     // An ignored STORE is not a judgment call — the migration produced nothing durable.
     const dir = tmpDir(t);
     spawnSync('git', ['-C', dir, 'init', '-q']);
-    writeFileSync(join(dir, '.gitignore'), '.diarie/\n');
+    writeFileSync(join(dir, '.gitignore'), 'diarium/\n');
     const { code, out } = run(['--root', dir]);
     assert.ok(code === 1 && /GITIGNORED/.test(out));
   });
@@ -299,10 +299,35 @@ describe('CLI guards (the two data-loss stops)', () => {
     // Both readers accept tasks-*.yaml too, so the guard must match that extension —
     // otherwise a .yaml store is invisible to it and gets clobbered.
     const dir = tmpDir(t);
-    mkdirSync(join(dir, '.diarie', 'tasks'), { recursive: true });
-    writeFileSync(join(dir, '.diarie', 'tasks', 'tasks-x.yaml'), 'tasks: []\n');
+    mkdirSync(join(dir, 'diarium', 'tasks'), { recursive: true });
+    writeFileSync(join(dir, 'diarium', 'tasks', 'tasks-x.yaml'), 'tasks: []\n');
     const { code, out } = run(['--root', dir]);
     assert.ok(code === 1 && /refusing to overwrite/.test(out));
+  });
+
+  it('--dotted bootstraps into the other posture', (t) => {
+    // A bootstrap is exactly when the posture gets chosen — it is the moment the store
+    // first exists. Without this flag migrate would hardcode a choice decision
+    // `diarie-pos` puts in the repo's hands.
+    const dir = tmpDir(t);
+    const { code } = run(['--root', dir, '--dotted']);
+    assert.ok(code === 0 && existsSync(join(dir, '.diarium', 'tasks', 'tasks-backlog.yml')));
+    assert.ok(!existsSync(join(dir, 'diarium')));
+  });
+
+  it('the overwrite guard sees EVERY store name, not just the one this run would write', (t) => {
+    // The subtle version of not checking at all. Checking only `diarium/` in a repo whose
+    // store is `.diarium/` (or the older `.diarie/`) finds nothing, concludes the project
+    // is fresh, and writes a SECOND store beside a backlog full of real work — with the
+    // guard still there, still passing, and no longer guarding anything.
+    for (const name of ['.diarium', '.diarie']) {
+      const dir = tmpDir(t);
+      mkdirSync(join(dir, name, 'tasks'), { recursive: true });
+      writeFileSync(join(dir, name, 'tasks', 'tasks-backlog.yml'), 'tasks: []\n');
+      const { code, out } = run(['--root', dir]);
+      assert.ok(code === 1 && /refusing to overwrite/.test(out), `${name}/ did not trip the guard`);
+      assert.ok(!existsSync(join(dir, 'diarium')), `${name}/ got a second store written beside it`);
+    }
   });
 
   it('a bare run (no --root) targets CWD, not the script\'s own repo', (t) => {
@@ -310,7 +335,7 @@ describe('CLI guards (the two data-loss stops)', () => {
     // --root cannot clobber the tracker of whatever repo happens to ship this script.
     const dir = tmpDir(t);
     const { code } = run([], dir);
-    assert.ok(code === 0 && existsSync(join(dir, '.diarie', 'tasks', 'tasks-backlog.yml')));
+    assert.ok(code === 0 && existsSync(join(dir, 'diarium', 'tasks', 'tasks-backlog.yml')));
   });
 });
 
@@ -333,7 +358,7 @@ describe('a missing input file is an InputError, not a crash (vp-beads-mig)', ()
   // contract as the four peowly commands. Spawned via cli.js, the real boundary.
   //
   // cwd MUST be a store-less temp dir. A bare `migrate` (no --root) targets CWD, and this
-  // repository now carries diarie's OWN `.diarie/` store at its root (as the extracted repo will
+  // repository now carries diarie's OWN store at its root (as the extracted repo will
   // too) — so without isolation the EEXIST overwrite-guard fires FIRST and the missing-input case
   // this exercises is never reached. Same isolation the CWD-default test above uses.
   const MISSING = join(tmpdir(), 'diarie-does-not-exist-xyzzy.jsonl');

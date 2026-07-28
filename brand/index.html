@@ -589,16 +589,16 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
       <div class="types">
         <div class="type"><code>task</code>
           <p>A unit of work. The only type <code>ready</code> ever surfaces.</p>
-          <span class="where">.diarie/tasks/*.yml</span></div>
+          <span class="where">diarium/tasks/*.yml</span></div>
         <div class="type quiet"><code>milestone</code>
           <p>A structural marker. No effort, no assignment.</p>
-          <span class="where">.diarie/tasks/*.yml</span></div>
+          <span class="where">diarium/tasks/*.yml</span></div>
         <div class="type quiet"><code>decision</code>
           <p>An architectural choice and its reasoning. Open while in force.</p>
-          <span class="where">.diarie/decisions/*.md</span></div>
+          <span class="where">diarium/decisions/*.md</span></div>
         <div class="type quiet"><code>doc</code>
           <p>Reference prose, schema in frontmatter.</p>
-          <span class="where">.diarie/docs/*.md</span></div>
+          <span class="where">diarium/docs/*.md</span></div>
       </div>
     </div>
   </section>
@@ -645,7 +645,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
       <div class="term" role="img" aria-label="Terminal: a missing store returns an ENOSTORE JSON error with exit code 1">
 <pre><span class="c">$</span> <span class="g">diarie ready --json --root /tmp/not-a-project</span>
 {
-  <span class="k">"error"</span>: <span class="r">"no .diarie/ store found"</span>,
+  <span class="k">"error"</span>: <span class="r">"no diarium/ (dotted or not) found …"</span>,
   <span class="k">"code"</span>: <span class="r">"ENOSTORE"</span>
 }
 <span class="c">$</span> <span class="g">echo $?</span>

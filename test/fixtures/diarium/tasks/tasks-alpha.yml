@@ -1,5 +1,5 @@
 # Fixture for test/cli.spec.js — exercises the real file-parse path in CI.
-# NOT live substrate (lives under test/fixtures/, never under the repo's .diarie/).
+# NOT live substrate (lives under test/fixtures/, never under the repo's store).
 meta:
   slug: alpha
   title: Smoke fixture — alpha

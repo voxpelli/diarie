@@ -1,11 +1,15 @@
 id: no-hardcoded-tracker-dir
 valid:
-  # The sanctioned form — the constant, never the literal.
+  # The sanctioned forms — the constants, never the literal.
   - |
-    import { TRACKER_DIR } from './task-schema.mjs'
-    const tasksDir = join(root, TRACKER_DIR, 'tasks')
+    import { TRACKER_DIRS } from './task-schema.mjs'
+    const tasksDir = join(root, TRACKER_DIRS[0], 'tasks')
+  # Error text names the pair through TRACKER_LABEL, so no message hardcodes a posture.
   - |
-    stdout.write(`No ${TRACKER_DIR}/tasks/ directory found — skipping.\n`)
+    stdout.write(`No ${TRACKER_LABEL} store found — skipping.\n`)
+  # Resolution is a function of the filesystem, not a constant.
+  - |
+    const store = trackerDirIn(root)
   # `backlog` is ALSO a priority value. It is not a path; do not flag it.
   - |
     export const VALID_PRIORITIES = new Set(['critical', 'high', 'medium', 'low', 'backlog'])
@@ -13,17 +17,23 @@ valid:
     export const PRIORITY_MAP = { '4': 'backlog' }
   # A tasks-<slug>.yml filename that merely contains the word.
   - |
-    write(`${TRACKER_DIR}/tasks/tasks-backlog.yml`, body)
+    write(`${storeName}/tasks/tasks-backlog.yml`, body)
 invalid:
-  # A hardcoded segment in path construction.
+  # A hardcoded segment in path construction — the visible posture.
   - |
-    const tasksDir = join(root, '.diarie', 'tasks')
+    const tasksDir = join(root, 'diarium', 'tasks')
+  # ...and the dotted one. Picking either by hand misses the other half of the pair.
+  - |
+    const tasksDir = join(root, '.diarium', 'tasks')
   # A hardcoded path inside a template literal.
   - |
-    const p = `${root}/.diarie/tasks/tasks-x.yml`
+    const p = `${root}/diarium/tasks/tasks-x.yml`
   # A guard message that would drift out of sync after a rename.
   - |
-    stderr.write('refusing to write under .diarie/tasks/\n')
-  # The pre-rename legacy segment.
+    stderr.write('refusing to write under .diarium/tasks/\n')
+  # The pre-2026-07-28 legacy segment.
+  - |
+    const tasksDir = join(root, '.diarie', 'tasks')
+  # The original legacy segment.
   - |
     const tasksDir = join(root, 'backlog/tasks')

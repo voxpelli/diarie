@@ -43,10 +43,10 @@ Requires Node.js `^22.13.0 || >=24.0.0`.
 ## Quick start
 
 ```bash
-npx diarie init            # creates .diarie/
+npx diarie init            # creates diarium/  (or --dotted for .diarium/)
 ```
 
-That gives you `.diarie/tasks/tasks-<slug>.yml`:
+That gives you `diarium/tasks/tasks-<slug>.yml`:
 
 ```yaml
 meta:
@@ -87,7 +87,7 @@ it cannot go stale, and you cannot forget to unset it when the blocker lands.
 
 |                   |                                                                                              |
 | ----------------- | -------------------------------------------------------------------------------------------- |
-| `diarie init`     | Create a `.diarie/` store                                                                    |
+| `diarie init`     | Create a `diarium/` store · `[--slug <name>] [--dotted]`                                   |
 | `diarie ready`    | List the work that is ready to start · `[--filter <status>] [--blocked] [--strict] [--json]` |
 | `diarie stats`    | Totals, ready, blocked, stale claims · `[--stale] [--days <n>] [--json]`                     |
 | `diarie validate` | Check for dangling deps, bad enums, and cycles · `[--json]`                                  |
@@ -109,7 +109,7 @@ So:
 | exit  | meaning                                                                                                                             |
 | ----- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | **0** | The answer is on stdout. An **empty but present** store is a legitimate answer.                                                     |
-| **1** | You asked wrong. A machine-readable `code` says how: `ENOSTORE` (no store here), `EUSAGE`, `EEXIST`.                                |
+| **1** | You asked wrong. A machine-readable `code` says how: `ENOSTORE` (no store here), `EUSAGE`, `EEXIST`, `ETWOSTORES`, `ELEGACY`.       |
 | **2** | It ran, and the answer is **no**: the store is unsound (`validate` found errors, or `ready --strict` on a store with dropped rows). |
 
 With `--json`, an error is a JSON object on **stdout**, not a message on stderr:
@@ -117,7 +117,7 @@ With `--json`, an error is a JSON object on **stdout**, not a message on stderr:
 ```console
 $ diarie ready --json --root /tmp/not-a-project
 {
-  "error": "no .diarie/ store found",
+  "error": "no diarium/ (dotted or not) found in /tmp/not-a-project — run `diarie init` there, or point --root somewhere else",
   "code": "ENOSTORE"
 }
 $ echo $?
@@ -143,16 +143,39 @@ Completing it is `status: completed`. That is not an omission — a CRUD layer w
 owner of your data, and the point is that you own it. The files are the API; `git` is the audit log;
 `diarie validate` is the integrity gate. Run it after you edit.
 
+## Where the store lives
+
+**diarie tends the diarium.** The store is named `diarium`, and it exists in exactly one of two
+forms — your repo's *posture*:
+
+| form        | posture         |                                                                                                                    |
+| ----------- | --------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `diarium/`  | the webbdiarium | Findable on a bare `ls`. Every walker and formatter reaches it without flags. **The default.**                     |
+| `.diarium/` | the reading room | Committed and diffable, one `ls -a` away; skipped by default tool runs. `diarie init --dotted`.                    |
+
+There is no config key, no environment variable and nothing to read before the store can be found:
+**the choice is which directory exists on disk.** It is reversible whenever you like — `git mv
+diarium .diarium` and everything keeps working, because the reader accepts both. Exactly two forms,
+ever; both at once is a hard error (`ETWOSTORES`) rather than a precedence rule, because a
+precedence rule is how the losing store becomes a file nobody reads and everybody keeps editing.
+
+`--root` is a different thing: it says *where the project is*, never what the register inside it is
+called. `DIARIUM_ROOT` is its environment form.
+
+> Upgrading from `.diarie/`? `git mv .diarie diarium` (or `.diarium`). Until you do, diarie names
+> the old directory and the command rather than reporting an empty backlog — a store at a retired
+> name is still your store.
+
 ## Types
 
-Four, and they are exclusive:
+Four, and they are exclusive (`<store>` below is whichever form you chose):
 
 | type        | lives in                    |                                                                       |
 | ----------- | --------------------------- | --------------------------------------------------------------------- |
-| `task`      | `.diarie/tasks/*.yml`       | A unit of work. **The only type `ready` ever surfaces.**              |
-| `milestone` | `.diarie/tasks/*.yml`       | A structural marker (`v1.0`). No effort, no assignment.               |
-| `decision`  | `.diarie/decisions/<id>.md` | An architectural choice and its reasoning. Stays open while in force. |
-| `doc`       | `.diarie/docs/<id>.md`      | Reference prose.                                                      |
+| `task`      | `<store>/tasks/*.yml`       | A unit of work. **The only type `ready` ever surfaces.**              |
+| `milestone` | `<store>/tasks/*.yml`       | A structural marker (`v1.0`). No effort, no assignment.               |
+| `decision`  | `<store>/decisions/<id>.md` | An architectural choice and its reasoning. Stays open while in force. |
+| `doc`       | `<store>/docs/<id>.md`      | Reference prose.                                                      |
 
 **The type is exclusive; the framing is additive.** `bug`, `feature`, `chore`, `spike` are *labels* on a
 `task` — because "what kind of thing is this" admits one answer, while "how should I think about it"
@@ -211,7 +234,7 @@ the choices it does:
 - [git-bug](https://github.com/git-bug/git-bug) — a distributed, offline-first bug tracker that embeds
   issues as git *objects*. It shares the "git is the database" idea but resolves it the other way: the
   data lives in git's object store, reached through git-bug's own commands. diarie keeps the store as
-  ordinary files in the working tree instead — you open `.diarie/tasks/*.yml` in your editor, `cat`
+  ordinary files in the working tree instead — you open `diarium/tasks/*.yml` in your editor, `cat`
   it, and read it in a normal diff, with no tool required to see your own backlog.
 - [todo.txt](https://github.com/todotxt/todo.txt) — the minimal end of the same "your tasks are just a
   text file you own" idea: one line per task, no dependency graph, no types. diarie is a more

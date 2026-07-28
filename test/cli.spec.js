@@ -4,7 +4,7 @@
  * The unit tests (ready.spec.js / validate.spec.js) exercise the pure functions with
  * inline data and never touch disk. This test closes that gap: it spawns the real
  * `cli.js` against committed fixtures (test/fixtures/, test/fixtures-epics/) via the
- * `TASKS_ROOT` env seam, so resolveRoot, loadTasks, the YAML parse, flag dispatch and
+ * `DIARIUM_ROOT` env seam, so resolveRoot, loadTasks, the YAML parse, flag dispatch and
  * the exit codes actually run in CI.
  *
  * `run()` keeps stdout and stderr SEPARATE, deliberately. The tracker's absent-store
@@ -25,7 +25,14 @@ import {
   mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync,
 } from 'node:fs';
 
-import { TRACKER_DIR } from 'diarie/schema';
+import { TRACKER_DIRS } from 'diarie/schema';
+
+/**
+ * Which form of the store pair these tests seed. The reader accepts both; the fixtures on
+ * disk cover the OTHER one (test/fixtures is visible, test/fixtures-epics is dotted), so
+ * between them the pair is exercised for real rather than asserted about.
+ */
+const STORE = TRACKER_DIRS[0];
 
 /** The package root — `test/`'s parent. */
 const PKG = fileURLToPath(new URL('..', import.meta.url));
@@ -58,7 +65,7 @@ function tmpDir (t, prefix) {
 }
 
 /**
- * Create a `.diarie/tasks/tasks-<slug>.yml` store under `dir`.
+ * Create a `<store>/tasks/tasks-<slug>.yml` store under `dir`.
  *
  * @param {string} dir
  * @param {string} slug
@@ -66,8 +73,8 @@ function tmpDir (t, prefix) {
  * @returns {string} dir
  */
 function seedStore (dir, slug, body) {
-  mkdirSync(join(dir, TRACKER_DIR, 'tasks'), { recursive: true });
-  if (body !== undefined) writeFileSync(join(dir, TRACKER_DIR, 'tasks', `tasks-${slug}.yml`), body);
+  mkdirSync(join(dir, STORE, 'tasks'), { recursive: true });
+  if (body !== undefined) writeFileSync(join(dir, STORE, 'tasks', `tasks-${slug}.yml`), body);
   return dir;
 }
 
@@ -106,12 +113,12 @@ function bigStore (t) {
 function halfBroken (t) {
   const dir = seedStore(tmpDir(t, 'diarie-badyaml-'), 'a',
     'tasks:\n  - id: T-2\n    title: THE LIVE CLAIM\n    status: in_progress\n    type: task\n');
-  writeFileSync(join(dir, TRACKER_DIR, 'tasks', 'tasks-b.yml'), 'tasks:\n  - id: X\n    title: "unterminated\n');
+  writeFileSync(join(dir, STORE, 'tasks', 'tasks-b.yml'), 'tasks:\n  - id: X\n    title: "unterminated\n');
   return dir;
 }
 
 /**
- * Run the CLI with a given TASKS_ROOT.
+ * Run the CLI with a given DIARIUM_ROOT.
  *
  * `out` is stdout ONLY and `err` is stderr ONLY — never merge them (see header).
  * `both` is offered for the assertions that genuinely don't care which stream a
@@ -126,7 +133,7 @@ function halfBroken (t) {
  * @returns {{ code: number, out: string, err: string, both: string }}
  */
 function run (command, args, tasksRoot, { cwd = PKG, extraEnv = {} } = {}) {
-  const seam = tasksRoot ? { TASKS_ROOT: tasksRoot } : {};
+  const seam = tasksRoot ? { DIARIUM_ROOT: tasksRoot } : {};
   const r = spawnSync('node', [CLI, ...command, ...args], {
     cwd,
     env: { ...env, ...seam, ...extraEnv },
@@ -369,7 +376,7 @@ describe('containers: an epic is not workable (vp-beads-epc) — THROUGH loadTas
   });
 });
 
-// Proven against a real installed plugin by an adversarial review: a plugin's `.diarie/` is
+// Proven against a real installed plugin by an adversarial review: a plugin's store is
 // COMMITTED, so a marketplace install ships its tasks into every consumer's plugin cache. The
 // CLI resolves a store by walking UP from cwd — so a cwd anywhere inside that cache finds the
 // wrong store, succeeds, and hands a stranger someone else's backlog as their own. Exit 0, no
@@ -395,7 +402,7 @@ const fakePlugin = (t) => seedStore(tmpDir(t, 'diarie-plugin-'), 'theirs',
 describe('the CLI must never serve a PLUGIN\'s own backlog to a consumer', () => {
   it('refuses to serve the plugin\'s own store when cwd lands inside the plugin', (t) => {
     const plugin = fakePlugin(t);
-    // No TASKS_ROOT: the walk-up from cwd (= the plugin) is exactly the consumer's accident.
+    // No DIARIUM_ROOT: the walk-up from cwd (= the plugin) is exactly the consumer's accident.
     const { code } = run(READY, [], '', { extraEnv: { CLAUDE_PLUGIN_ROOT: plugin }, cwd: plugin });
     assert.notEqual(code, 0);
   });
@@ -1024,5 +1031,97 @@ describe('ONE VERDICT, BOTH SHAPES: --filter --strict must agree with the partit
       'tasks:\n  - id: T-1\n    title: fine\n    status: pending\n    type: task\n');
     assert.equal(run(READY, ['--filter', 'pending', '--strict'], dir).code, 0);
     assert.equal(run(READY, ['--strict'], dir).code, 0);
+  });
+});
+
+// The store is a PAIR of names (decision `diarie-pos`), which turns "where is the store"
+// from a constant into a fact about the filesystem. Every failure mode that creates is a
+// variant of this package's founding defect — a confident answer about the wrong store, or
+// no answer about a store that is plainly there — so each one is pinned here.
+/**
+ * Seed a store under an explicitly chosen form of the pair.
+ *
+ * Deliberately NOT built from TRACKER_DIRS: these assertions are about the two names
+ * themselves, and a test that derives them from the constant proves only that the
+ * constant equals itself. (Same reason migrate.spec.js spells its paths out.)
+ *
+ * @param {string} dir
+ * @param {string} name
+ * @returns {string} dir
+ */
+function seedAs (dir, name) {
+  mkdirSync(join(dir, name, 'tasks'), { recursive: true });
+  writeFileSync(join(dir, name, 'tasks', 'tasks-a.yml'),
+    'tasks:\n  - id: T-1\n    title: work\n    status: pending\n    type: task\n');
+  return dir;
+}
+
+describe('the diarium pair: two forms, one store', () => {
+  it('resolves the VISIBLE form', (t) => {
+    const dir = seedAs(tmpDir(t, 'diarie-pair-vis-'), 'diarium');
+    const { code, out } = run(READY, ['--json'], dir);
+    assert.equal(code, 0);
+    assert.equal(JSON.parse(out).ready.length, 1);
+  });
+
+  it('resolves the DOTTED form — the reader accepts both, so posture is free to change', (t) => {
+    const dir = seedAs(tmpDir(t, 'diarie-pair-dot-'), '.diarium');
+    const { code, out } = run(READY, ['--json'], dir);
+    assert.equal(code, 0);
+    assert.equal(JSON.parse(out).ready.length, 1);
+  });
+
+  it('BOTH forms present: ETWOSTORES, naming both paths — never a silent precedence rule', (t) => {
+    // A precedence rule here would be the worst outcome available: the losing store becomes
+    // a file nobody reads and everybody keeps editing. Refuse and say where both are.
+    const dir = seedAs(seedAs(tmpDir(t, 'diarie-pair-both-'), 'diarium'), '.diarium');
+    const { code, out } = run(READY, ['--json'], dir);
+    const parsed = JSON.parse(out);
+    assert.equal(code, 1);
+    assert.equal(parsed.code, 'ETWOSTORES');
+    assert.match(parsed.error, /diarium/);
+    assert.match(parsed.error, /\.diarium/);
+  });
+
+  it('a LEGACY store is named, with the migration command — not reported as "no store"', (t) => {
+    // The project plainly HAS a backlog. Saying ENOSTORE and stopping would be technically
+    // true and practically a lie.
+    const dir = seedAs(tmpDir(t, 'diarie-pair-legacy-'), '.diarie');
+    const { code, out } = run(READY, ['--json'], dir);
+    const parsed = JSON.parse(out);
+    assert.equal(code, 1);
+    assert.equal(parsed.code, 'ENOSTORE');
+    assert.match(parsed.error, /git mv/);
+    assert.match(parsed.error, /\.diarie/);
+  });
+
+  it('a legacy store HALTS the walk — it never resolves an ancestor store instead', (t) => {
+    // The sharp one. Without the halt, a project holding `.diarie/` nested under some
+    // parent that holds a `diarium/` would silently read the PARENT's backlog: a real
+    // store, successfully parsed, belonging to someone else. Exit 0, no warning.
+    const parent = seedAs(tmpDir(t, 'diarie-pair-nested-'), 'diarium');
+    const child = join(parent, 'child');
+    seedAs(child, '.diarie');
+
+    const { code, out } = run(READY, ['--json'], '', { cwd: child });
+    const parsed = JSON.parse(out);
+    assert.equal(code, 1, 'resolved SOMETHING — almost certainly the ancestor store');
+    assert.equal(parsed.code, 'ENOSTORE');
+    assert.match(parsed.error, /git mv/);
+  });
+});
+
+describe('DIARIUM_ROOT (renamed from TASKS_ROOT)', () => {
+  it('a stale TASKS_ROOT is a hard error, never a silent ignore', (t) => {
+    // Ignoring it would DROP the caller's explicit root and fall through to the upward
+    // walk — which can succeed, on a different store. The rename must not become a way to
+    // resolve the wrong backlog quietly.
+    const dir = seedStore(tmpDir(t, 'diarie-envrename-'), 'a',
+      'tasks:\n  - id: T-1\n    title: work\n    status: pending\n    type: task\n');
+    const { code, out } = run(READY, ['--json'], '', { extraEnv: { TASKS_ROOT: dir } });
+    const parsed = JSON.parse(out);
+    assert.equal(code, 1);
+    assert.equal(parsed.code, 'EUSAGE');
+    assert.match(parsed.error, /DIARIUM_ROOT/);
   });
 });

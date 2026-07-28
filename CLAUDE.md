@@ -49,9 +49,17 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
 ## Architecture
 
 - **`lib/schema.js` is THE AUTHORITY.** `VALID_TYPES`, `VALID_STATUSES`, `VALID_PRIORITIES`,
-  `REQUIRED_FIELDS`, and `TRACKER_DIR` (`.diarie`) live here; every reader/validator/migrator derives
-  its vocabulary from it — never fork it. The `.diarie` path segment lives ONLY here; an ast-grep rule
-  (`no-hardcoded-tracker-dir`) bans hardcoding it anywhere else.
+  `REQUIRED_FIELDS`, and the store-name pair `TRACKER_DIRS` (`['diarium', '.diarium']`, visible
+  first) live here; every reader/validator/migrator derives its vocabulary from it — never fork it.
+  `TRACKER_LABEL` is the pair as one clause for error text, and `LEGACY_TRACKER_DIRS` (`.diarie`) is
+  detected only to NAME the migration. The store names live ONLY here; an ast-grep rule
+  (`no-hardcoded-tracker-dir`) bans hardcoding them anywhere else — which is why messages
+  interpolate `TRACKER_LABEL` instead of spelling the store out, so `store.js` and `init.js` stay
+  guarded rather than exempted.
+- **Which form is on disk is a FACT, not a constant.** `trackerDirIn(root)` in `lib/store.js` is the
+  one place that resolves it (and the one that throws `ETWOSTORES` when both exist). There is no
+  singular `TRACKER_DIR` any more, deliberately: a name that can only answer for one of two forms
+  would silently miss the other.
 - **Commands are FOUR parts** (peowly-commands shape): `run()` holds no logic → `setupCommand` parses →
   **`doTheWork` RETURNS DATA and never prints** → **`formatWorkResult` is the only writer**. `doTheWork`
   is exported so the work is assertable in-process (no spawn, no stdout capture). Subcommands: `init`,
@@ -62,8 +70,17 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
 
 ## The store + the 4 types
 
-- `.diarie/tasks/tasks-<slug>.yml` holds **`task` and `milestone`** rows. `.diarie/decisions/<id>.md`
-  and `.diarie/docs/<id>.md` hold **`decision`/`doc`** as frontmatter + prose body (only the loader's
+- **The store is the `diarium` PAIR** (decision `diarie-pos`): visible `diarium/` or dotted
+  `.diarium/`, and which one exists on disk IS the choice — no config, no env var, nothing to read
+  before the store can be found. `init` writes visible by default, `--dotted` writes the other, and
+  `git mv` flips it whenever. **Exactly two forms, ever.** Both present is `ETWOSTORES` (a
+  precedence rule would just make the ambiguity permanent); a legacy `.diarie/` is detected and
+  NAMED with the `git mv`, and halts the upward walk rather than being stepped over — walking past
+  it to an ancestor `diarium/` would read a real store belonging to someone else.
+  **This repo runs the dotted posture** while the shipped default is visible; that divergence is
+  deliberate and recorded in `diarie-pos`'s Revisions.
+- `<store>/tasks/tasks-<slug>.yml` holds **`task` and `milestone`** rows. `<store>/decisions/<id>.md`
+  and `<store>/docs/<id>.md` hold **`decision`/`doc`** as frontmatter + prose body (only the loader's
   `tasks-*.yml` glob feeds the ready computation, so records are naturally never surfaced as work).
 - **4 exclusive types**: `task` (work) / `doc` (reference) / `decision` (record) / `milestone` (marker).
   bd's other framings (`bug`/`feature`/`chore`/`story`/`spike`) ride in `labels:`; an epic is
@@ -82,8 +99,11 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
 
 - `0` — success; the answer is on stdout.
 - `1` — `InputError` ("you got it wrong"). Under `--json`, emitted as JSON on **stdout** with a `code`:
-  **`ENOSTORE`** (no store here — the most important one), **`EUSAGE`** (bad command/flag),
-  **`EEXIST`** (`init` refusing an existing store).
+  **`ENOSTORE`** (no store here — the most important one), **`EUSAGE`** (bad command/flag, incl. a
+  stale `TASKS_ROOT` in any command that reads the env — `migrate` reads none, by design),
+  **`EEXIST`** (`init` refusing an existing store, in either posture),
+  **`ETWOSTORES`** (both forms of the pair present — refuses to guess), **`ELEGACY`** (`init`
+  refusing to start a second store beside a `.diarie/`).
 - `2` — `ResultError` ("it ran; the answer is no": invalid store, `--strict`). **NOTHING ELSE MAY USE
   2** — it's reserved so CI can tell a dependency cycle from a typo. Only `lib/utils/exit.js` writes it.
 
@@ -131,7 +151,7 @@ Tangled; keep those pointers **host-neutral** (the same files publish to both fo
 
 - Use ESM syntax only. Keep changes minimal and consistent with the surrounding file's style.
 - Add tests for new behaviour (`test/*.spec.js`, `node:test`); validate with `npm test` before finishing.
-- This repo tracks its own work in `.diarie/` — say "record a task" / "add a row", never "file a bead".
+- This repo tracks its own work in `.diarium/` — say "record a task" / "add a row", never "file a bead".
 - The old `private`/npm-name gate is **lifted** — `diarie` is public on Tangled, npm, and GitHub.
   Releases go through release-please (see Remotes & publishing); never `npm publish` by hand,
   and never push without an explicit, in-the-moment go-ahead.

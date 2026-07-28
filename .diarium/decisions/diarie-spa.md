@@ -171,3 +171,17 @@ a legitimate different tradeoff — branching precision vs. vocabulary sprawl.
 - **Forward caveat (Obsidian).** A per-dir data store needs a nesting warning only if it carries
   cross-boundary relational integrity (Obsidian's inter-vault links). diarie has none; revisit
   ONLY if diarie ever adds cross-store task references.
+
+## Revisions
+
+- 2026-07-28 — **the env rename shipped, as `DIARIUM_ROOT` rather than `DIARIE_ROOT`.** This
+  record chose its name while the store was `.diarie/`; [diarie-pos](./diarie-pos.md) has since
+  named the store `diarium` and ruled against naming things after the tool, so the variable
+  follows the noun. The reasoning above is otherwise intact and still load-bearing: `_ROOT` not
+  `_DIR`, because the value is the *project root that holds* the register, never the register
+  itself. A set-but-unused `TASKS_ROOT` is a hard error rather than a silent ignore — dropping it
+  would fall through to the upward walk and could resolve a different store.
+- 2026-07-28 — **everything else here stays deferred**: `--nested`, `EANCESTOR`, `--force`, and
+  `diarie where`. `diarie-pos` touched `init` in the same change, so note that this record's
+  refusal paths are written against `.diarie/` and must be re-read against the pair — including
+  which of the two forms an ancestor check would look for — before any of it is built.
