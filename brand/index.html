@@ -518,15 +518,17 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
           <h3>$ for agents</h3>
           <p>claim → close → validate → ready. --json on every command,
           errors as machine-readable codes on stdout, and exit codes worth
-          reading: 0, 1, 2 — with ENOSTORE when there is no store at all.</p>
+          reading: 0, 1, 2 — ENOSTORE when there is no store at all,
+          ETWOSTORES when it would have to guess which one you meant.</p>
         </div>
       </div>
       <div class="qa">
         <div>
           <h3>New to plain-file tracking?</h3>
           <p>Don't panic — there is less here than you think. The store is
-          YAML you can read, <code>diarie init</code> writes the first file,
-          and your editor and git do the rest.</p>
+          YAML you can read, <code>diarie init</code> writes the first file
+          (into <code>diarium/</code>, or <code>.diarium/</code> with
+          <code>--dotted</code>), and your editor and git do the rest.</p>
         </div>
         <div>
           <h3>Why not a classical issue tracker?</h3>
@@ -574,6 +576,33 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
           </div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <div class="leafrule" aria-hidden="true"><svg width="42" height="18" viewBox="0 0 42 18"><ellipse cx="14" cy="9" rx="9" ry="4.5" transform="rotate(-24 14 9)" fill="#9C90C4"/><ellipse cx="28" cy="9" rx="9" ry="4.5" transform="rotate(24 28 9)" fill="#9C90C4"/></svg></div>
+
+  <section>
+    <div class="wrap">
+      <h2>diarie tends the diarium</h2>
+      <p style="max-width:44rem">The store is a <em>diarium</em> — the register every
+      Swedish public body keeps. It sits at <code>diarium/</code> if you want it findable
+      on a bare <code>ls</code>, or <code>.diarium/</code> if you want the reading-room
+      posture. <span class="hl">Which one exists on disk <em>is</em> the choice</span>:
+      no config key, no environment variable, nothing to resolve before the store can be
+      found.</p>
+      <div class="term" role="img" aria-label="Terminal: diarie init writes a visible store, --dotted writes the quiet one, and git mv flips between them at any time">
+<pre><span class="c">$</span> <span class="g">diarie init</span>              <span class="c"># diarium/   — on the shelf</span>
+<span class="c">$</span> <span class="g">diarie init --dotted</span>     <span class="c"># .diarium/  — in the reading room</span>
+
+<span class="c">$</span> <span class="g">git mv diarium .diarium</span>  <span class="c"># change your mind, any day</span></pre>
+      </div>
+      <p class="muted" style="margin-top:1.1rem">Exactly two forms, ever. Both at once is
+      a hard error (<code>ETWOSTORES</code>) rather than a precedence rule — pick a winner
+      silently and the loser becomes a file nobody reads and everybody keeps editing. A
+      store still at the older <code>.diarie/</code> name is recognised too, and answered
+      with the <code>git mv</code> that fixes it rather than with <em>“no store
+      here”</em>: it is plainly your backlog, and saying otherwise would be technically
+      true and practically a lie.</p>
     </div>
   </section>
 
@@ -635,8 +664,10 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
           <p>An empty but present store is a legitimate answer.</p></div>
         <div class="code e1"><span class="n">1</span>
           <h3>You asked wrong</h3>
-          <p>A machine-readable code says how: <code>ENOSTORE</code>,
-          <code>EUSAGE</code>, <code>EEXIST</code>.</p></div>
+          <p>A machine-readable code says how: <code>ENOSTORE</code> (no store
+          here), <code>EUSAGE</code>, <code>EEXIST</code>,
+          <code>ETWOSTORES</code>, <code>ELEGACY</code>,
+          <code>ELOSSY</code>.</p></div>
         <div class="code e2"><span class="n">2</span>
           <h3>It ran, and the answer is no</h3>
           <p>The store is unsound: <code>validate</code> found errors, or

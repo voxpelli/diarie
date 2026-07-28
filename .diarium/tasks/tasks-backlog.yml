@@ -1118,12 +1118,19 @@ tasks:
       - "diarie.dev (brand/index.html) markets the thesis but never lists the actual CLI surface — a visitor cannot see what commands exist. Add at least one pure reference/'raw docs' section enumerating every subcommand (init, ready, stats, validate, migrate — plus register and list once they ship) with a one-line purpose and its key flags"
       - "Source of truth is the real CLI: reconcile every documented command/flag against `diarie --help` (and each subcommand's --help) before publishing — never document a command that does not exist or a flag spelled wrong. Run each command"
       - "Respect the brand: brand/index.html is the designer's bespoke artifact — follow DESIGN.md tokens/type/spacing, do not hand-roll a foreign style. It is a content addition, coordinated with /design-sync, not an auto-run"
-      - "Keep the exit-code contract visible if it fits the section (0 success / 1 InputError with ENOSTORE|EUSAGE|EEXIST / 2 ResultError) — machine consumers branch on these; the site should say so"
+      - "Keep the exit-code contract visible if it fits the section (0 success / 1 InputError with ENOSTORE|EUSAGE|EEXIST|ETWOSTORES|ELEGACY|ELOSSY / 2 ResultError) — machine consumers branch on these; the site should say so. VALID_ERROR_CODES in lib/schema.js is the authority, and test/cli.spec.js's boundary table asserts its own completeness against it — read it, don't retype this list"
+      - "The exit-code card, the 'diarie tends the diarium' section and the agent-audience paragraph on the page already carry a partial surface (2026-07-28). This row is the REFERENCE section, not those — reconcile against them so the page does not contradict itself"
     description: >-
       Odd gap: the site sells the philosophy but omits the command list, so the CLI surface is
       undiscoverable from diarie.dev. Add a raw reference section (kept in sync with `diarie --help`)
       so the page documents what diarie actually does, not only why.
-    updated: '2026-07-20'
+
+      Widened 2026-07-28 by the diarium-pair work: the flag surface grew by three (`init --dotted`,
+      `migrate --dotted`, `migrate --lossy`) and the error vocabulary from three codes to six. The
+      gap this row names got bigger, not smaller — that change added the store-posture and
+      exit-code BEATS to the page but deliberately not a reference section, because that is this
+      row's job and it needs design coordination rather than another paragraph.
+    updated: '2026-07-28'
   - id: diarie-fil
     title: Add optional `files` metadata field to tasks (non-gating, shape-only validation)
     status: pending

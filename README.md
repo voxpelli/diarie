@@ -109,7 +109,7 @@ So:
 | exit  | meaning                                                                                                                             |
 | ----- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | **0** | The answer is on stdout. An **empty but present** store is a legitimate answer.                                                     |
-| **1** | You asked wrong. A machine-readable `code` says how: `ENOSTORE` (no store here), `EUSAGE`, `EEXIST`, `ETWOSTORES`, `ELEGACY`.       |
+| **1** | You asked wrong. A machine-readable `code` says how: `ENOSTORE` (no store here), `EUSAGE`, `EEXIST`, `ETWOSTORES`, `ELEGACY`, `ELOSSY`. |
 | **2** | It ran, and the answer is **no**: the store is unsound (`validate` found errors, or `ready --strict` on a store with dropped rows). |
 
 With `--json`, an error is a JSON object on **stdout**, not a message on stderr:

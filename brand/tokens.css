@@ -50,7 +50,9 @@
 
   /* exit codes (see README: “the exit codes are worth reading”) */
   --exit-0:         var(--fosfor);    /* the answer is on stdout           */
-  --exit-1:         var(--barnsten);  /* you asked wrong: ENOSTORE, EUSAGE */
+  --exit-1:         var(--barnsten);  /* you asked wrong — every InputError
+                                         code (ENOSTORE, EUSAGE, …); the full
+                                         set lives in lib/schema.js           */
   --exit-2:         var(--stampel);   /* it ran, and the answer is no —
                                          the stamp belongs to validate     */
 
