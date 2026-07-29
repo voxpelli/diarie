@@ -17,7 +17,7 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 const DIST = new URL('../brand-dist/', import.meta.url);
-const PAGES = ['index.html'];
+const PAGES = ['index.html', 'brand-book.html'];
 
 /**
  * Every local asset reference in an HTML page — `href`/`src` attributes and
