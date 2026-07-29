@@ -1369,6 +1369,8 @@ tasks:
       - "decide what foundations.html IS: a deployable page, a file:// reference like the brand book was, or dead weight to delete"
       - "it carries 6 design-system-font-size findings (2.6rem, 1.35rem, .68rem x2, 3rem, +2) — the same drift brand-book.html just had fixed"
       - "it is absent from dist-copy.js ASSETS and from check-brand-assets.js PAGES, so nothing verifies its refs"
+      - "STRENGTHENED 2026-07-29: it is in NO gate at all — not dist-copy.js ASSETS, not check-brand-assets.js PAGES, not test/brand.spec.js. That has stopped being a tidiness question: it copied the role=\"img\" terminal treatment (diarie-aim) AND its justification comment, so it is the file where that defect can rot longest, and the only one nothing reads"
+      - "bringing brand.spec.js to a LIST of pages (see diarie-pre) would gate it as a side effect — deciding what the page IS can follow that, rather than blocking on it"
     description: >-
       Surfaced 2026-07-29 while linking tokens.css into the other two pages. It was the only page
       missing the "Fraunces Fallback" @font-face, so its metric override silently did nothing — fixed
@@ -1407,4 +1409,168 @@ tasks:
       sizes may well be deliberate — but that is the author's call and I will not assert a rationale I
       cannot know. Documenting the sizes made the drift visible instead of silent; converging them, or
       writing down why they differ, is the actual resolution.
+    updated: '2026-07-29'
+  - id: diarie-aim
+    title: role="img" on the terminal blocks seals the verbatim CLI bytes from assistive tech
+    status: pending
+    type: task
+    priority: high
+    labels:
+      - bug
+    acceptance_criteria:
+      - "role=\"img\" makes descendants presentational, so a screen-reader user gets the aria-label INSTEAD of the terminal text — for the ENOSTORE block that is 'Terminal: a missing store returns an ENOSTORE JSON error naming the fix, and exit code 1', a paraphrase of the exact message test/brand.spec.js exists to stop the page paraphrasing"
+      - "the replication vector is the `term` component in .impeccable/design.json, whose html field hardcodes role=\"img\" + aria-label. brand/foundations.html copied the markup AND its justification comment. Fix the SPEC, then the call sites: index.html (4 blocks), brand-book.html, foundations.html"
+      - "replacement spec: <figure> wrapper + a real <figcaption> (never aria-label — attribute strings cannot be spelled out, selected, machine-translated or grepped), <pre role=\"region\" aria-labelledby>, exactly ONE scroll container per block"
+      - "tabindex belongs on the <pre>, not the wrapper: today .term carries it while the inner <pre> is the real scroll container, stranding ~85px of the JS example from the keyboard at 390px. Make it conditional (ResizeObserver on scrollWidth > clientWidth) — overflow is font-metric dependent and changes once Fragment Mono loads"
+      - "gate it: once brand.spec.js parses with hast-util-from-html, assert no element carrying role=\"img\" contains a <pre> or <code>. Deterministic, no browser. The SVG mark keeps role=\"img\" legitimately"
+      - "the focus ring is a second defect here: fosfor is 13.02:1 on the dark ground but 1.30:1 on .sheet's paper, below the 3:1 SC 1.4.11 floor. One ring token per posture"
+    description: >-
+      Found 2026-07-29 by a screen-reader practitioner in a five-lens review. Ranked the most serious
+      finding by two of the five reviewers independently, and not on WCAG grounds: brand.spec.js's own
+      header says it exists because the page once carried a PARAPHRASED ENOSTORE sentence, and "a page
+      that misquotes the founding defect's error message is worse than a page that omits it". The suite
+      proves the bytes are exact for sighted readers and hands screen-reader users the exact artifact it
+      was written to abolish. The page refuses to paraphrase the CLI contract for one audience and
+      paraphrases it for another.
+
+      axe-core reports 0 violations on this page. role="img" + aria-label is VALID ARIA — checkers
+      detect a missing name, never a lying one. Another instance of CLAUDE.md's narrower-question table.
+    updated: '2026-07-29'
+  - id: diarie-trg
+    title: The refusals promise named revival triggers and name none — and 10 of 15 decision records lack one too
+    status: pending
+    type: task
+    priority: high
+    labels:
+      - docs
+    acceptance_criteria:
+      - "brand/index.html's refusals paragraph says each refusal 'carries a named revival trigger rather than being permanent by temperament'; the six stamps below it are bare labels. VISION.md, PRODUCT.md, BRAND.md and ROADMAP.md all state the norm as a RULE"
+      - "the wider gap: 10 of 15 records in .diarium/decisions/ have no trigger section (diarie-dsv, diarie-ext, diarie-qry, diarie-reg, diarie-spa, diarie-tbl, vp-beads-bdm, vp-beads-dcl, vp-beads-etm, vp-beads-tdo). PRODUCT.md's markdown-or-chalk trigger is the model: names the cost, the re-measure date, the version that flips it, the PR number, and a second-order consequence"
+      - "TEMPLATE for .diarium/decisions/: condition (a fact a stranger could check) / witness (who reports it — MUST NOT be the author's judgment) / instrument (the measurement and its baseline) / checked (date) / recheck (interval or forcing event)"
+      - "four self-checks: INDEPENDENCE (delete the refusal — does the condition still parse as a fact?), WITNESS (if only you can judge it, it is a mood), INSTRUMENT (a baseline, not 'costs more'), REACHABILITY (a plausible world within one recheck interval)"
+      - "you cannot lint falsifiability; lint the CLOCK. Extend diarie-dlm to check the five keys and the recheck date, and surface overdue rechecks in the `stale` column `diarie stats` already has — same computation, new subject. Name it check:trigger-present, never check:triggers: a green check that means 'a heading exists' must not read as 'the triggers are sound'"
+      - "graded candidates, only one defensible as written: `no daemon` / 'a read costs more than git status' is GOOD (named baseline, settled by a stopwatch). `no git hooks` / 'validation cannot wait for CI' is arguable. `no sync protocol` is near-tautological. `no database` / 'YAML stops round-tripping' is VACUOUS and points the wrong way — the real pressure is query and scale, and diarie-qry's trigger already fired 2026-07-20. `no CRUD write layer` is circular. `no web dashboard` is self-adjudicating"
+      - "ship only triggers that pass; render the rest as 'firm; trigger not yet named'. That is ENOSTORE applied to prose — say you do not have it rather than render absence as presence"
+      - "then generate the six stamps from the store via diarie's own exported loadTasks, so the page becomes a reader over a diarium rather than the source of truth for six governance commitments on the one surface no gate covers"
+    description: >-
+      Filed 2026-07-29 out of a five-lens review. A hostile reviewer graded the six candidate triggers
+      for falsifiability and an advocate proposed the mechanism; cross-pollinated, they agreed the
+      existence-lint alone would be "the founding defect one level up — it reports presence and calls it
+      compliance", and that the durable check is the recheck clock, because nobody re-dates a vacuous
+      trigger twice before deleting it.
+
+      Six candidate triggers were drafted during that session and deliberately NOT shipped: three are
+      circular or unfalsifiable, and filing them would launder them rather than fix them.
+    updated: '2026-07-29'
+  - id: diarie-kib
+    title: The footer's stated page size is hand-maintained and has been wrong four times — derive it or drop it
+    status: pending
+    type: task
+    priority: medium
+    labels:
+      - chore
+    acceptance_criteria:
+      - "there is no single true value: source and deploy differ by ~323 B structurally (the committed bespoke stamp SVG vs the generated one) and currently land on OPPOSITE sides of a rounding boundary — source 72.7 rounds to 73, deploy 72.4 rounds to 72. Asserting the source number would ship a figure that is wrong for the deployed artifact"
+      - "fix: put an EMPTY anchor in source — `one HTML file and one stylesheet<span data-weight></span> — plus three self-hosted fonts` — which reads as complete truthful prose with nothing in it"
+      - "brand/stamp-size.js matches the markup instead of digits: /(<span data-weight>)[^<]*(<\\/span>)/ replaced with `$1, ${kib} KiB together$2`. Use [^<]* not an empty-only match so the step is idempotent across partial builds. Keep the no-match throw and the fixed-point loop"
+      - "the real gate goes in test/brand.spec.js and never counts bytes: assert exactly one still-empty <span data-weight></span>, and assert.doesNotMatch(html, /\\d+\\s*KiB/). It asserts the ABSENCE of a hand-maintained number, which is the invariant that actually failed — so no unrelated edit can push it across a boundary"
+      - "correct two comments while there: check-brand-assets.js's size check runs AFTER brand:size over the same files with the same rounding, so it is an injection post-condition (did the step run and write a number), not independent verification. stamp-size.js's header currently claims it 'has a guard rather than being trusted' — it cannot catch a wrong number"
+      - "the sentence also claims 'one stylesheet'; check-brand-assets.js already computes stylesheets.size for its success line — assert it equals 1"
+    description: >-
+      Filed 2026-07-29. The number was written wrong four times in a row in a single session (≈50, then
+      69, then 68, then 72) — each measured against the wrong artifact or stale by the time it landed.
+      That is not carelessness; it is the predictable output of asking a human to maintain a figure that
+      has two correct answers. The footer offers it as the one claim a reader can check in ten seconds,
+      so it is also the most expensive one to get wrong.
+    updated: '2026-07-29'
+  - id: diarie-scr
+    title: Horizontal scroll on diarie.dev — wrap it page-wide rather than adding a fade
+    status: pending
+    type: task
+    priority: medium
+    labels:
+      - bug
+    acceptance_criteria:
+      - "at 390px the JS import example clips: .term is a scroll container AND the inner <pre> is a second one, so ~85px is unreachable by keyboard at any point (the tabindex is on the wrapper). See diarie-aim for the tabindex placement"
+      - "shortening the sample does NOT solve it: ~37 chars fit at 390px and `import { computeReady, loadTasks } from 'diarie'` is 48 and cannot shrink without ceasing to teach both exported names and the bare specifier. Measured, not estimated"
+      - "the durable answer is the page-wide rule the page already mostly follows: nothing scrolls horizontally, long content wraps. Three of four .term blocks already carry .wrapped"
+      - "adding .wrapped to the JS block needs its OWN justification comment: the existing one licenses wrapping because `diarie` pads no columns so a wrap costs no alignment — true of CLI output, false of indented JavaScript"
+      - "keep needsAttention in the destructure: test/brand.spec.js executes the snippet and asserts all three partitions come back 2,3,0, and PLACEHOLDER = \"'/path/to/project'\" is the substitution seam"
+      - "gate: assert the longest line in any <pre> is <= 48 chars in brand.spec.js. Deterministic, no browser, and it fails when someone pastes a wider block instead of silently arming an affordance"
+      - "do NOT reach for a mask. One was tried 2026-07-29 and reverted: mask-image paints in the element's own box, so it never retracts at scroll-end (it permanently dimmed the final characters of `# blocked until done`, the exact content its comment said it protected); it fired at 840px when overflow was 0; on .term it ate the card's own background and hairline border; it was a no-op for screen readers and subtracted legibility at 400% zoom; and .term:not(.wrapped) matched exactly one block, never a terminal"
+    description: >-
+      Filed 2026-07-29 after a five-lens review. All five reviewers independently rejected the fade, by
+      five different routes. The negative record is the valuable part of this row — the mechanism looked
+      reasonable and failed on every axis it was measured on.
+    updated: '2026-07-29'
+  - id: diarie-fct
+    title: The install command states no licence, Node range or dependency count at the decision point
+    status: pending
+    type: task
+    priority: medium
+    labels:
+      - docs
+    acceptance_criteria:
+      - "`npm install --save-dev diarie` appears twice with no adjacent licence, version or Node requirement. 'Node' appears zero times in the page's visible copy while engines is ^22.13.0 || >=24.0.0 — a reader on Node 20 or 22.12 gets EBADENGINE seconds after the only conversion action, from a tool whose pitch is never failing in a way you cannot diagnose"
+      - "DECIDED 2026-07-29: the version facts go to the FOOTER COLOPHON, not the hero. The colophon already carries facts of exactly this kind (licence, KiB, fonts), and the hero's third line must stay short"
+      - "measured: the hero tapers 591 -> 404 (install pill) -> 332px. A metadata line at ~306px keeps the taper; the honest full range renders 419px, wider than the button above it, and wraps at the comma at 390px"
+      - "'Node >= 22.13' is FALSE and must not be used as the short form — ^22.13.0 || >=24.0.0 rejects all of Node 23.x. Verified with semver"
+      - "'5 dependencies' understates a 28-package install 5.6x on a page selling minimalism; lib/format.js counts transitively when it suits the argument. State both or state the installed count"
+      - "the hero line it would replace (`no daemon · no database · no git hooks`) is a tricolon that rhymes with the six refusal stamps four screens down — removing it severs that echo. Weigh that before dropping it"
+    description: >-
+      Filed 2026-07-29. Raised as a P1 by the design critique, then measured typographically in the
+      five-lens review, which found the honest version breaks the hero's composition — hence the
+      decision to put the facts in the colophon instead of the hero.
+    updated: '2026-07-29'
+  - id: diarie-cli
+    title: diarie.dev claims malformed rows are never silently dropped, while diarie-rdr is open
+    status: pending
+    type: task
+    priority: medium
+    labels:
+      - docs
+    deps:
+      - diarie-rdr
+    acceptance_criteria:
+      - "the page says 'a malformed row is represented, never silently dropped — dropping it would hide it from the human whose typo it is'. Reproduced 2026-07-29: a row with `title: 42` renders as `backlog/bad-title  [high]` with no title, no warning, empty needsAttention, exit 0, and nothing in --json warnings"
+      - "the ROW is represented, so the sentence's letter holds; its stated PURPOSE — not hiding the typo — fails at field level. That is diarie-rdr exactly"
+      - "either fix the loader (diarie-rdr) or narrow the claim to what ships. Do not leave the page asserting the fixed behaviour while the bug is open"
+      - "the same section's needsAttention paragraph generalises further than the code: REQUIRED_FIELDS is id/title/status/type, but computeReady only ever pushes to needsAttention for `type`. Malformed id/status land in warnings; malformed title lands nowhere"
+    description: >-
+      Filed 2026-07-29 by a hostile-lens reviewer who reproduced it against the shipped binary in under
+      a minute. Blocked on diarie-rdr if fixed at the source; independently actionable if the copy is
+      narrowed instead.
+    updated: '2026-07-29'
+  - id: diarie-sgd
+    title: .gitignore and CLAUDE.md still describe check:ast-grep as a bare scan with no path arguments
+    status: pending
+    type: task
+    priority: low
+    labels:
+      - docs
+    acceptance_criteria:
+      - "commit 6a62e24 changed check:ast-grep to `ast-grep scan --globs '!.design-sync/**' --globs '!.impeccable/**'` and touched only package.json and sgconfig.yml"
+      - ".gitignore's header and CLAUDE.md both still say the scan takes no path arguments. .gitignore's whole argument is that every line in it is a lint-scope decision — a maintainer auditing coverage there now believes they have seen the whole picture and has not"
+      - "sgconfig.yml documents the globs correctly; the fix is to point the other two at it"
+    description: >-
+      Filed 2026-07-29. Doc rot introduced by my own commit an hour earlier — CLAUDE.md's doc-grep rule
+      (grep every surface while DRAFTING a change, not as verification after) not applied to the change
+      that broke it. Found by a maintainer-lens reviewer reading the diff cold.
+    updated: '2026-07-29'
+  - id: diarie-pre
+    title: brand.spec.js extracts code blocks with a regex; parse them with the parser already installed
+    status: pending
+    type: task
+    priority: low
+    labels:
+      - chore
+    acceptance_criteria:
+      - "preBlocks() matches /<pre>([\\s\\S]*?)<\\/pre>/ — a bare opening tag. Adding tabindex=\"0\" to one block silently made it match nothing, the assertion ran against an empty string, and the failure named `validate` rather than the selector"
+      - "a literal <pre> inside an HTML COMMENT is also indistinguishable from real markup to this regex, so a comment currently has to warn page authors not to write the tag name — a landmine with a sign beside it, in a different file from the mechanism"
+      - "hast-util-from-html is already a devDependency (check-brand-assets.js uses it for exactly this reason, and documents why: 'a regex over markup answers a narrower question'). Walk for tagName === 'pre' and collect text descendants"
+      - "that also deletes the entity-decode chain and its ordering trap (&amp; must decode LAST), the tag-stripper, and the warning comment. A good guard does not need a sign next to it"
+      - "while there: take a LIST of pages rather than the single PAGE constant, which brings brand-book.html and foundations.html into the gate — see diarie-fnd"
+    description: >-
+      Filed 2026-07-29 after the regex failed once for real during a polish pass. Both a maintainer-lens
+      and an advocate-lens reviewer reached the same remedy independently.
     updated: '2026-07-29'
