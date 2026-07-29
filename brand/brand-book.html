@@ -83,14 +83,23 @@ em{font-style:italic}
   font-variation-settings:"opsz" 144,"wght" 520,"SOFT" 60,"WONK" 1;font-weight:520;
   font-size:clamp(3rem,7vw,4.6rem);line-height:1;
 }
-.cover .kicker{font-family:var(--stil-lasare);font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;color:var(--hektograf);margin-bottom:.7rem;display:block}
+/* Was a kicker above the wordmark — the same 4.x ban as the chapter labels.
+   Below the mark it stops announcing the title and starts describing the
+   edition, which is what the words actually do. */
+.cover .edition{font-family:var(--stil-lasare);font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;color:var(--hektograf);margin-top:.7rem;display:block}
 .cover .essence{font-variation-settings:"opsz" 30,"wght" 430,"SOFT" 40,"WONK" 0;font-size:1.25rem;margin-top:1rem;max-width:32rem}
 .cover .fine{font-family:var(--stil-lasare);font-size:.78rem;color:var(--text-3);margin-top:1.2rem}
 
 /* chapters */
-.chapter{padding:3.6rem 0;border-bottom:.5px solid var(--kant)}
+.chapter{padding:3.6rem 0;border-bottom:var(--hallinje) solid var(--kant)}
 .chapter:last-of-type{border-bottom:0}
-.eyebrow{font-family:var(--stil-lasare);font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;color:var(--hektograf);display:block;margin-bottom:.8rem}
+/* The chapter number lives INSIDE its heading. It used to be a separate label
+   above the h2 — which Impeccable 4.x bans outright, and which a screen reader
+   read as loose text before an unnumbered heading. In the heading it numbers
+   the outline instead of decorating it. Mono, so it reads as an index term and
+   not as part of the sentence; variation settings reset because the heading's
+   Fraunces axes mean nothing to Fragment Mono. */
+h2 .num{font-family:var(--stil-lasare);font-variation-settings:normal;font-weight:400;font-size:.58em;letter-spacing:.08em;color:var(--hektograf);margin-right:.8em;vertical-align:.3em}
 h2{
   font-variation-settings:"opsz" 72,"wght" 480,"SOFT" 40,"WONK" 1;font-weight:480;
   font-size:clamp(1.7rem,3.2vw,2.2rem);line-height:1.15;margin-bottom:1.1rem;
@@ -198,12 +207,12 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
   <ellipse cx="150" cy="197" rx="20" ry="11" transform="rotate(34 150 197)"/>
 </g></svg>
     <div>
-      <span class="kicker">brand book · rendered edition</span>
       <h1>diarie</h1>
+      <span class="edition">brand book · rendered edition</span>
       <p class="essence">A public record of your own work — pressed flat,
       backlit, and honest.</p>
       <p class="fine">dnr 0.1.0 · 2026-07-18 · canonical files:
-      <a href="./BRAND.md">BRAND.md</a>, <a href="./tokens.css">tokens.css</a>,
+      <a href="../BRAND.md">BRAND.md</a>, <a href="./tokens.css">tokens.css</a>,
       <a href="./tokens.json">tokens.json</a>,
       <a href="./diarie-mark.svg">diarie-mark.svg</a>,
       <a href="./diarie-lockup.svg">diarie-lockup.svg</a>,
@@ -216,8 +225,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
 
 <section class="chapter">
   <div class="wrap">
-    <span class="eyebrow">01 · the idea</span>
-    <h2>One anchor, two motifs</h2>
+    <h2><span class="num">01</span> The idea — one anchor, two motifs</h2>
     <div class="cols">
       <div>
         <p><strong>One anchor: the diarium.</strong> Every Swedish myndighet keeps one: the
@@ -252,8 +260,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
 
 <section class="chapter">
   <div class="wrap">
-    <span class="eyebrow">02 · the mark</span>
-    <h2>A pressed twinflower, backlit</h2>
+    <h2><span class="num">02</span> The mark — a pressed twinflower, backlit</h2>
     <p style="max-width:44rem">The mark is <em>Linnaea borealis</em> — named for Linné, his
     own favorite: a small, modest, Nordic woodland plant. Two nodding bells
     on one forked stem, which is also the tool's central pair — the CLI
@@ -326,8 +333,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
 
 <section class="chapter">
   <div class="wrap">
-    <span class="eyebrow">03 · color</span>
-    <h2>The highlights have jobs</h2>
+    <h2><span class="num">03</span> Color — the highlights have jobs</h2>
     <p style="max-width:44rem">Names are Swedish, ASCII-folded in code: <em>arkiv</em> —
     archive; <em>lysning</em>, from <em>genomlysning</em> — backlighting,
     scrutiny; <em>papper</em> — paper; <em>hektograf</em> — the violet
@@ -374,8 +380,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
 
 <section class="chapter">
   <div class="wrap">
-    <span class="eyebrow">04 · type</span>
-    <h2>Two voices, no third</h2>
+    <h2><span class="num">04</span> Type — two voices, no third</h2>
     <p style="max-width:44rem">Because the architecture has exactly two sides.</p>
     <div class="voices">
       <div class="voice archive">
@@ -413,14 +418,13 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
     a third party to render its own name has already lost the argument this
     project exists to make. On diarie.dev the subset woff2:s are inlined, so
     the page is one file and arrives whole. Regeneration commands live in
-    <a href="./BRAND.md">BRAND.md</a>.</p>
+    <a href="../BRAND.md">BRAND.md</a>.</p>
   </div>
 </section>
 
 <section class="chapter">
   <div class="wrap">
-    <span class="eyebrow">05 · voice</span>
-    <h2>Klarspråk</h2>
+    <h2><span class="num">05</span> Voice — klarspråk</h2>
     <p style="max-width:44rem">Swedish law requires public language to be <em>vårdat, enkelt
     och begripligt</em> — cared-for, simple, comprehensible (Språklagen
     2009:600, §11) — and a tool named after a myndighet's registry writes
@@ -463,8 +467,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
 
 <section class="chapter">
   <div class="wrap">
-    <span class="eyebrow">06 · motion</span>
-    <h2>Scarce, and with a job</h2>
+    <h2><span class="num">06</span> Motion — scarce, and with a job</h2>
     <div class="motion-grid">
       <figure class="curve">
         <svg viewBox="0 0 140 140" width="180" role="img" aria-label="The lysning easing curve: cubic-bezier 0.22, 0, 0.18, 1 — slow start, fast middle, very slow stop">
@@ -495,8 +498,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
 
 <section class="chapter">
   <div class="wrap">
-    <span class="eyebrow">07 · applications</span>
-    <h2>Where the system shows up</h2>
+    <h2><span class="num">07</span> Applications — where the system shows up</h2>
     <h3>The CLI itself</h3>
     <p>Terminal output uses the semantic tokens — and <code>NO_COLOR</code>
     and non-TTY output are respected without information loss: color is
@@ -535,8 +537,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
 
 <section class="chapter">
   <div class="wrap">
-    <span class="eyebrow">08 · the refusals, brand edition</span>
-    <h2>Identity, not backlog</h2>
+    <h2><span class="num">08</span> The refusals, brand edition — identity, not backlog</h2>
     <div class="stamps">
       <span class="stamp" style="--r:-2deg">no gradient glow</span>
       <span class="stamp" style="--r:1.5deg">no mascot</span>
@@ -557,8 +558,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
 
 <section class="chapter">
   <div class="wrap">
-    <span class="eyebrow">09 · lineage</span>
-    <h2>The canon is the author's own</h2>
+    <h2><span class="num">09</span> Lineage — the canon is the author's own</h2>
     <p style="max-width:46rem">Local-first (Ink &amp; Switch), convivial tools (Illich), calm
     technology, worse-is-better, indieweb — not borrowed for the occasion but
     long kept. Maggie Appleton's
