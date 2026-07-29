@@ -140,10 +140,13 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
 
 * **ESM only**, JSDoc types (`tsc` checks, never compiles), **neostandard** via
   `@voxpelli/eslint-config` (semicolons on). Prefer `unknown` + type guards over `any`.
-* **`.gitignore` is load-bearing for lint scope.** `check:ast-grep` is a bare `ast-grep scan` (no path
-  args) bounded by `.gitignore`, and `check:md` runs `--ignore-path .gitignore`, so adding a broad
-  ignore entry SILENTLY shrinks lint coverage with nothing going red. Treat every `.gitignore` line as
-  a lint-scope decision. (See `sgconfig.yml`.)
+* **`.gitignore` is load-bearing for lint scope.** `check:ast-grep` takes no path args and is bounded
+  by `.gitignore`, and `check:md` runs `--ignore-path .gitignore`, so adding a broad ignore entry
+  SILENTLY shrinks lint coverage with nothing going red. Treat every `.gitignore` line as a lint-scope
+  decision. There is now a SECOND scope lever: `check:ast-grep` also carries `--globs '!.design-sync/**'
+  --globs '!.impeccable/**'` (agent-tooling state). Those are declarative — ast-grep's walker already
+  skips dot-directories, so they exclude nothing that was scanned before — but a `--globs` added to that
+  script IS a coverage decision and belongs in this bullet. (See `sgconfig.yml` for the reasoning.)
 * **When a change ADDS to a vocabulary** (exit codes, a `VALID_*` enum, flags), grep the set's OTHER
   members, not the new name — that is what finds the surfaces that enumerate it. A token-grep cannot.
 * **ast-grep runs 10 rules from TWO ruleDirs** (`sgconfig.yml`). `@voxpelli/ast-grep-rules` owns the
