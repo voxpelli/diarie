@@ -37,47 +37,28 @@
 <link rel="preload" href="fonts/Fraunces-VF.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/FragmentMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/Fraunces-Italic-static.woff2" as="font" type="font/woff2" crossorigin>
+<!-- The palette, loaded not copied. This page used to inline its own subset of
+     tokens.css, which drifted silently: the subset was missing the --print-*
+     tokens this page's @media print block references, so printing lost its
+     paper ground and hairline rules with nothing reporting it. tokens.css is
+     one same-origin request and is on the brand:copy allowlist. -->
+<link rel="stylesheet" href="tokens.css">
 <style>
 @font-face{font-family:"Fraunces";font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/Fraunces-VF.woff2) format("woff2")}
 @font-face{font-family:"Fraunces";font-style:italic;font-weight:100 900;font-display:swap;src:url(fonts/Fraunces-Italic-static.woff2) format("woff2")}
 @font-face{font-family:"Fragment Mono";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/FragmentMono-Regular.woff2) format("woff2")}
 /* Not a third typeface: a metric-adjusted alias for the system serif already in
-   the stack, so `font-display:swap` no longer reflows prose 5.4% when Fraunces
+   the stack, so `font-display:swap` reflows prose well under 1% instead of
+   roughly 5% when Fraunces
    lands. 105.7% = Fraunces advance / Georgia advance at body settings. */
 @font-face{font-family:"Fraunces Fallback";src:local("Georgia"),local("Times New Roman");
   size-adjust:105.7%;ascent-override:92%;descent-override:24%;line-gap-override:0%}
 
-:root{
-  color-scheme:dark;
-  --arkiv:#171126;--yta:#1F1733;--yta-2:#2A1F45;
-  --lysning-1:#221940;--lysning-2:#2E2257;--lysning-3:#3C2D6E;--lysning-4:#4B3A87;
-  --papper:#EFE6D2;--hektograf:#6B4FC8;--hektograf-ljus:#9C90C4;--lavendel:#B7ABDD;
-  --fosfor:#5CE49A;--barnsten:#E8A13C;--stampel:#D8453E;--stampel-ljus:#E8756B;--stampel-mork:#A83732;
-  --kant:rgba(239,230,210,.16);
-  --stil-arkiv:"Fraunces","Fraunces Fallback",Georgia,"Times New Roman",serif;
-  --stil-lasare:"Fragment Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-  --korn:.04;--markering:rgba(107,79,200,.42);
-  /* stacking order, named rather than guessed: the lit scene sits behind the
-     page, the riso grain covers everything, the progress rule rides above it. */
-  --z-bakom:-1;--z-korn:60;--z-ledger:70;
-  --ease-lysning:cubic-bezier(.22,0,.18,1);
-  --dur-beat:700ms;--dur-reveal:1100ms;
-}
+/* The palette, the type stacks, the stepped-light halo, the wide-gamut
+   upgrade and the print sub-palette all arrive from tokens.css above. What
+   stays here is what is not a token: this page's posture. */
+:root{color-scheme:dark}
 
-/* Wide-gamut enhancement: on P3 screens the intense highlights are served
-   in OKLCH at higher chroma — same lightness and hue, so contrast holds.
-   Double-guarded; sRGB screens keep the canonical hex values. */
-@media (color-gamut:p3){
-  @supports (color: oklch(50% 0.1 180)){
-    :root{
-      --fosfor:oklch(82.5% 0.207 156.3);
-      --barnsten:oklch(76.1% 0.171 71.8);
-      --stampel:oklch(59.9% 0.218 27);
-      --stampel-ljus:oklch(69.3% 0.17 26.6);
-      --lysning-4:oklch(40.9% 0.154 290);
-    }
-  }
-}
 *{box-sizing:border-box;margin:0}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-size-adjust:100%;scrollbar-color:var(--lysning-4) var(--arkiv);overflow-x:clip}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}

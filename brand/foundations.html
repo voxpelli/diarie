@@ -18,6 +18,12 @@
   @font-face{font-family:"Fraunces";font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/Fraunces-VF.woff2) format("woff2")}
   @font-face{font-family:"Fraunces";font-style:italic;font-weight:100 900;font-display:swap;src:url(fonts/Fraunces-Italic-static.woff2) format("woff2")}
   @font-face{font-family:"Fragment Mono";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/FragmentMono-Regular.woff2) format("woff2")}
+  /* Not a third typeface: a metric-adjusted alias for the system serif already
+     in the stack, so `font-display:swap` no longer reflows prose ~5% when
+     Fraunces lands. --stil-arkiv names this family, so a page that omits the
+     declaration silently falls through to an unadjusted Georgia. */
+  @font-face{font-family:"Fraunces Fallback";src:local("Georgia"),local("Times New Roman");
+    size-adjust:105.7%;ascent-override:92%;descent-override:24%;line-gap-override:0%}
 
   /* Foundational base — the on-brand defaults (mirrors index.html / styles.css). */
   *{box-sizing:border-box;margin:0}

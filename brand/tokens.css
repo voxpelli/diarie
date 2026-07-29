@@ -110,8 +110,18 @@
 
   /* ---- 3. Type — two voices, no third ------------------------------- */
 
-  /* the archive voice: what the human wrote */
-  --stil-arkiv:  "Fraunces", Georgia, "Times New Roman", serif;
+  /* the archive voice: what the human wrote.
+     "Fraunces Fallback" is not a third typeface — it is a metric-adjusted
+     alias for the system serif already in the stack, so `font-display:swap`
+     reflows prose ~0.4% instead of ~5% when Fraunces lands (measured in
+     Chrome/macOS against a local Georgia; see DESIGN.md § Typography).
+     This file carries no @font-face of its own, so each page declares it —
+     index.html, brand-book.html and foundations.html all do. A page that
+     omits it falls through to an UNADJUSTED Georgia and silently loses the
+     fix; and since the src is `local("Georgia"), local("Times New Roman")`,
+     a machine with neither gets no adjustment either way. */
+  --stil-arkiv:  "Fraunces", "Fraunces Fallback", Georgia,
+                 "Times New Roman", serif;
   /* the reader voice: what the CLI reports */
   --stil-lasare: "Fragment Mono", ui-monospace, "SF Mono", Menlo,
                  Consolas, monospace;
@@ -134,6 +144,14 @@
                                  corners, never the bordered code chip.
                                  At most three per page.                    */
   --hallinje:       0.5px;    /* hairline borders                          */
+
+  /* stacking order, named rather than guessed: the lit scene sits behind
+     the page, the riso grain covers the page content, and the progress
+     rule rides above even the grain. A bare integer in a page is a guess
+     about a global order. */
+  --z-bakom:        -1;
+  --z-korn:         60;
+  --z-ledger:       70;
 
   /* one easing, designed: slow start, fast middle, very slow stop —
      the light coming up on the table. Never default `ease`.              */

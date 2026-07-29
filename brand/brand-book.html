@@ -6,37 +6,47 @@
   tokens.json, diarie-mark.svg and diarie-lockup.svg, in the repo beside
   this file. When this page and those files disagree, the files win.
 
-  One file, no external requests: both typefaces are subset and inlined
-  (Fraunces and Fragment Mono, OFL — license note at the bottom).
+  No third-party requests, and nothing that phones home. It is not one file
+  and never was: the two subset typefaces (Fraunces and Fragment Mono, OFL —
+  license note at the bottom) are three same-origin font requests, and the
+  palette is a fourth, tokens.css. Loading the palette rather than copying
+  it is the point — a hand-copied subset drifts, and this page's did.
 -->
-<html lang="en">
+<!-- pa-papper is tokens.css's paper posture: same palette, roles flipped for a
+     light ground. This page used to hand-copy those six role values into its
+     own :root, which is exactly the drift tokens.css exists to prevent. -->
+<html lang="en" class="pa-papper">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>diarie — brand book</title>
 <meta name="description" content="The visual and verbal identity of diarie, held to the same test as the code: plain files you own, and nothing that owns you back.">
+<!-- Published but unlisted: reachable if you know it is here, absent from search
+     results and from any link on diarie.dev. noindex is the right instrument —
+     a robots.txt Disallow would stop the crawl without stopping the indexing,
+     since a page can be indexed from inbound links it was never crawled through. -->
+<meta name="robots" content="noindex, follow">
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTYgMjU2IiByb2xlPSJpbWciPgogIDx0aXRsZT5kaWFyaWU8L3RpdGxlPgogIDxkZXNjPkZhdmljb24gY3V0IG9mIHRoZSBkaWFyaWUgbWFyazogdGhlIHN0ZXBwZWQgaGFsbyBhbmQgdGhlIHR3byBub2RkaW5nIGJlbGxzLCBzaW1wbGlmaWVkIGZvciAxNiBwaXhlbHMuPC9kZXNjPgogIDwhLS0gZGlhcmllIGZhdmljb24gY3V0IC0gdjAuMS4xCiAgICAgICBTaW1wbGlmaWVkIGZyb20gZGlhcmllLW1hcmsuc3ZnIGZvciAxNi0zMiBweDogbGVhdmVzIGFuZCBicmFjdHMKICAgICAgIGRyb3BwZWQsIHN0cm9rZXMgdGhpY2tlbmVkLCBiZWxscyBlbmxhcmdlZC4gVXNlIHRoZSBmdWxsIG1hcmsgYXQKICAgICAgIDI0IHB4IGFuZCBhYm92ZTsgdXNlIHRoaXMgY3V0IGZvciBmYXZpY29ucyBhbmQgcGl4ZWwtc21hbGwgY2hyb21lLiAtLT4KICA8c3R5bGU+c3Zney0tbDE6IzIyMTk0MDstLWwyOiMyRTIyNTc7LS1sMzojM0MyRDZFOy0tbDQ6IzRCM0E4NzstLXA6I0VGRTZEMn08L3N0eWxlPgogIDxjaXJjbGUgY3g9IjEyOCIgY3k9IjEyMiIgcj0iMTEyIiBmaWxsPSJ2YXIoLS1sMSkiLz4KICA8Y2lyY2xlIGN4PSIxMjgiIGN5PSIxMjIiIHI9Ijg2IiAgZmlsbD0idmFyKC0tbDIpIi8+CiAgPGNpcmNsZSBjeD0iMTI4IiBjeT0iMTIyIiByPSI2MiIgIGZpbGw9InZhcigtLWwzKSIvPgogIDxjaXJjbGUgY3g9IjEyOCIgY3k9IjEyMiIgcj0iNDIiICBmaWxsPSJ2YXIoLS1sNCkiLz4KICA8ZyBmaWxsPSJub25lIiBzdHJva2U9InZhcigtLXApIiBzdHJva2UtbGluZWNhcD0icm91bmQiPgogICAgPHBhdGggZD0iTTEyOCwyMTAgQzEyNiwxODggMTI5LDE2NiAxMjYsMTQ0IiBzdHJva2Utd2lkdGg9IjExIi8+CiAgICA8cGF0aCBkPSJNMTI2LDE0NCBDMTExLDEyNiA5OSwxMTQgOTQsMTAwIiAgc3Ryb2tlLXdpZHRoPSIxMCIvPgogICAgPHBhdGggZD0iTTEyNiwxNDQgQzEzOSwxMjIgMTU0LDEwNiAxNjQsODgiIHN0cm9rZS13aWR0aD0iMTAiLz4KICA8L2c+CiAgPGcgZmlsbD0idmFyKC0tcCkiPgogICAgPHBhdGggdHJhbnNmb3JtPSJ0cmFuc2xhdGUoOTQsMTAwKSByb3RhdGUoLTE4KSBzY2FsZSgxLjUpIiBkPSJNMCwwIEMtNywxLjUgLTkuNSw4IC05LDE1IEwtMTEuNSwyMyBMLTUuNSwyMCBMMCwyNS41IEw1LjUsMjAgTDExLjUsMjMgTDksMTUgQzkuNSw4IDcsMS41IDAsMCBaIi8+CiAgICA8cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxNjQsODgpIHJvdGF0ZSgyMCkgc2NhbGUoMS40MikiIGQ9Ik0wLDAgQy03LDEuNSAtOS41LDggLTksMTUgTC0xMS41LDIzIEwtNS41LDIwIEwwLDI1LjUgTDUuNSwyMCBMMTEuNSwyMyBMOSwxNSBDOS41LDggNywxLjUgMCwwIFoiLz4KICA8L2c+Cjwvc3ZnPg==">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="fonts/Fraunces-VF.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/FragmentMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/Fraunces-Italic-static.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="tokens.css">
 <style>
 @font-face{font-family:"Fraunces";font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/Fraunces-VF.woff2) format("woff2")}
 @font-face{font-family:"Fraunces";font-style:italic;font-weight:100 900;font-display:swap;src:url(fonts/Fraunces-Italic-static.woff2) format("woff2")}
 @font-face{font-family:"Fragment Mono";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/FragmentMono-Regular.woff2) format("woff2")}
+/* Not a third typeface: a metric-adjusted alias for the system serif already in
+   the stack, so `font-display:swap` reflows prose well under 1% instead of
+   roughly 5% when Fraunces lands. 105.7% = Fraunces advance / Georgia advance
+   at body settings; where Georgia is absent the adjustment is approximate. */
+@font-face{font-family:"Fraunces Fallback";src:local("Georgia"),local("Times New Roman");
+  size-adjust:105.7%;ascent-override:92%;descent-override:24%;line-gap-override:0%}
 
-:root{
-  --arkiv:#171126;--yta:#1F1733;--yta-2:#2A1F45;
-  --lysning-1:#221940;--lysning-2:#2E2257;--lysning-3:#3C2D6E;--lysning-4:#4B3A87;
-  --papper:#EFE6D2;--papper-2:#F6EFDE;
-  --hektograf:#6B4FC8;--hektograf-ljus:#9C90C4;--lavendel:#B7ABDD;
-  --fosfor:#5CE49A;--barnsten:#E8A13C;--stampel:#D8453E;--stampel-ljus:#E8756B;--stampel-mork:#A83732;
-  --text:#171126;--text-2:#4A3B6B;--text-3:#6B5E92;
-  --kant:rgba(23,17,38,.22);
-  --stil-arkiv:"Fraunces",Georgia,"Times New Roman",serif;
-  --stil-lasare:"Fragment Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-  --ease-lysning:cubic-bezier(.22,0,.18,1);
-}
+/* The palette arrives from tokens.css, and the paper posture from .pa-papper on
+   <html>. What stays here is what is not a token: this page's colour scheme. */
+:root{color-scheme:light}
+
 *{box-sizing:border-box;margin:0}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scrollbar-color:var(--hektograf-ljus) var(--papper)}
 h1,h2,h3{text-wrap:balance}

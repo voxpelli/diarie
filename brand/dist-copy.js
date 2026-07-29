@@ -18,7 +18,12 @@ const DIST = new URL('../brand-dist/', import.meta.url); // repo-root sibling
 // removes it on deploy if the artifact lacks it); `.nojekyll` is belt-and-suspenders
 // for the artifact deploy. Generated favicons are written by brand:favicon.
 // brand-book.html is deliberately NOT here — it stays a file:// local reference.
-const ASSETS = ['index.html', 'og.png', 'fonts', 'CNAME', '.nojekyll'];
+//
+// `tokens.css` IS here because index.html links it rather than inlining a copy.
+// That link is render-blocking, so omitting it does not merely lose colour — it
+// ships an unstyled page. This is the one entry whose absence is catastrophic
+// rather than cosmetic, which is why brand:check asserts referenced assets exist.
+const ASSETS = ['index.html', 'tokens.css', 'og.png', 'fonts', 'CNAME', '.nojekyll'];
 
 await rm(DIST, { recursive: true, force: true });
 await mkdir(DIST, { recursive: true });
