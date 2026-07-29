@@ -255,8 +255,8 @@ DAR LIB T.620), which run OKLCH chroma 0.005–0.111: `blad-ljus` is Syme's
 the same green, though not a colour match — while `fosfor` is ΔE00 14.81
 from that same swatch and, at chroma 0.159 in sRGB (0.207 on P3), more
 chromatic than every green on the chart. In OKLCH _hue_ the two families
-sit only ~20° apart, so hue will not separate them. Measured in HSL the gap
-reads ~50°, because HSL hands the greens roughly four times more of the hue
+sit only \~20° apart, so hue will not separate them. Measured in HSL the gap
+reads \~50°, because HSL hands the greens roughly four times more of the hue
 circle than they perceptually occupy — the reading is inflated, not
 meaningful, so do not reach for HSL to tell these two apart.
 
@@ -465,7 +465,7 @@ refusal is stamped, an endorsement is not.
 
 **The Tint-Is-Not-Meaning Rule.** A card's tint may never be the only thing
 saying which card it is. Both borders measure below the 3:1 non-text floor
-(`blad-ljus` 1.66:1, `stampel-dov` 1.81:1 on papper), so the state lives in
+(`blad-ljus` 1.66:1, `stampel-dov` 1.92:1 on papper), so the state lives in
 the label — `blad-mork` at 6.80:1, `stampel-mork` at 4.89:1 on their own
 grounds. Read in greyscale, or by a reader who cannot separate the two
 hues, the cards must still be unambiguous.
