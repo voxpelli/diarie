@@ -7,34 +7,34 @@
 <meta name="description" content="The diarie token layer as a specimen sheet: palette, the two type voices, the exit-code accent contract, and the paper-context flip.">
 <link rel="icon" href="diarie-favicon.svg" type="image/svg+xml">
 
-<!-- Repo-only reference page (not in dist-copy.js's deploy allowlist, like
-     brand-book.html). A compact rendering of the token layer as a specimen
-     sheet — the same artifact synced to claude.ai/design. Canonical values
-     live in tokens.css; when this page and that file disagree, the file wins. -->
+<!-- The token layer as a specimen sheet. Repo-only: NOT in dist-copy.js's
+     deploy allowlist and not in check-brand-assets.js's PAGES, so nothing on
+     diarie.dev serves or verifies it. Open it with `npm run serve`.
+
+     It is not decoration. This page is the durable source of the one preview
+     card in diarie's Claude Design project (claude.ai/design), which is where
+     the design agent learns what diarie looks like. `.design-sync/build.mjs`
+     adapts this file into `components/foundations/Foundations/Foundations.html`
+     — see that script for the exact transform. Edit the page, re-run
+     /design-sync, and the card follows; there is no second copy to update.
+
+     It links `foundations.css` — the SAME base the bundle ships as its
+     `styles.css` — so what renders here is what the design agent renders.
+     A preview styled by different CSS than the thing it previews verifies
+     nothing, which is why the base is not inlined below.
+
+     Canonical values live in tokens.css; when this page and that file
+     disagree, the file wins. -->
 <link rel="preload" href="fonts/Fraunces-VF.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/FragmentMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="foundations.css">
 <style>
-  @font-face{font-family:"Fraunces";font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/Fraunces-VF.woff2) format("woff2")}
-  @font-face{font-family:"Fraunces";font-style:italic;font-weight:100 900;font-display:swap;src:url(fonts/Fraunces-Italic-static.woff2) format("woff2")}
-  @font-face{font-family:"Fragment Mono";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/FragmentMono-Regular.woff2) format("woff2")}
-  /* Not a third typeface: a metric-adjusted alias for the system serif already
-     in the stack, so `font-display:swap` no longer reflows prose ~5% when
-     Fraunces lands. --stil-arkiv names this family, so a page that omits the
-     declaration silently falls through to an unadjusted Georgia. */
-  @font-face{font-family:"Fraunces Fallback";src:local("Georgia"),local("Times New Roman");
-    size-adjust:105.7%;ascent-override:92%;descent-override:24%;line-gap-override:0%}
-
-  /* Foundational base — the on-brand defaults (mirrors index.html / styles.css). */
-  *{box-sizing:border-box;margin:0}
-  body{
-    background:var(--grund);color:var(--text);
-    font-family:var(--stil-arkiv);font-variation-settings:var(--snitt-brodtext);
-    font-size:1.0625rem;line-height:1.65;
-    -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
-  }
-  code{font-family:var(--stil-lasare);background:var(--yta-2);border-radius:2px;padding:.08em .32em;font-size:.86em;box-shadow:inset 0 0 0 .5px var(--kant)}
-  ::selection{background:var(--lysning-4);color:var(--papper)}
+  /* Page-specific only. The reset, `body`, `code`, `::selection`, the four
+     @font-face blocks and the heading defaults all arrive via the stylesheet
+     linked above, which @imports the tokens — duplicating them here would let
+     this page drift from that base silently. (Phrased without naming the file
+     because this block is copied verbatim into the design-system card, where
+     the same base is linked under a different name.) */
 
   .sheet-pad{padding:2.4rem 2rem;max-width:60rem;margin:0 auto}
   .head{display:flex;align-items:baseline;gap:1rem;flex-wrap:wrap;margin-bottom:.4rem}
