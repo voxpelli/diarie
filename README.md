@@ -117,7 +117,7 @@ With `--json`, an error is a JSON object on **stdout**, not a message on stderr:
 ```console
 $ diarie ready --json --root /tmp/not-a-project
 {
-  "error": "no diarium/ (dotted or not) found in /tmp/not-a-project — run `diarie init` there, or point --root somewhere else",
+  "error": "no diarium/ (dotted or not) in /tmp/not-a-project — run `diarie init` there, or point --root somewhere else",
   "code": "ENOSTORE"
 }
 $ echo $?

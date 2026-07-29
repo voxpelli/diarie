@@ -43,6 +43,16 @@ verb:
   reaches its `.md`), and diarie.dev documents the CLI contract — so grep `brand/` by hand on any
   CLI-surface change, and `npm run serve` to read what you touched.
 
+🚨 **Every CLI example on a brand surface must be VERBATIM output — it has been wrong twice.**
+diarie.dev's flagship `ENOSTORE` example printed the _searched-upward_ wording (`… found …`) for a
+command that passes `--root`, which is explicitly not a search; `lib/store.js` refuses that exact
+wording in a comment ("reporting 'searched upward' when we did not is its own small lie"), so the page
+told the lie the code declines to tell. `README.md` carried the same spurious "found". Generate
+examples by running the real binary against a throwaway store (`node cli.js ready --root <tmp>`), paste
+the bytes, and diff the tag-stripped `<pre>` text against saved stdout — never hand-edit, and never
+truncate with `…`. These mocks are the CLI contract's documentation surface: a paraphrase there is a
+false claim about the contract, and no gate will catch it.
+
 🚨 **Do NOT re-add a `check:test` script.** Tests deliberately do not live inside `check`: CI runs them
 via the dedicated `nodejs.yml`/`test-ci` job, and `npm test` is the local full gate. `check:test` once
 existed _because_ `run-p check:*` doesn't match `test`, and removing it silently dropped tests from the
@@ -98,6 +108,11 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
   ready/blocked/needsAttention and never block.
 * **Writers mutate the YAML directly (plain Edit/Write). There is deliberately NO CRUD helper** — the
   store is a substrate, not a product with an opinion about how you change it.
+* 🚨 **Quote your dates: an unquoted `updated: 2026-05-30` is a YAML _date_, not a string, and the
+  loader drops non-strings silently.** The consequence is invisible and wrong: staleness never fires,
+  so `stats` reports `stale 0` for a store that does have stale claims. Write `updated: '2026-05-30'`.
+  This is `diarie-rdr` biting in practice — the cheapest live demonstration of why that row is the
+  sharpest open bug, and worth reproducing when you come to fix it.
 * **`migrate` refuses rather than dropping data it cannot map** (`ELOSSY`; `--lossy` overrides). Its
   `IGNORED_BD_FIELDS` allowlist is the hazard: every addition is a data-loss decision.
 * **Atomic-write contract**: solo, single-host, no concurrent writers to the same `tasks-<slug>.yml`.
@@ -146,6 +161,29 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
   table rather than hand-aligning cells. `remark-validate-links` catches broken relative links.
   `brand/DESIGN.md` additionally carries a separate `@google/design.md` lint (its own header records
   the accepted-warnings status) — that is NOT part of `check:md`.
+* **`brand/index.html` inlines its OWN subset of `tokens.css`**, so its conventions live in the page
+  and drift from the token file silently. Terminal ink is **five** classes — `.c` prompt/comment,
+  `.g` fosfor, `.k` lavendel, `.a` bärnsten, `.r` stämpel-ljus — the set `brand-book.html` already
+  defines; shipping four costs the page its only amber, and amber is a load-bearing citizen (the
+  palette's answer to "dark ground + one green accent" being the AI default). Prose measure is
+  `.measure` / `.measure-c` (34rem), never an inline `max-width`. Stacking is `--z-bakom` /
+  `--z-korn` / `--z-ledger`, never a bare integer. `.term.wrapped` opts a block into `pre-wrap`:
+  `diarie` pads no columns (fields are single-space separated), so a wrap costs no alignment and
+  beats hiding half a message behind a horizontal scroll.
+* 🚨 **A verification tool that answers a NARROWER question than you asked reports success on
+  broken output — and never errors.** This bit four times in one session on `brand/`, always the
+  same shape: the tool was fine, the question was not the one being asked.
+
+  | Claim under test                 | Wrong instrument                 | Why it lies                                                                                                     | Right instrument                                                                 |
+  | -------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+  | terminal not clipped             | `term.scrollWidth - clientWidth` | `.term` has `overflow-x:auto`, so it reports 0 while the `<pre>` inside is cut mid-glyph                        | `pre.scrollWidth` vs the term's content box, or the widest line's rendered width |
+  | root `DESIGN.md` is a stray copy | `diff` + `git ls-files`          | `diff` follows symlinks and a symlink is untracked — identical + untracked is exactly what a symlink looks like | `ls -l` / `test -L`                                                              |
+  | footer renders two-up            | comparing element `top`          | `align-items:center` guarantees row-mates have different tops                                                   | horizontal adjacency (`b.left >= a.right`)                                       |
+  | prose measure is 64ch            | the CSS `ch` unit                | `ch` is the advance of `0` — 11.05px in Fraunces vs a \~7.5px mean character, \~45% under                       | record the width in rem; the character count is derived and method-dependent     |
+
+  Before writing "verified" or "measured", state which question the instrument actually answers.
+  Also: `cmd | head` returns `head`'s exit code, so `echo "exit=$?"` after a pipe measures the
+  wrong process — use `PIPESTATUS` or drop the pipe.
 
 ## Remotes & publishing (dual-home)
 
