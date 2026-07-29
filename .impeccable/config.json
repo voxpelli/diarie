@@ -1,0 +1,73 @@
+{
+  "detector": {
+    "ignoreRules": [
+      "em-dash-overuse"
+    ],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "fraunces",
+        "createdAt": "2026-07-19T01:31:05.415Z",
+        "reason": "diarie's committed brand face — the archive voice (BRAND.md Type); paired with Fragment Mono on a serif+mono contrast axis"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "oklch(50% 0.1 180)",
+        "createdAt": "2026-07-19T01:58:32.120Z",
+        "reason": "detector false-positive: @supports(color:…) capability probe, paints nothing (index.html:63 + tokens.css:125). Tracked in UPSTREAM-impeccable.md; remove when fixed upstream"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "2px",
+        "createdAt": "2026-07-19T01:58:32.156Z",
+        "reason": "focus-ring + inline code-chip micro-radius, below the xs:3px card scale"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": ".5em",
+        "createdAt": "2026-07-19T01:58:32.191Z",
+        "reason": "hand-uneven marker-wash pill corner — DESIGN.md Shapes calls the wash 'hand-uneven corners', deliberately off-scale"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": ".55em",
+        "createdAt": "2026-07-19T01:58:32.225Z",
+        "reason": "hand-uneven marker-wash pill corner (paired with .5em)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(246,240,224,.85)",
+        "createdAt": "2026-07-19T01:58:32.259Z",
+        "reason": "specimen-sheet paper-tape translucent tint; a physical-material one-off the palette doesn't model"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#3a3060",
+        "createdAt": "2026-07-19T01:58:32.292Z",
+        "reason": "@media print muted ink; print is a context the dark screen palette deliberately doesn't cover"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f2ecdd",
+        "createdAt": "2026-07-19T01:58:32.326Z",
+        "reason": "@media print terminal-block paper tone; print-only"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e6dcf5",
+        "createdAt": "2026-07-19T01:58:32.361Z",
+        "reason": "@media print opaque stand-in for the translucent markering wash (translucency prints unreliably)"
+      },
+      {
+        "rule": "single-font",
+        "value": "*",
+        "files": [
+          "brand/foundations.html"
+        ],
+        "createdAt": "2026-07-29T02:55:08.303Z",
+        "reason": "Both voices are present: Fraunces arrives via the linked foundations.css (body, h1-h4), which the detector does not follow. The page deliberately does not inline the base so it stays a true preview of the design-sync bundle's styles.css."
+      }
+    ]
+  }
+}
