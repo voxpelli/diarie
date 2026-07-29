@@ -30,6 +30,9 @@
 
   /* herbarium sheet: primary text on dark, paper surface in light contexts */
   --papper:         #EFE6D2;   /* 14.78:1 on arkiv — AAA                   */
+  --papper-2:       #F6EFDE;   /* the sheet lifted one step: cards and
+                                  specimen panels ON papper. 16.01:1 vs
+                                  --text in a paper context.               */
 
   /* the violet inks */
   --hektograf:      #6B4FC8;   /* copy-ink violet. 3.13:1 on arkiv — large
@@ -37,6 +40,11 @@
                                   4.73:1 on papper — body text allowed.     */
   --hektograf-ljus: #9C90C4;   /* muted text on dark. 6.29:1 on arkiv      */
   --lavendel:       #B7ABDD;   /* secondary text on dark. 8.63:1 on arkiv  */
+  --lavendel-ljus:  #DCCEF0;   /* the selection wash on paper. NOT derived
+                                  from papper — it is a tint toward white,
+                                  not toward the cream, and mixing hektograf
+                                  into papper does not reach it. 12.34:1
+                                  against --text in a paper context.       */
 
   /* the intense highlights — each one has a job, see layer 2 */
   --fosfor:         #5CE49A;   /* terminal phosphor. 11.37:1 on arkiv      */
@@ -45,6 +53,36 @@
                                   large type and stamps only               */
   --stampel-ljus:   #E8756B;   /* red at body size on dark. 6.28:1         */
   --stampel-mork:   #A83732;   /* red at body size on papper. 5.19:1       */
+
+  /* stämpel on paper. The dark-ground reds above do not survive the flip:
+     these are the sheet-tinted pair the brand book's refusal cards need.
+     Both are grounds and edges only — 1.06:1 and 1.92:1 on papper — so the
+     MEANING must live in the label, never in the tint. --stampel-mork is
+     the ink that carries it (4.89:1 on blek).                             */
+  --stampel-blek:   #F3DBD6;   /* card ground on papper.  1.06:1           */
+  --stampel-dov:    #D8988F;   /* its edge. 1.92:1 on papper, 1.81:1 on
+                                  blek — decorative, below the 3:1 floor,
+                                  which is why the label carries the state */
+
+  /* blad — the herbarium green, and the palette's SECOND green.
+     Not a tint of --fosfor and not a mistake for one: they differ by job.
+     --fosfor is terminal phosphor, an emitted colour for the dark ground
+     (1.30:1 on papper — unusable as ink on the sheet). --blad is a pressed
+     specimen, a reflected colour for paper contexts. What separates them is
+     CHROMA, not hue: their OKLCH hues sit only ~20° apart, so hue alone will
+     not tell them apart. The full argument, its source and its numbers live
+     in DESIGN.md § Colors — one place, so they can only go stale once.
+
+     A ramp, palest to darkest. Each ratio names its own ground.           */
+  --blad-blek:      #E4EFDC;   /* the sheet tinted: card grounds. 1.04:1   */
+  --blad-ljus:      #9CBF87;   /* card borders. 1.66:1 on papper — never
+                                  text, and never a lone meaning-carrier   */
+  --blad:           #5D8A49;   /* the dashed specimen mark. 3.26:1 on
+                                  papper, 3.40:1 on blad-blek — clears the
+                                  3:1 non-text floor, so borders only      */
+  --blad-mork:      #2E5A1F;   /* ink on the sheet. 6.51:1 on papper,
+                                  6.80:1 on blad-blek, 7.05:1 on papper-2.
+                                  The green counterpart of --stampel-mork  */
 
   /* ---- 2. Semantics — the CLI contract, in color -------------------- */
 

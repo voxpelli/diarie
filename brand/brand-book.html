@@ -49,7 +49,7 @@ body{
   padding-left:env(safe-area-inset-left);
   padding-right:env(safe-area-inset-right);
 }
-::selection{background:#DCCEF0}
+::selection{background:var(--lavendel-ljus)}
 a{color:var(--hektograf);text-decoration-thickness:.06em;text-underline-offset:.18em}
 a:hover{color:var(--text)}
 :focus-visible{outline:2px solid var(--hektograf);outline-offset:3px;border-radius:2px}
@@ -131,9 +131,9 @@ td code{font-size:.82rem}
 .dodont{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.4rem 0}
 .dd{border-radius:6px;padding:1.1rem 1.2rem;font-size:.95rem}
 .dd .tag{font-family:var(--stil-lasare);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;display:inline-block;margin-bottom:.5rem;padding:.15rem .5rem;border-radius:3px}
-.dd.do{background:#E4EFDC;border:.5px solid #9CBF87}
-.dd.do .tag{color:#2E5A1F;border:1px dashed #5D8A49}
-.dd.dont{background:#F3DBD6;border:.5px solid #D8988F}
+.dd.do{background:var(--blad-blek);border:var(--hallinje) solid var(--blad-ljus)}
+.dd.do .tag{color:var(--blad-mork);border:1px dashed var(--blad)}
+.dd.dont{background:var(--stampel-blek);border:var(--hallinje) solid var(--stampel-dov)}
 .dd.dont .tag{color:var(--stampel-mork);border:1.5px dashed var(--stampel-mork);transform:rotate(-2deg)}
 .dd p{color:var(--text)}
 

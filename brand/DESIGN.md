@@ -13,7 +13,9 @@ colors:
   lysning-3: "#3C2D6E"
   lysning-4: "#4B3A87"
   papper: "#EFE6D2"
+  papper-2: "#F6EFDE"
   lavendel: "#B7ABDD"
+  lavendel-ljus: "#DCCEF0"
   hektograf-ljus: "#9C90C4"
   hektograf: "#6B4FC8"
   fosfor: "#5CE49A"
@@ -21,6 +23,12 @@ colors:
   stampel: "#D8453E"
   stampel-ljus: "#E8756B"
   stampel-mork: "#A83732"
+  stampel-blek: "#F3DBD6"
+  stampel-dov: "#D8988F"
+  blad-blek: "#E4EFDC"
+  blad-ljus: "#9CBF87"
+  blad: "#5D8A49"
+  blad-mork: "#2E5A1F"
   kant: "rgba(239, 230, 210, 0.16)"
   markering: "rgba(107, 79, 200, 0.42)"
   fosfor-p3: "oklch(82.5% 0.207 156.3)"
@@ -204,7 +212,7 @@ Names are Swedish, ASCII-folded: _arkiv_ archive (page ground), _yta_
 surface, _lysning_ the stepped backlight (four flat steps, outer → inner,
 never a gradient), _papper_ herbarium paper, _hektograf_ the violet
 copy-ink of the analog office, _fosfor_ terminal phosphor, _bärnsten_
-amber, _stämpel_ stamp red.
+amber, _stämpel_ stamp red, _blad_ the pressed leaf.
 
 **The highlights have jobs — this is the load-bearing rule.** The accents
 are the CLI's exit-code contract: `fosfor` is exit 0 and `ready`, and
@@ -213,8 +221,41 @@ mistaken for "workable". `barnsten` is exit 1 (asked wrong; stale claims).
 `stampel` is exit 2 — the rejection stamp belongs to `validate`. Blocked
 is `lavendel`: waiting, not wrong.
 
-Contrast is verified in both models (WCAG 2.x and APCA-W3); the full table
-lives in BRAND.md. Follow APCA where they disagree: `hektograf` on arkiv
+**There are two greens, and they are not a ramp.** `fosfor` is emitted —
+terminal phosphor on the dark ground, and 1.30:1 on papper, which makes it
+unusable as ink on the sheet. `blad` is reflected — a pressed specimen, for
+paper contexts, running `blad-blek` → `blad-ljus` → `blad` → `blad-mork`
+palest to darkest. Never substitute one for the other: `fosfor` carries the
+exit-code contract and must not appear where a reader could mistake it for
+"ready".
+
+What separates them is **chroma, not hue** — and this is worth stating
+because the obvious measurement gets it wrong. Against the sixteen greens
+of Werner's _Nomenclature of Colours_ (Syme, 1821 — the second edition, the
+copy Darwin carried on the _Beagle_, now Cambridge University Library
+DAR LIB T.620), which run OKLCH chroma 0.005–0.111: `blad-ljus` is Syme's
+"Emerald Green" (`#93B778`) to within ΔE00 2.88 — close enough to read as
+the same green, though not a colour match — while `fosfor` is ΔE00 14.81
+from that same swatch and, at chroma 0.159 in sRGB (0.207 on P3), more
+chromatic than every green on the chart. In OKLCH _hue_ the two families
+sit only ~20° apart, so hue will not separate them. Measured in HSL the gap
+reads ~50°, because HSL hands the greens roughly four times more of the hue
+circle than they perceptually occupy — the reading is inflated, not
+meaningful, so do not reach for HSL to tell these two apart.
+
+Those hexes are from **Nicholas Rougeux's digitisation of the 1821 chart**
+([c82.net/werner](https://www.c82.net/werner)), which photographs
+hand-painted swatches and averages them flat. They are one reading of a
+200-year-old book, not canonical values — another digitisation will differ,
+so re-derive from the same source or the numbers above will not reproduce.
+Note also that Syme gives animal/vegetable/mineral exemplars per colour and
+_Emerald Green has no vegetable one_; "botanical" would be the wrong word
+for this set.
+
+WCAG 2.x ratios are recorded next to every token in `tokens.css`. The
+APCA-W3 table in BRAND.md covers the dark-ground palette and does **not**
+yet include the paper-context additions (`papper-2`, `lavendel-ljus`, the
+`stampel-blek`/`-dov` pair, or the four `blad` steps). Follow APCA where they disagree: `hektograf` on arkiv
 (Lc −22) is borders and decoration only, even at display sizes;
 `stampel-ljus` (Lc −46) carries short status labels, not paragraphs; on
 papper use `stampel-mork`. Body text on arkiv is `papper` (primary),
