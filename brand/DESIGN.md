@@ -391,7 +391,10 @@ grain). Three values, one direction. A bare integer in a `z-index` is a bug.
 ## Shapes
 
 Corners are `6px` on cards and terminals, `3px` on the marker wash;
-borders are `0.5px` hairlines in `kant`. Stamps are the sharp exception:
+borders are `0.5px` hairlines in `kant`, and that width is the `hallinje`
+token rather than a repeated literal — 23 call sites across the two pages
+reference it, so a change to the hairline is one edit and not a sweep.
+Stamps are the sharp exception:
 `1.5px` borders, rotated a few degrees off true (−4° to −7°), dashed for
 `granskad`, solid with an inner rule for the `INKOM` date stamp. On the
 built pages both are outlined SVG — rotation baked into geometry, immune

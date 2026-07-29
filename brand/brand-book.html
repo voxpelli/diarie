@@ -72,7 +72,7 @@ p+p{margin-top:.9rem}
 em{font-style:italic}
 
 /* cover */
-.cover{padding:4.5rem 0 3.5rem;border-bottom:.5px solid var(--kant)}
+.cover{padding:4.5rem 0 3.5rem;border-bottom:var(--hallinje) solid var(--kant)}
 .cover .wrap{display:grid;grid-template-columns:auto 1fr;gap:2.6rem;align-items:center}
 .cover svg{width:clamp(150px,20vw,200px);height:auto;view-transition-name:diarie-mark}
 @media (prefers-reduced-motion:no-preference){
@@ -103,14 +103,14 @@ li+li{margin-top:.45rem}
 /* mark chapter */
 .mark-row{display:flex;gap:2rem;align-items:center;flex-wrap:wrap;margin:1.6rem 0}
 .mark-card{background:var(--arkiv);border-radius:6px;padding:1.6rem;flex:none}
-.mark-card.paper{background:var(--papper-2);border:.5px dashed var(--kant)}
+.mark-card.paper{background:var(--papper-2);border:var(--hallinje) dashed var(--kant)}
 .mark-card svg{display:block;height:auto}
 
 /* color chapter */
-.swatches{margin:1.6rem 0;border:.5px solid var(--kant);border-radius:6px;overflow:hidden}
-.sw{display:grid;grid-template-columns:64px 12rem 7rem 1fr 10rem;gap:1rem;align-items:center;padding:.6rem 1rem;border-top:.5px solid var(--kant);font-size:.92rem}
+.swatches{margin:1.6rem 0;border:var(--hallinje) solid var(--kant);border-radius:6px;overflow:hidden}
+.sw{display:grid;grid-template-columns:64px 12rem 7rem 1fr 10rem;gap:1rem;align-items:center;padding:.6rem 1rem;border-top:var(--hallinje) solid var(--kant);font-size:.92rem}
 .sw:first-child{border-top:0}
-.sw .chip{width:64px;height:36px;border-radius:4px;border:.5px solid var(--kant)}
+.sw .chip{width:64px;height:36px;border-radius:4px;border:var(--hallinje) solid var(--kant)}
 .sw .name{font-variation-settings:"opsz" 20,"wght" 470,"SOFT" 20,"WONK" 0}
 .sw .hex,.sw .cr{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3)}
 .sw .role{color:var(--text-2);font-size:.9rem}
@@ -122,16 +122,16 @@ li+li{margin-top:.45rem}
 
 /* type chapter */
 .voices{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.4rem 0}
-.voice{border:.5px solid var(--kant);border-radius:6px;padding:1.2rem 1.3rem;background:var(--papper-2)}
+.voice{border:var(--hallinje) solid var(--kant);border-radius:6px;padding:1.2rem 1.3rem;background:var(--papper-2)}
 .voice .sample{font-size:1.9rem;line-height:1.2;margin-bottom:.5rem}
 .voice.archive .sample{font-variation-settings:"opsz" 72,"wght" 480,"SOFT" 60,"WONK" 1}
 .voice.reader .sample{font-family:var(--stil-lasare);font-size:1.4rem}
 .voice p{font-size:.92rem;color:var(--text-2)}
 table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:.94rem}
-th,td{text-align:left;padding:.5rem .8rem;border-bottom:.5px solid var(--kant)}
+th,td{text-align:left;padding:.5rem .8rem;border-bottom:var(--hallinje) solid var(--kant)}
 th{font-family:var(--stil-lasare);font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);font-weight:400}
 td code{font-size:.82rem}
-.specimen{border:.5px solid var(--kant);border-radius:6px;background:var(--papper-2);padding:1.4rem 1.5rem;margin:1.4rem 0}
+.specimen{border:var(--hallinje) solid var(--kant);border-radius:6px;background:var(--papper-2);padding:1.4rem 1.5rem;margin:1.4rem 0}
 .specimen .big{font-size:clamp(2.6rem,7vw,4.2rem);line-height:1.1;overflow-wrap:anywhere}
 .specimen .ctrl{display:grid;grid-template-columns:5.5rem 1fr 3.5rem;gap:.8rem;align-items:center;margin-top:1rem;font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-2)}
 .specimen input[type=range]{width:100%;accent-color:var(--hektograf)}

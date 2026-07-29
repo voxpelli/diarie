@@ -142,7 +142,7 @@ h1{
 .sub{max-width:38rem;margin:1rem auto 0;color:var(--lavendel)}
 .install{
   margin:2.2rem auto 0;display:inline-flex;align-items:center;gap:.9rem;
-  background:var(--yta-2);border:.5px solid var(--kant);border-radius:6px;
+  background:var(--yta-2);border:var(--hallinje) solid var(--kant);border-radius:6px;
   padding:.75rem 1rem .75rem 1.15rem;font-family:var(--stil-lasare);font-size:.875rem;
 }
 .install .p{color:var(--hektograf-ljus);user-select:none}
@@ -158,7 +158,7 @@ h1{
 
 /* ---- audiences: the type system is the split ---- */
 .aud{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:2rem}
-.aud>div{border:.5px solid var(--kant);border-radius:6px;padding:1.3rem 1.4rem}
+.aud>div{border:var(--hallinje) solid var(--kant);border-radius:6px;padding:1.3rem 1.4rem}
 .aud .hum{background:var(--yta)}
 .aud .agt{background:var(--yta-2)}
 /* One card-heading cut, shared. Three near-identical one-offs (490/490/480 at
@@ -172,7 +172,7 @@ h1{
 .qa h3{margin-bottom:.45rem}
 .qa p{font-size:.95rem;color:var(--lavendel)}
 .leafrule{max-width:66rem;margin:1.4rem auto;padding:0 1.4rem;position:relative;height:26px}
-.leafrule::before{content:"";position:absolute;left:1.4rem;right:1.4rem;top:50%;border-top:.5px solid var(--kant)}
+.leafrule::before{content:"";position:absolute;left:1.4rem;right:1.4rem;top:50%;border-top:var(--hallinje) solid var(--kant)}
 .leafrule svg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--arkiv);padding:0 14px;box-sizing:content-box}
 .closer{padding:3rem 0 4.5rem;text-align:center}
 .closer .install{margin-top:1.8rem}
@@ -203,13 +203,13 @@ h1{
 
 /* ---- exit codes ---- */
 .codes{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:2rem 0}
-.code{background:var(--yta);border:.5px solid var(--kant);border-radius:6px;padding:1.3rem 1.3rem 1.2rem}
+.code{background:var(--yta);border:var(--hallinje) solid var(--kant);border-radius:6px;padding:1.3rem 1.3rem 1.2rem}
 .code .n{font-family:var(--stil-arkiv);font-variation-settings:"opsz" 144,"wght" 520,"SOFT" 60,"WONK" 1;font-size:4.2rem;line-height:.9;display:block;margin-bottom:.7rem}
 .code.e0 .n{color:var(--fosfor)}.code.e1 .n{color:var(--barnsten)}.code.e2 .n{color:var(--stampel-ljus)}
 .code h3{margin-bottom:.35rem}
 .code p{font-size:.95rem;color:var(--lavendel)}
 .term{
-  background:var(--yta-2);border:.5px solid var(--kant);border-radius:6px;
+  background:var(--yta-2);border:var(--hallinje) solid var(--kant);border-radius:6px;
   padding:1.1rem 1.25rem;font-size:.875rem;line-height:1.7;overflow-x:auto;letter-spacing:0;
 }
 p+.term,p+.codes{margin-top:1.5rem}
@@ -252,7 +252,7 @@ p+.term,p+.codes{margin-top:1.5rem}
 }
 .sheet::before,.sheet::after{
   content:"";position:absolute;top:-9px;width:70px;height:20px;
-  background:rgba(246,240,224,.85);border:.5px solid rgba(23,17,38,.15);
+  background:rgba(246,240,224,.85);border:var(--hallinje) solid rgba(23,17,38,.15);
 }
 .sheet::before{left:26px;transform:rotate(-5deg)}
 .sheet::after{right:26px;transform:rotate(4deg)}
@@ -263,14 +263,14 @@ p+.term,p+.codes{margin-top:1.5rem}
 .sheet .y-c{color:var(--papper-ink-3)}
 .sheet .y-hl{background:var(--papper-hl);border-radius:3px;padding:0 .2em}
 .sheet-label{
-  margin-top:1.1rem;padding-top:.8rem;border-top:.5px dashed rgba(23,17,38,.3);
+  margin-top:1.1rem;padding-top:.8rem;border-top:var(--hallinje) dashed rgba(23,17,38,.3);
   font-family:var(--stil-lasare);font-size:.74rem;color:var(--papper-ink-2);
   display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;
 }
 
 /* ---- types ---- */
 .types{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-top:2rem}
-.type{background:var(--yta);border:.5px solid var(--kant);border-radius:6px;padding:1.15rem 1.2rem}
+.type{background:var(--yta);border:var(--hallinje) solid var(--kant);border-radius:6px;padding:1.15rem 1.2rem}
 /* The card title is a label, the chip inside the body stays a chip. Both were
    15.2px fosfor on the same chip ground — the `.type code` descendant selector
    captured them equally. `>` scopes the label; the nested chip falls back to the
@@ -307,9 +307,9 @@ p+.term,p+.codes{margin-top:1.5rem}
 }
 
 /* ---- lineage + footer ---- */
-.lineage{border-top:.5px solid var(--kant);padding:2.6rem 0}
+.lineage{border-top:var(--hallinje) solid var(--kant);padding:2.6rem 0}
 .lineage p{font-size:.95rem;color:var(--lavendel);max-width:30rem}
-footer{border-top:.5px solid var(--kant);padding:2.8rem 0 3.4rem;position:relative;overflow:hidden}
+footer{border-top:var(--hallinje) solid var(--kant);padding:2.8rem 0 3.4rem;position:relative;overflow:hidden}
 footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:2rem;flex-wrap:wrap}
 footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektograf-ljus);line-height:2;max-width:36rem}
 /* A5 — hit area only: vertical padding on an inline link does not alter its line box */
@@ -375,9 +375,9 @@ footer .fine a{padding:.45rem .1rem}
   .hero,section{padding:1.2rem 0}
   h1,h2,.tagline{color:#171126}
   .muted,.dim,.facts p,.qa p,.aud p,.code p,.type p{color:#3a3060}
-  .term{background:#f2ecdd;color:#171126;border:.5px solid var(--print-rule)}
+  .term{background:#f2ecdd;color:#171126;border:var(--hallinje) solid var(--print-rule)}
   .term .c,.term .g,.term .k,.term .r{color:#171126}
-  .code,.type,.aud>div{border:.5px solid var(--print-rule);background:var(--print-ground)}
+  .code,.type,.aud>div{border:var(--hallinje) solid var(--print-rule);background:var(--print-ground)}
   a{color:#171126}
   .lineage a::after,footer a::after{content:" (" attr(href) ")";font-size:.75em;color:var(--print-muted)}
   .dnr{--st-line:#A83732;--st-text:#A83732}
