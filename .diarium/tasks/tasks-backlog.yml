@@ -1272,3 +1272,89 @@ tasks:
       reformatted) is consistent and green; the cost is one `fix:md` per release. Filed so the
       recurring friction is a choice rather than an accident nobody remembers agreeing to.
     updated: '2026-07-28'
+  - id: diarie-qar
+    title: The Q&A pair sits under "Two readers, two voices" but answers unrelated objections
+    status: pending
+    type: task
+    priority: low
+    labels:
+      - chore
+    acceptance_criteria:
+      - "`.qa` moves to its own section with its own h2, or is spaced/aligned as a deliberate topic change rather than a continuation"
+      - "the 11.2px column-axis mismatch resolves: `.aud` col-2 starts at x=728.0, `.qa` col-2 at x=739.2 — near enough to read as a mistake, caused by `.aud{gap:1rem}` (token sm) vs `.qa{gap:2.4rem}` (token lg) stacked 42px apart"
+      - "if it stays put, `.qa{gap:1rem}` locks it to the .aud axis and its margin-top spaces the topic change like one"
+    description: >-
+      Found 2026-07-29 by an isolated layout assessment. The h2 is "Two readers, two voices" and its
+      lede ends "…which is why this page has two typefaces" — `.aud` completes that thesis. `.qa` then
+      answers two objections ("New to plain-file tracking?", "Why not a classical issue tracker?") that
+      have nothing to do with readers or typefaces, under the same heading with only 9.6px more air
+      than the lede got. Proximity is asserting a relation that does not exist; `.qa` is there because
+      it happened to be 2-up. Needs a copy/IA decision, which is why it is filed rather than fixed.
+    updated: '2026-07-29'
+  - id: diarie-tpr
+    title: The four type cards render 16-22ch prose — a third of the page's own measure
+    status: pending
+    type: task
+    priority: low
+    labels:
+      - chore
+    acceptance_criteria:
+      - "`.type p` reaches a readable measure: at 1440px the card is 240.8px so the paragraph renders 201px / 22ch; at 860px it is 152px / 16ch and 'An architectural choice and its reasoning.' breaks into four lines of 2-3 words"
+      - "the layout stops contradicting the copy: `task` is 'the only type ready ever surfaces' and the other three are already marked `.quiet`, yet `repeat(4,1fr)` gives all four identical width and weight"
+      - "minimal fix is `repeat(2,1fr)` above 540px (22ch->~50ch at 1440); the on-brand fix is a register — `auto 1fr auto`, four rows, kant hairline row rules, .where paths right-aligned into one scannable column"
+    description: >-
+      Found 2026-07-29. Each type is name + definition + location — three parallel fields over four
+      rows, which is tabular data rendered sideways as cards. A diarium IS a register, so this is the
+      one place the anchor motif could be literal rather than referenced. Deferred because the register
+      option is a real restructure with copy implications, not a one-line grid change.
+    updated: '2026-07-29'
+  - id: diarie-lin
+    title: The lineage section is a headless rule-topped block adjacent to an identical one
+    status: pending
+    type: task
+    priority: low
+    labels:
+      - chore
+    acceptance_criteria:
+      - "`.lineage` gets an entry point, or is merged into the footer as its first band — pick one, do not ship neither"
+      - "the ambiguity is measurable: `.lineage` and `footer` carry the same 0.5px kant border-top 184px apart, both left-aligned at x=214.4, both small muted link-dense text — together they read as one two-band fine-print zone"
+      - "it has no heading anywhere in the document outline, and sits after the closer CTA, so the last 562px of the page is post-CTA fine print in Persuade mode"
+    description: >-
+      Surfaced 2026-07-29 after the `.eyebrow` was removed (Impeccable 4.x bans a kicker above a
+      heading outright). The eyebrow had been carrying the entire "this is a section, not chrome"
+      signal. Options: give it a real h2 in the page's heading voice; drop its own border-top and fold
+      it into the footer; or move it above `.closer` so the CTA keeps the last word. Needs new copy,
+      so it is a decision rather than a fix.
+    updated: '2026-07-29'
+  - id: diarie-hum
+    title: The "For humans" card is 31% empty while its peer is full — the peers do not look equal
+    status: pending
+    type: task
+    priority: low
+    labels:
+      - chore
+    acceptance_criteria:
+      - "the two `.aud` cards carry comparable copy: both render 195px tall, but content-bottom to card-bottom is 61px in `.hum` against 21px in `.agt` (183 vs 255 characters)"
+      - "roughly 40 characters added to the humans copy closes it; unequal card heights would look worse, so this is a copy fix and not a layout one"
+      - "the section's claim is that these two readers are peers — the layout currently shows one of them under-argued"
+    description: >-
+      Found 2026-07-29. A copy problem showing up as a layout tell. Filed rather than fixed because
+      writing brand copy is the user's call — CLAUDE.md's voice rules (klarspråk, name the consequence,
+      no marketing vocabulary) constrain what can go there.
+    updated: '2026-07-29'
+  - id: diarie-sub
+    title: The hero subtitle measure was left out of the type pass — revisit if the copy grows
+    status: pending
+    type: task
+    priority: low
+    labels:
+      - chore
+    acceptance_criteria:
+      - "`.sub{max-width:38rem}` measures roughly 81 characters at 17px — the same fault the `.measure` consolidation fixed everywhere else (running prose now takes 34rem)"
+      - "REVIVAL TRIGGER: the hero sub copy grows past two lines, or a third line appears at any supported width. Until then this is deliberate, not an oversight"
+      - "the reason to leave it: it is a centred two-line hero subtitle whose second line is deliberately short, and DESIGN.md's Measure Rule targets RUNNING PROSE, not the hero block"
+    description: >-
+      Filed 2026-07-29 out of the typography consolidation, which explicitly judged it not worth
+      doing now. Recorded rather than dropped so the decision has a named trigger instead of being
+      an inconsistency nobody remembers agreeing to.
+    updated: '2026-07-29'
