@@ -80,6 +80,16 @@ h1,h2,h3{text-wrap:balance}
 p{text-wrap:pretty}
 p+p{margin-top:.9rem}
 
+/* The measure, as one class rather than a per-paragraph max-width. DESIGN.md
+   states the rule ("never author a per-paragraph `max-width`") but the class
+   itself lived only inside index.html's private styles, so every other surface
+   — this page, and every design the bundle renders — had the rule with nothing
+   to obey it with. 34rem, not the 44rem it replaced: that was recorded as
+   "64ch" and the ch unit is the advance of `0`, ~11px in Fraunces against a
+   ~7.5px mean character, which put the real measure far above the 65-75 guide. */
+.measure{max-width:34rem}
+.measure-c{max-width:34rem;margin-inline:auto}
+
 a{color:var(--lank);text-decoration-thickness:.06em;text-underline-offset:.18em}
 a:hover{color:var(--text)}
 :focus-visible{outline:2px solid var(--fosfor);outline-offset:3px;border-radius:2px}
