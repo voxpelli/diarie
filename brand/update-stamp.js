@@ -17,6 +17,10 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import opentype from 'opentype.js';
 
+/**
+ * @import { Font } from 'opentype.js'
+ */
+
 // ---- stamp geometry: keep in sync with the values in HANDOFF.md ----------
 const SIZE = 12;        // px
 const TRACK = 0.08;     // em, letter-spacing
@@ -60,7 +64,7 @@ export function spliceStamp (html, svg) {
 /**
  * Outline the two stamp lines and assemble the rotated SVG.
  *
- * @param {import('opentype.js').Font} font - a parsed Fragment Mono
+ * @param {Font} font - a parsed Fragment Mono
  * @param {string} date - ISO date for the INKOM line
  * @param {string} version - package version for the dnr line
  * @returns {string} the stamp SVG markup

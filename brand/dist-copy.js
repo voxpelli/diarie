@@ -9,10 +9,10 @@
  * asset must never silently produce an empty deploy).
  */
 
+import { fileURLToPath } from 'node:url';
 import {
   cp, mkdir, readFile, rm, writeFile,
 } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
 
 const SRC = new URL('./', import.meta.url); // brand/
 const DIST = new URL('../brand-dist/', import.meta.url); // repo-root sibling

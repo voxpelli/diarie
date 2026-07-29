@@ -39,7 +39,9 @@ import {
   groupTasks, MIGRATE_OPTIONS, normalizeBody, projectLive, splitBody, USAGE,
 } from '../lib/migrate/bootstrap.js';
 
-/** @typedef {import('../lib/migrate/bd-map.js').BdIssue} BdIssue */
+/** @import { TestContext } from 'node:test' */
+/** @import { BdIssue } from '../lib/migrate/bd-map.js' */
+/** @import { TaskRow } from '../lib/schema.js' */
 
 /**
  * A minimal bd issue, with per-case overrides merged on top.
@@ -164,14 +166,14 @@ describe('projectLive (type / status / priority mapping)', () => {
  *
  * @param {string} id
  * @param {string} [parent]
- * @returns {import('../lib/schema.js').TaskRow}
+ * @returns {TaskRow}
  */
 const row = (id, parent) => ({ id, title: id, status: 'pending', type: 'task', ...(parent ? { parent } : {}) });
 
 /**
  * The epic, a child, a GRANDchild (must follow the epic transitively), and an outsider.
  *
- * @returns {import('../lib/schema.js').TaskRow[]}
+ * @returns {TaskRow[]}
  */
 const tree = () => [row('e-1'), row('c-1', 'e-1'), row('g-1', 'c-1'), row('o-1')];
 
@@ -222,7 +224,7 @@ const run = (args, wd) => {
 /**
  * A temp dir that cleans itself up when the test ends.
  *
- * @param {import('node:test').TestContext} t
+ * @param {TestContext} t
  * @returns {string}
  */
 function tmpDir (t) {
@@ -497,7 +499,7 @@ describe('a missing input file is an InputError, not a crash (vp-beads-mig)', ()
  * Inline rather than in `fixtures/bd-export.jsonl`: a record carrying an UNACCOUNTED-FOR
  * field makes the migration refuse, which would break every other test sharing that fixture.
  *
- * @param {import('node:test').TestContext} t
+ * @param {TestContext} t
  * @param {Record<string, unknown>} issue  merged over a minimal valid bd issue
  * @param {string[]} [args]
  * @param {boolean} [viaCli]  drive `cli.js` rather than the script directly — see below
@@ -530,11 +532,11 @@ function migrateOne (t, issue, args = [], viaCli = false) {
  * The migrated task rows from a store the fixture export produced.
  *
  * @param {string} dir
- * @returns {import('../lib/schema.js').TaskRow[]}
+ * @returns {TaskRow[]}
  */
 function rowsIn (dir) {
   const doc = load(readFileSync(join(dir, 'diarium', 'tasks', 'tasks-backlog.yml'), 'utf8'));
-  return /** @type {import('../lib/schema.js').TaskRow[]} */ (
+  return /** @type {TaskRow[]} */ (
     /** @type {{tasks: unknown}} */ (doc).tasks
   );
 }

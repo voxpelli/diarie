@@ -52,13 +52,13 @@
     "brand:3-favicon": "node brand/generate-favicons.js",
     "brand:4-size": "node brand/stamp-size.js",
     "brand-check": "node scripts/check-brand-assets.js",
-    "build": "run-s cbuild:*",
+    "build": "run-s build:*",
     "build:0": "run-s clean",
     "build:1-declaration": "tsc -p declaration.tsconfig.json",
     "check": "run-p check:*",
     "check:ast-grep": "ast-grep scan --globs '!.design-sync/**' --globs '!.impeccable/**'",
     "check:ast-grep-test": "ast-grep test",
-    "check:installed-check": "installed-check --ignore @voxpelli/remark-preset",
+    "check:installed-check": "installed-check -i @voxpelli/remark-preset -i npm-run-all2",
     "check:knip": "knip",
     "check:lint": "eslint",
     "check:md": "remark . --quiet --frail --ignore-path .gitignore",
@@ -82,7 +82,8 @@
     "js-yaml": "^4.1.0",
     "peowly": "^1.3.3",
     "peowly-commands": "^1.1.0",
-    "pony-cause": "^2.1.11"
+    "pony-cause": "^2.1.11",
+    "type-fest": "^5.8.0"
   },
   "devDependencies": {
     "@ast-grep/cli": "^0.44.1",
@@ -98,12 +99,12 @@
     "eslint": "^9.39.4",
     "hast-util-from-html": "^2.0.3",
     "installed-check": "^10.0.1",
-    "knip": "^5.88.1",
-    "npm-run-all2": "^7.0.2",
+    "knip": "^6.29.0",
+    "npm-run-all2": "^9.0.3",
     "opentype.js": "^2.0.0",
     "remark-cli": "^12.0.0",
-    "type-coverage": "^2.29.7",
-    "typescript": "~5.9.3"
+    "type-coverage": "^2.30.1",
+    "typescript": "^6.0.3"
   },
   "remarkConfig": {
     "plugins": [

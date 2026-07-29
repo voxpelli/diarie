@@ -27,6 +27,8 @@ import {
 
 import { TRACKER_DIRS, VALID_ERROR_CODES } from 'diarie/schema';
 
+/** @import { TestContext } from 'node:test' */
+
 /**
  * Which form of the store pair these tests seed. The reader accepts both; the fixtures on
  * disk cover the OTHER one (test/fixtures is visible, test/fixtures-epics is dotted), so
@@ -54,7 +56,7 @@ const STATS = ['stats'];
 /**
  * A temp dir that cleans itself up when the test ends.
  *
- * @param {import('node:test').TestContext} t
+ * @param {TestContext} t
  * @param {string} prefix
  * @returns {string}
  */
@@ -81,7 +83,7 @@ function seedStore (dir, slug, body) {
 /**
  * A store whose one row has a malformed REQUIRED field. `validate` calls this broken.
  *
- * @param {import('node:test').TestContext} t
+ * @param {TestContext} t
  * @returns {string}
  */
 function brokenRow (t) {
@@ -92,7 +94,7 @@ function brokenRow (t) {
 /**
  * A store whose JSON payload comfortably exceeds the 64 KB pipe buffer, plus one dropped row.
  *
- * @param {import('node:test').TestContext} t
+ * @param {TestContext} t
  * @returns {string}
  */
 function bigStore (t) {
@@ -107,7 +109,7 @@ function bigStore (t) {
 /**
  * A healthy file holding a live claim, beside a file that does not parse.
  *
- * @param {import('node:test').TestContext} t
+ * @param {TestContext} t
  * @returns {string}
  */
 function halfBroken (t) {
@@ -406,7 +408,7 @@ describe('containers: an epic is not workable (vp-beads-epc) — THROUGH loadTas
 /**
  * A tmpdir standing in as an installed plugin, carrying its own committed store.
  *
- * @param {import('node:test').TestContext} t
+ * @param {TestContext} t
  * @returns {string}
  */
 const fakePlugin = (t) => seedStore(tmpDir(t, 'diarie-plugin-'), 'theirs',
@@ -1195,7 +1197,7 @@ describe('DIARIUM_ROOT (renamed from TASKS_ROOT)', () => {
 // So this table drives the REAL binary, and its last case asserts the table is COMPLETE
 // against `VALID_ERROR_CODES` — a code nobody proves reachable fails the suite.
 describe('every error code, through the real CLI boundary', () => {
-  /** @type {{ code: string, why: string, run: (t: import('node:test').TestContext) => ReturnType<typeof run> }[]} */
+  /** @type {{ code: string, why: string, run: (t: TestContext) => ReturnType<typeof run> }[]} */
   const CASES = [
     {
       code: 'ENOSTORE',

@@ -13,8 +13,10 @@ import { describe, it } from 'node:test';
 
 import { computeReady, computeStats, nsId } from 'diarie';
 
-/** @typedef {import('diarie').GlobalId} GlobalId */
-/** @typedef {import('../lib/store.js').Task} Task */
+/**
+ * @import { GlobalId, Priority, Status, TaskType } from '../lib/index.js'
+ * @import { Task } from '../lib/store.js'
+ */
 
 /**
  * Mint a fixture id.
@@ -43,9 +45,9 @@ const gid = (id) => /** @type {GlobalId} */ (id);
  *
  * @param {object} row
  * @param {string} row.id
- * @param {import('diarie').Status} row.status
- * @param {import('diarie').TaskType} [row.type]
- * @param {import('diarie').Priority} [row.priority]
+ * @param {Status} row.status
+ * @param {TaskType} [row.type]
+ * @param {Priority} [row.priority]
  * @param {string[]} [row.deps]
  * @param {string} [row.parent]
  * @param {string[]} [row.labels]

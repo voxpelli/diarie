@@ -41,6 +41,8 @@ import {
 
 import { TRACKER_DIRS } from 'diarie/schema';
 
+/** @import { TestContext } from 'node:test' */
+
 /**
  * The page shows the VISIBLE posture (`diarium/`, "on the shelf"), so the fixture has
  * to be in that posture too — the ids the page prints carry no store name, but the
@@ -121,7 +123,7 @@ const NOWHERE = '/tmp/not-a-project';
 /**
  * A temp dir that cleans itself up when the test ends.
  *
- * @param {import('node:test').TestContext} t
+ * @param {TestContext} t
  * @returns {string}
  */
 function tmpDir (t) {
@@ -133,7 +135,7 @@ function tmpDir (t) {
 /**
  * Build a throwaway store holding one `tasks-<slug>.yml`.
  *
- * @param {import('node:test').TestContext} t
+ * @param {TestContext} t
  * @param {string} slug  the id namespace the page prints (`backlog/proj-auth`)
  * @param {string} body
  * @returns {string} the root to point the CLI at
@@ -206,7 +208,7 @@ const blockQuoting = (needle) => preBlocks().find(b => b.includes(needle));
 /**
  * Seed the transcript fixture and run both commands the page quotes against it.
  *
- * @param {import('node:test').TestContext} t
+ * @param {TestContext} t
  * @returns {{ ready: ReturnType<typeof run>, stats: ReturnType<typeof run>, root: string }}
  */
 function realOutput (t) {
