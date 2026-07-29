@@ -1358,3 +1358,53 @@ tasks:
       doing now. Recorded rather than dropped so the decision has a named trigger instead of being
       an inconsistency nobody remembers agreeing to.
     updated: '2026-07-29'
+  - id: diarie-fnd
+    title: foundations.html is a third brand page — undeployed, unlinted, off the type ramp
+    status: pending
+    type: task
+    priority: low
+    labels:
+      - chore
+    acceptance_criteria:
+      - "decide what foundations.html IS: a deployable page, a file:// reference like the brand book was, or dead weight to delete"
+      - "it carries 6 design-system-font-size findings (2.6rem, 1.35rem, .68rem x2, 3rem, +2) — the same drift brand-book.html just had fixed"
+      - "it is absent from dist-copy.js ASSETS and from check-brand-assets.js PAGES, so nothing verifies its refs"
+    description: >-
+      Surfaced 2026-07-29 while linking tokens.css into the other two pages. It was the only page
+      missing the "Fraunces Fallback" @font-face, so its metric override silently did nothing — fixed
+      in passing. The rest is deferred because it needs a decision about the page's purpose, not a fix.
+    updated: '2026-07-29'
+  - id: diarie-apc
+    title: BRAND.md's APCA-W3 table omits the eight new paper-context tokens
+    status: pending
+    type: task
+    priority: low
+    labels:
+      - chore
+    acceptance_criteria:
+      - "papper-2, lavendel-ljus, stampel-blek, stampel-dov and the four blad steps get Lc values in BRAND.md's palette table"
+      - "DESIGN.md's Colors section can then drop the explicit carve-out saying the APCA table does not yet cover them"
+      - "WCAG 2.x ratios for all eight are already recorded in tokens.css and independently verified"
+    description: >-
+      Found 2026-07-29 by a comment-analyser pass. DESIGN.md previously claimed contrast was verified
+      in BOTH models with the full table in BRAND.md; adding eight tokens made that claim false. The
+      sentence has been narrowed to say what is true, so this is now an additive gap rather than a
+      false claim — but `check:md` cannot catch either, which is why it is written down.
+    updated: '2026-07-29'
+  - id: diarie-rmp
+    title: The brand book and diarie.dev carry two different display ramps
+    status: pending
+    type: task
+    priority: low
+    labels:
+      - chore
+    acceptance_criteria:
+      - "decide whether the two converge or stay deliberately distinct, and record the reason either way"
+      - "diarie.dev: hero-min 3.4rem, exit-numeral 4.2rem. brand book: cover 3rem->4.6rem, exit numeral 2rem, specimen 2.6rem->4.2rem"
+      - "both are now documented in DESIGN.md typography.scale (bok-* entries), so the detector is quiet — documented is not the same as decided"
+    description: >-
+      Recorded 2026-07-29 rather than guessed. The brand book is a specimen document, so larger display
+      sizes may well be deliberate — but that is the author's call and I will not assert a rationale I
+      cannot know. Documenting the sizes made the drift visible instead of silent; converging them, or
+      writing down why they differ, is the actual resolution.
+    updated: '2026-07-29'
