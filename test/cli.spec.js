@@ -118,6 +118,12 @@ function halfBroken (t) {
 }
 
 /**
+ * The ambient environment with every root-aiming variable removed — the baseline every
+ * spawn starts from, so a suite result never depends on the developer's shell.
+ */
+const cleanEnv = { ...env, DIARIUM_ROOT: undefined, TASKS_ROOT: undefined };
+
+/**
  * Run the CLI with a given DIARIUM_ROOT.
  *
  * `out` is stdout ONLY and `err` is stderr ONLY — never merge them (see header).
@@ -136,7 +142,14 @@ function run (command, args, tasksRoot, { cwd = PKG, extraEnv = {} } = {}) {
   const seam = tasksRoot ? { DIARIUM_ROOT: tasksRoot } : {};
   const r = spawnSync('node', [CLI, ...command, ...args], {
     cwd,
-    env: { ...env, ...seam, ...extraEnv },
+    // The AMBIENT root variables are stripped before the seam is applied. A developer with
+    // either exported — plausible, since this tool reads them — would otherwise aim half
+    // this suite at their own project, and a stale `TASKS_ROOT` turns every case red with
+    // EUSAGE for a reason that has nothing to do with what is being tested. `extraEnv` is
+    // spread last, so the cases that set them ON PURPOSE still do.
+    env: {
+      ...cleanEnv, ...seam, ...extraEnv,
+    },
     encoding: 'utf8',
   });
   const out = r.stdout ?? '';

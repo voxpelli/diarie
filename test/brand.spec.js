@@ -159,7 +159,12 @@ function seedStore (t, slug, body) {
 function run (argv, root) {
   const r = spawnSync('node', [CLI, ...argv], {
     cwd: PKG,
-    env: { ...env, ...root ? { DIARIUM_ROOT: root } : {} },
+    // Ambient root variables stripped: the page's transcripts are the CLI's output for THIS
+    // fixture, and a developer's exported `DIARIUM_ROOT` — or a stale `TASKS_ROOT`, which is
+    // a hard EUSAGE — would silently make them the output for something else.
+    env: {
+      ...env, DIARIUM_ROOT: undefined, TASKS_ROOT: undefined, ...root ? { DIARIUM_ROOT: root } : {},
+    },
     encoding: 'utf8',
   });
   return { code: r.status ?? 1, out: r.stdout ?? '', err: r.stderr ?? '' };

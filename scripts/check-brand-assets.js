@@ -87,8 +87,8 @@ function cssRefs (css) {
 function collectRefs (node, refs) {
   if (typeof node !== 'object' || node === null) return;
 
-  const { children, properties, type, value } =
-    /** @type {{ type?: unknown, properties?: unknown, children?: unknown, value?: unknown }} */ (node);
+  const { children, properties, tagName, type } =
+    /** @type {{ type?: unknown, properties?: unknown, children?: unknown, tagName?: unknown }} */ (node);
 
   if (type === 'element' && typeof properties === 'object' && properties !== null) {
     const props = /** @type {Record<string, unknown>} */ (properties);
@@ -112,9 +112,19 @@ function collectRefs (node, refs) {
     }
   }
 
-  // A <style> element's CSS lives in its text child, not in an attribute.
-  if (type === 'text' && typeof value === 'string') {
-    for (const ref of cssRefs(value)) refs.add(ref);
+  // A <style> element's CSS lives in its text child, not in an attribute — and ONLY a
+  // <style> element's. Running cssRefs over every text node in the document was the
+  // narrower-question failure in reverse: it answers "does this page contain the letters
+  // `url(...)` anywhere", which prose, a <script>, and this site's `<pre>` transcripts can
+  // all satisfy without referencing an asset. Each such hit is reported as MISSING, so the
+  // check fails on a deploy that is fine.
+  if (type === 'element' && tagName === 'style' && Array.isArray(children)) {
+    for (const child of children) {
+      const { value } = /** @type {{ value?: unknown }} */ (child ?? {});
+      if (typeof value === 'string') {
+        for (const ref of cssRefs(value)) refs.add(ref);
+      }
+    }
   }
 
   if (Array.isArray(children)) {
