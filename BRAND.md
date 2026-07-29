@@ -172,8 +172,20 @@ the subsets from the upstream OFL files with:
 ```bash
 pyftsubset "Fraunces[SOFT,WONK,opsz,wght].ttf" --flavor=woff2 \
   --unicodes="U+0020-007E,U+00A0-00FF,U+2013-2014,U+2018-2019,U+201C-201D,U+2022,U+2026,U+2192,U+00B7" \
-  --layout-features="*" --no-hinting
+  --layout-features="*" --no-hinting --glyph-names
 ```
+
+`--glyph-names` is load-bearing and was missing here until 2026-07-29: without
+it `pyftsubset` emits post-format 3.0 and drops glyph names, so following this
+recipe verbatim produced a font that differed from the one actually shipped.
+The **Fragment Mono** counterpart — a different unicode range, and the one that
+had to grow when `≈` and `←` turned out to be rendering from a system fallback
+inside mono runs — lives beside the files it produces, in
+[`brand/fonts/README.md`](./brand/fonts/README.md), together with the
+advance-width probe that detects the failure. Do not trust
+`document.fonts.check()` for coverage: the `@font-face` declares
+`unicode-range: U+0-10FFFF`, so it answers `true` for a codepoint the file does
+not contain.
 
 ## Voice
 
