@@ -53,7 +53,7 @@
     "brand:stamp": "node brand/update-stamp.js",
     "build": "npm run clean && tsc -p declaration.tsconfig.json",
     "check": "run-p check:*",
-    "check:ast-grep": "ast-grep scan",
+    "check:ast-grep": "ast-grep scan --globs '!.design-sync/**' --globs '!.impeccable/**'",
     "check:ast-grep-test": "ast-grep test",
     "check:installed-check": "installed-check --ignore @voxpelli/remark-preset",
     "check:knip": "knip",

@@ -19,6 +19,23 @@
 # `check:md` (remark, also `.gitignore`-bounded) had the identical exposure with no floor. Detection is
 # now deliberate discipline: every line in `.gitignore` is a lint-scope decision.
 #
+# TWO NEGATIVE GLOBS live on the runner (`check:ast-grep` in package.json):
+# `!.design-sync/**` and `!.impeccable/**`. They are agent-tooling state — a Claude Design bundle
+# converter and impeccable's detector config/sidecar — tracked so their decisions survive a fresh
+# clone, but not diarie's own source, so diarie's structural invariants have no claim on them.
+#
+# They EXCLUDE rather than list, and that distinction is the reason they are tolerable here: the
+# path-list failure above (a stale entry scans nothing and exits 0) has no analogue, because a
+# stale negative glob simply excludes nothing and coverage grows rather than silently vanishing.
+#
+# They also make an EXISTING exclusion visible instead of accidental. ast-grep's walker already
+# skips dot-directories, so both were unscanned before this line existed — with nothing recording
+# that, and a house rule (`no-inline-jsdoc-import`) once broken in `.design-sync/` undetected
+# because of it. A declared blind spot can be argued with; an emergent one cannot. Deliberately NOT
+# done via a root `.ignore` file: the ignore crate is shared with ripgrep, so that would hide
+# `.design-sync/bundle/*.md` from `rg` too — and those are prose surfaces the doc-grep rule in
+# CLAUDE.md requires be greppable.
+#
 # TWO ruleDirs, and the split is the whole point. `@voxpelli/ast-grep-rules` owns the HOUSE
 # conventions (JSDoc/ESM style) — one copy, shared with vp-beads, which cannot drift. `.ast-grep/`
 # owns rules that encode DIARIE'S OWN vocabulary and invariants: the store-name pair, the reserved
