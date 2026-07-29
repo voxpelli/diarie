@@ -18,6 +18,7 @@ colors:
   lavendel-ljus: "#DCCEF0"
   hektograf-ljus: "#9C90C4"
   hektograf: "#6B4FC8"
+  hektograf-mork: "#5F40B9"
   fosfor: "#5CE49A"
   barnsten: "#E8A13C"
   stampel: "#D8453E"

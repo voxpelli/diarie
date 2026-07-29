@@ -38,6 +38,28 @@
   --hektograf:      #6B4FC8;   /* copy-ink violet. 3.13:1 on arkiv — large
                                   type, borders, decoration only.
                                   4.73:1 on papper — body text allowed.     */
+  --hektograf-mork: #5F40B9;   /* the same ink, pressed harder: hektograf at
+                                  body size on a TINTED paper ground. 5.09:1
+                                  WCAG / APCA Lc 62.2 on papper-hl; 5.79:1 /
+                                  Lc 70.0 on papper. --hektograf is 4.73:1 on
+                                  plain papper but drops to 4.16:1 (Lc 56.7)
+                                  once the marker wash darkens the ground
+                                  beneath it — failing at the one place the
+                                  wash exists to emphasise. Completes the
+                                  family: every colour used as ink on paper
+                                  has a -mork (cf. stampel-mork, blad-mork).
+
+                                  DERIVED IN OKLCH, HOLDING HUE AND CHROMA —
+                                  only L moves (0.5225 → 0.4764, C 0.180 →
+                                  0.181, h 289.3 → 289.5). Scaling the sRGB
+                                  channels toward black instead reaches a
+                                  similar ratio but costs 11.5% chroma: a
+                                  greyer violet, not a darker one.
+
+                                  Targeted on APCA, not WCAG. They disagree
+                                  here and DESIGN.md follows APCA: the value
+                                  that just clears WCAG 4.5 (#6649C2) sits at
+                                  Lc 59.0, under the ~60 body-text floor.    */
   --hektograf-ljus: #9C90C4;   /* muted text on dark. 6.29:1 on arkiv      */
   --lavendel:       #B7ABDD;   /* secondary text on dark. 8.63:1 on arkiv  */
   --lavendel-ljus:  #DCCEF0;   /* the selection wash on paper. NOT derived
