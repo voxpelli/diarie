@@ -46,10 +46,11 @@
     "lib/**/*.d.ts.map"
   ],
   "scripts": {
-    "brand:build": "run-s brand:copy brand:stamp brand:favicon",
+    "brand:build": "run-s brand:copy brand:stamp brand:favicon brand:size",
     "brand:check": "node scripts/check-brand-assets.js",
     "brand:copy": "node brand/dist-copy.js",
     "brand:favicon": "node brand/generate-favicons.js",
+    "brand:size": "node brand/stamp-size.js",
     "brand:stamp": "node brand/update-stamp.js",
     "build": "npm run clean && tsc -p declaration.tsconfig.json",
     "check": "run-p check:*",

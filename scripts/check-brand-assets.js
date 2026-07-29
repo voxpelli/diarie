@@ -200,6 +200,50 @@ async function check (source, ref, url) {
   }
 }
 
+// ---- the page's claim about its own weight ---------------------------------
+// diarie.dev's footer states the page's size as proof of the ethos ("the medium
+// is the proof"). It is the one claim on the page a reader can check in ten
+// seconds with DevTools, which makes it the most expensive one to get wrong: a
+// reader who catches it has caught the thesis failing at the only point they
+// could test it, and their rational move is to discount the exit-code claims
+// they cannot test.
+//
+// It HAS been wrong. The stated figure said "one HTML file — ≈50 KiB" while the
+// page was 56 KiB and had gained a linked stylesheet — and it went stale via a
+// GOOD change (linking tokens.css fixed a dead @media print rule). Nothing was
+// watching, because nothing here watched claims, only assets.
+//
+// A regex is right for this one: the question is not "what does this document
+// contain" (parse for that — see the top of this file) but "does this exact
+// sentence still hold". The match is guarded, so a reworded footer fails loudly
+// rather than skipping the check.
+const CLAIM = /one HTML file and one stylesheet — (\d+) KiB together/;
+
+async function checkStatedSize () {
+  const page = await readFile(new URL('index.html', DIST), 'utf8');
+  const claim = CLAIM.exec(page);
+  if (!claim?.[1]) {
+    problems.push('index.html no longer states its own size in the form check:brand-assets ' +
+      'verifies — reword the footer back, or update CLAIM here to match the new sentence');
+    return;
+  }
+
+  const sizes = await Promise.all(['index.html', 'tokens.css'].map(async name => {
+    const info = await stat(new URL(name, DIST));
+    return info.size;
+  }));
+  const bytes = sizes.reduce((sum, size) => sum + size, 0);
+
+  const actual = Math.round(bytes / 1024);
+  const stated = Number(claim[1]);
+  if (stated !== actual) {
+    problems.push(`index.html claims ${stated} KiB; index.html + tokens.css measure ${actual} KiB ` +
+      `(${bytes} B). The footer offers this number as checkable — so it has to be checked.`);
+  }
+}
+
+await checkStatedSize();
+
 if (problems.length > 0) {
   process.stderr.write('check:brand-assets — referenced deploy assets missing or empty:\n');
   for (const problem of problems) {
