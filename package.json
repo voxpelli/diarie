@@ -89,6 +89,7 @@
     "@voxpelli/remark-preset": "^0.1.1",
     "@voxpelli/tsconfig": "^16.2.1",
     "eslint": "^9.39.4",
+    "hast-util-from-html": "^2.0.3",
     "installed-check": "^10.0.1",
     "knip": "^5.88.1",
     "npm-run-all2": "^7.0.2",
