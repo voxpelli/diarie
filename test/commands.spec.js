@@ -309,4 +309,26 @@ describe('init — the store pair', () => {
     );
     assert.ok(!existsSync(join(root, 'diarium')), 'created a second store anyway');
   });
+
+  it('a FILE on the store path is an InputError, not a raw ENOTDIR from mkdir', async () => {
+    // The write-side twin of cli.spec.js's "a FILE named like a store is not a store". The
+    // reader correctly refuses to see a file as a store — which left `init` seeing nothing at
+    // all, walking into `mkdir`, and throwing ENOTDIR. That is not an `InputError`, so cli.js
+    // answers it in its "genuinely unexpected" branch: stack trace on stderr, EMPTY stdout,
+    // which a `--json` caller reads as no data. The visible posture makes the collision cheap
+    // — `diarium` is an ordinary filename.
+    const root = mkdtempSync(join(tmpdir(), 'diarie-init-notdir-'));
+    scratch.push(root);
+    writeFileSync(join(root, 'diarium'), 'not a store\n', 'utf8');
+
+    await assert.rejects(
+      () => initWork({ dotted: false, root, slug: 'backlog' }),
+      (/** @type {Error & {code?: string}} */ err) => {
+        assert.equal(err.name, 'InputError');
+        assert.equal(err.code, 'EEXIST');
+        assert.match(err.message, /not a directory/);
+        return true;
+      }
+    );
+  });
 });

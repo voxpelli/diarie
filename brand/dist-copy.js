@@ -82,7 +82,16 @@ async function rewriteEscapingLinks (name) {
   const source = await readFile(file, 'utf8');
   /** @type {string[]} */
   const rewritten = [];
-  const output = source.replaceAll(ESCAPING_LINK, (_match, attr, path) => {
+  const output = source.replaceAll(ESCAPING_LINK, (match, attr, path) => {
+    // A SECOND `../` climbs above the repo root, and the forge URL has no meaning there.
+    // Left to the substitution it would produce `${REPO_BLOB}../thing` — which no longer
+    // matches the pattern, so the post-condition below would report a clean rewrite of a
+    // link that is now nonsense. (Tangled answers 200 for a path that does not exist, so
+    // even fetching it would not tell you.) The pattern is only safe because it is guarded;
+    // a case it cannot express has to refuse, not be silently mangled.
+    if (path.startsWith('../')) {
+      throw new Error(`${name}: ${match} points above the repo root — no forge URL stands in for that`);
+    }
     rewritten.push(path);
     return `${attr}="${REPO_BLOB}${path}"`;
   });

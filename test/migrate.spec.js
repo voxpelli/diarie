@@ -432,6 +432,20 @@ describe('migrate and the store already on disk (the posture is not the flag\'s 
     assert.equal(JSON.parse(stdout).code, 'ETWOSTORES');
   });
 
+  it('a FILE on the store path refuses with EEXIST, not a raw ENOTDIR mid-write', (t) => {
+    // `trackerDirIn` rightly refuses to call a plain file a store, so every guard above sees
+    // a fresh root and the run reaches `mkdirSync`, which throws ENOTDIR — not an InputError,
+    // so cli.js prints a stack trace after human progress text has already landed on stdout,
+    // leaving a `--json` caller with unparseable output for a refusal.
+    const dir = tmpDir(t);
+    writeFileSync(join(dir, 'diarium'), 'not a store\n');
+
+    const { code, stdout } = runCli(['--root', dir, '--json']);
+    assert.equal(code, 1);
+    assert.equal(JSON.parse(stdout).code, 'EEXIST');
+    assert.ok(!existsSync(join(dir, 'diarium', 'tasks')), 'wrote into a path that is a file');
+  });
+
   it('an ignored DIARIUM_ROOT is REPORTED — migrate reads no environment, and says so', (t) => {
     // Deliberate: this is the one command that writes a store from nothing, so the set of
     // things that can aim it stays as small and visible as possible. But "not read" and "not
