@@ -115,6 +115,13 @@ typography:
     rubrik-fluid-min: 1.7rem
     ingress-min: 1.25rem
     exit-numeral: 4.2rem
+    bok-omslag-min: 3rem
+    bok-omslag-max: 4.6rem
+    bok-rubrik-max: 2.2rem
+    bok-exit-numeral: 2rem
+    bok-prov-arkiv: 1.9rem
+    bok-prov-lasare: 1.4rem
+    bok-prov-min: 2.6rem
 rounded:
   xs: 3px
   sm: 4px
@@ -171,6 +178,16 @@ components:
     textColor: "{colors.lavendel}"
     rounded: "{rounded.md}"
     padding: 1.3rem
+  refusal-do:
+    backgroundColor: "{colors.blad-blek}"
+    textColor: "{colors.arkiv}"
+    rounded: "{rounded.md}"
+    padding: 1.1rem 1.2rem
+  refusal-dont:
+    backgroundColor: "{colors.stampel-blek}"
+    textColor: "{colors.arkiv}"
+    rounded: "{rounded.md}"
+    padding: 1.1rem 1.2rem
 ---
 
 # diarie — DESIGN.md
@@ -438,6 +455,20 @@ block's content is prose-shaped — a long error string — rather than
 column-aligned. `diarie` pads no columns (fields are single-space
 separated), so a wrap costs no alignment, and wrapping beats hiding the
 half of a message that names the fix behind a horizontal scroll.
+
+**The refusal cards** are the paper-context pair in the brand book's voice
+chapter: `refusal-do` on a `blad-blek` ground with a `blad-ljus` hairline,
+`refusal-dont` on `stampel-blek` with a `stampel-dov` one. The two are
+deliberately asymmetric. The don't-tag carries the stamp gesture — `1.5px`
+dashed, rotated −2° — while the do-tag is a plain `1px` dashed mark: a
+refusal is stamped, an endorsement is not.
+
+**The Tint-Is-Not-Meaning Rule.** A card's tint may never be the only thing
+saying which card it is. Both borders measure below the 3:1 non-text floor
+(`blad-ljus` 1.66:1, `stampel-dov` 1.81:1 on papper), so the state lives in
+the label — `blad-mork` at 6.80:1, `stampel-mork` at 4.89:1 on their own
+grounds. Read in greyscale, or by a reader who cannot separate the two
+hues, the cards must still be unambiguous.
 
 **The second surface.** This system has two targets, not one. Beyond the
 pages, the CLI's own terminal output is a first-class surface of the same
