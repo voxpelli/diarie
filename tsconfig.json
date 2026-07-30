@@ -1,5 +1,5 @@
 {
-  "extends": "@voxpelli/tsconfig/node20.json",
+  "extends": "@voxpelli/tsconfig/node22.json",
   "files": [
     "cli.js"
   ],
@@ -10,6 +10,9 @@
     "scripts/**/*"
   ],
   "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
     "types": [
       "node"
     ]

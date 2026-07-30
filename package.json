@@ -64,7 +64,7 @@
     "check:md": "remark . --quiet --frail --ignore-path .gitignore",
     "check:tasks": "node cli.js validate",
     "check:tsc": "tsc",
-    "check:type-coverage": "type-coverage --detail --strict --at-least 98 --ignore-files 'test/*'",
+    "check:type-coverage": "type-coverage --detail --strict --at-least 99 --ignore-files 'test/*'",
     "clean": "find lib -type f \\( -name '*.d.ts' -o -name '*.d.ts.map' \\) ! -name '*-types.d.ts' -delete",
     "dev": "run-s brand serve",
     "fix": "run-s fix:*",
@@ -82,8 +82,7 @@
     "js-yaml": "^4.1.0",
     "peowly": "^1.3.3",
     "peowly-commands": "^1.1.0",
-    "pony-cause": "^2.1.11",
-    "type-fest": "^5.8.0"
+    "pony-cause": "^2.1.11"
   },
   "devDependencies": {
     "@ast-grep/cli": "^0.44.1",
