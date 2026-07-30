@@ -24,10 +24,10 @@ import {
   existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync,
 } from 'node:fs';
 
-import { doTheWork as initWork } from '../lib/commands/init.js';
 import { doTheWork as readyWork } from '../lib/commands/ready.js';
 import { doTheWork as statsWork } from '../lib/commands/stats.js';
 import { doTheWork as validateWork } from '../lib/commands/validate.js';
+import { initStore as initWork } from '../lib/store/init.js';
 
 const FIXTURES = fileURLToPath(new URL('fixtures', import.meta.url));
 
