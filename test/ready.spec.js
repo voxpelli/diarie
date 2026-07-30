@@ -15,7 +15,7 @@ import { computeReady, computeStats, nsId } from 'diarie';
 
 /**
  * @import { GlobalId, Priority, Status, TaskType } from '../lib/index.js'
- * @import { Task } from '../lib/store.js'
+ * @import { Task } from '../lib/store/load-tasks.js'
  */
 
 /**
