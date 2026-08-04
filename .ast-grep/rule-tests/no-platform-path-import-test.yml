@@ -1,0 +1,38 @@
+id: no-platform-path-import
+valid:
+  # The only correct import: platform-agnostic, resolves per the host.
+  - |
+    import { join, resolve } from 'node:path'
+  # Named imports of anything else from it are equally fine.
+  - |
+    import { basename, dirname, sep } from 'node:path'
+  # The namespace form, still the agnostic module.
+  - |
+    import * as path from 'node:path'
+  # `node:path/promises` does not exist, but a sibling submodule that is not a PLATFORM
+  # pin must not be caught by a lazy prefix match.
+  - |
+    import { readFile } from 'node:fs/promises'
+  # A string that merely mentions the specifier is prose, not an import.
+  - |
+    const msg = 'do not import node:path/posix here'
+  # Reaching the posix helpers through the agnostic module is deliberate and readable —
+  # the rule bans the SPECIFIER, because that is what silently changes resolve() semantics.
+  - |
+    import { posix as urlPath } from 'node:path'
+invalid:
+  # THE defect, verbatim from lib/store/init.js: one line of a six-way file split.
+  - |
+    import { resolve } from 'node:path/posix'
+  # The same import under any binding name.
+  - |
+    import { join } from 'node:path/posix'
+  # Namespace form.
+  - |
+    import * as posixPath from 'node:path/posix'
+  # The win32 half is no better — pinning to the OTHER platform is the same mistake.
+  - |
+    import { resolve } from 'node:path/win32'
+  # A dynamic import evades a specifier grep but not the AST.
+  - |
+    const { resolve } = await import('node:path/posix')

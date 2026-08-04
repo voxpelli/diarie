@@ -198,7 +198,7 @@ being offered to you as workable.
 import { computeReady, loadTasks } from 'diarie'
 import { VALID_TYPES } from 'diarie/schema'
 
-const tasks = await Array.fromAsync(loadTasks('/path/to/project'))
+const tasks = await loadTasks('/path/to/project')
 const { ready, blocked, needsAttention } = computeReady(tasks)
 ```
 

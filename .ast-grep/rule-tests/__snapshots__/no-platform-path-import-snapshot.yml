@@ -1,0 +1,77 @@
+id: no-platform-path-import
+snapshots:
+  ? |
+    const { resolve } = await import('node:path/posix')
+  : labels:
+    - source: node:path/posix
+      style: primary
+      start: 34
+      end: 49
+    - source: import('node:path/posix')
+      style: secondary
+      start: 26
+      end: 51
+    - source: '''node:path/posix'''
+      style: secondary
+      start: 33
+      end: 50
+  ? |
+    import * as posixPath from 'node:path/posix'
+  : labels:
+    - source: node:path/posix
+      style: primary
+      start: 28
+      end: 43
+    - source: import * as posixPath from 'node:path/posix'
+      style: secondary
+      start: 0
+      end: 44
+    - source: '''node:path/posix'''
+      style: secondary
+      start: 27
+      end: 44
+  ? |
+    import { join } from 'node:path/posix'
+  : labels:
+    - source: node:path/posix
+      style: primary
+      start: 22
+      end: 37
+    - source: import { join } from 'node:path/posix'
+      style: secondary
+      start: 0
+      end: 38
+    - source: '''node:path/posix'''
+      style: secondary
+      start: 21
+      end: 38
+  ? |
+    import { resolve } from 'node:path/posix'
+  : labels:
+    - source: node:path/posix
+      style: primary
+      start: 25
+      end: 40
+    - source: import { resolve } from 'node:path/posix'
+      style: secondary
+      start: 0
+      end: 41
+    - source: '''node:path/posix'''
+      style: secondary
+      start: 24
+      end: 41
+  ? |
+    import { resolve } from 'node:path/win32'
+  : labels:
+    - source: node:path/win32
+      style: primary
+      start: 25
+      end: 40
+    - source: import { resolve } from 'node:path/win32'
+      style: secondary
+      start: 0
+      end: 41
+    - source: '''node:path/win32'''
+      style: secondary
+      start: 24
+      end: 41
