@@ -108,11 +108,15 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
   ready/blocked/needsAttention and never block.
 * **Writers mutate the YAML directly (plain Edit/Write). There is deliberately NO CRUD helper** — the
   store is a substrate, not a product with an opinion about how you change it.
-* 🚨 **Quote your dates: an unquoted `updated: 2026-05-30` is a YAML _date_, not a string, and the
-  loader drops non-strings silently.** The consequence is invisible and wrong: staleness never fires,
-  so `stats` reports `stale 0` for a store that does have stale claims. Write `updated: '2026-05-30'`.
-  This is `diarie-rdr` biting in practice — the cheapest live demonstration of why that row is the
-  sharpest open bug, and worth reproducing when you come to fix it.
+* 🚨 **Quote your dates: an unquoted `updated: 2026-05-30` is a YAML _date_, not a string.** Write
+  `updated: '2026-05-30'`. The requirement is unchanged; **the failure mode is not — the drop is now
+  REPORTED, and that is `diarie-rdr` fixed** (2026-08-04). The loader warns naming the consequence,
+  the message says _"a YAML date, not a string — put it in quotes"_ (rendering a `Date` through
+  `JSON.stringify` would print `"2026-05-30T00:00:00.000Z"`, quotes and all, inside a sentence
+  claiming it is not a string), `validate` errors, and `ready --strict` exits **2** where it used to
+  exit 0. Four fields were silent — `title`, `agent`, `updated`, `description` — while their six
+  siblings reported; `unsound` is computed from `warnings.length`, so `--strict` was answering
+  "trustworthy" _because_ the drop was quiet.
 * **`migrate` refuses rather than dropping data it cannot map** (`ELOSSY`; `--lossy` overrides). Its
   `IGNORED_BD_FIELDS` allowlist is the hazard: every addition is a data-loss decision.
 * **Atomic-write contract**: solo, single-host, no concurrent writers to the same `tasks-<slug>.yml`.
@@ -150,12 +154,11 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
 * **`.gitignore` is load-bearing for lint scope.** `check:ast-grep` takes no path args and is bounded
   by `.gitignore`, and `check:md` runs `--ignore-path .gitignore`, so adding a broad ignore entry
   SILENTLY shrinks lint coverage with nothing going red. Treat every `.gitignore` line as a lint-scope
-  decision. There is now a SECOND scope lever: `check:ast-grep` also carries `--globs '!.design-sync/**'
-  --globs '!.impeccable/**'` (agent-tooling state). Those are declarative — ast-grep's walker already
+  decision. There is now a SECOND scope lever: `check:ast-grep` also carries `--globs '!.design-sync/**' --globs '!.impeccable/**'` (agent-tooling state). Those are declarative — ast-grep's walker already
   skips dot-directories, so they exclude nothing that was scanned before — but a `--globs` added to that
   script IS a coverage decision and belongs in this bullet. (See `sgconfig.yml` for the reasoning.)
   The Litho agent bundle is a THIRD lever, and it differs in kind: `.litho/` (dot-dir, tool state —
-  skipped natively anyway) and **`litho.docs/` (NOT a dot-dir: ~250 KB of generated markdown that
+  skipped natively anyway) and **`litho.docs/` (NOT a dot-dir: \~250 KB of generated markdown that
   `check:md`/`check:ast-grep` now skip via .gitignore)** — a real coverage exclusion, deliberate
   because it is generated, recorded here so it stays deliberate.
 * **When a change ADDS to a vocabulary** (exit codes, a `VALID_*` enum, flags), grep the set's OTHER

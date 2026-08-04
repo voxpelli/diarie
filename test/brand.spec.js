@@ -67,10 +67,13 @@ const PAGE = join(PKG, 'brand', 'index.html');
  *
  * 🚨 `updated` MUST STAY QUOTED. Unquoted, `2026-05-30` is a YAML *date*, js-yaml
  * hands back a Date object, and the loader — which accepts only strings — drops the
- * field on the floor. `stats` then reports `stale 0` and the page's `stale 1` becomes
- * a false claim that this test would blame on the page rather than on itself. That
- * silent drop is the tracked `diarie-rdr` bug, biting a real caller; the quotes are
- * the workaround, and they leave with the bug, not before it.
+ * field. `stats` would then report `stale 0`, and the page's `stale 1` would become a
+ * false claim this test blames on the page rather than on itself.
+ *
+ * The drop is no longer SILENT (`diarie-rdr`, fixed 2026-08-04): the loader warns
+ * naming the consequence and tells you to add the quotes. So the quotes are no longer
+ * a workaround for an invisible bug — they are just the correct way to write a date,
+ * and getting it wrong now announces itself instead of skewing a number.
  */
 const FIXTURE_YAML = `tasks:
   - id: proj-auth

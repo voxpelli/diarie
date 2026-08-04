@@ -16,6 +16,7 @@
 
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { env } from 'node:process';
@@ -453,24 +454,69 @@ describe('the loader REPORTS every field it rejects (a guard that drops is not a
     '  - id: B\n    title: type is a bd framing, not a type\n    status: pending\n    type: bug\n' +
     '  - id: P\n    title: priority not in the enum\n    status: pending\n    type: task\n    priority: urgent\n';
 
-  it('a scalar `labels:` is REPORTED, not silently dropped', (t) => {
-    const { err } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-reject-'), 'x', BAD));
-    assert.ok(/invalid labels/.test(err));
+  // ONE ROW PER REJECT SITE, and every row asserts TWICE: that the field is named, and that
+  // the CONSEQUENCE is named. The second assertion is the point — "invalid updated" alone
+  // tells a reader nothing about why they should care, and this package's law is that a guard
+  // which drops a value must report it *naming the consequence*.
+  //
+  // Four of these (title, agent, updated, description) were the `diarie-rdr` bug: bare `if`s
+  // with no `else`, silent since the loader was written, with `ready --strict` computing
+  // `unsound` from `warnings.length` and therefore answering 0 *because* they were quiet.
+  const REJECTS = [
+    { field: 'labels', row: 'title: t\n    status: pending\n    type: task\n    labels: epic', consequence: /epic/ },
+    { field: 'type', row: 'title: t\n    status: pending\n    type: bug', consequence: /NO partition|no tally/ },
+    { field: 'priority', row: 'title: t\n    status: pending\n    type: task\n    priority: urgent', consequence: /medium/ },
+    { field: 'status', row: 'title: t\n    status: bogus\n    type: task', consequence: /ready|blocked/ },
+    { field: 'deps', row: 'title: t\n    status: pending\n    type: task\n    deps: nope', consequence: /empty/ },
+    { field: 'acceptance_criteria', row: 'title: t\n    status: pending\n    type: task\n    acceptance_criteria: one', consequence: /dropped/ },
+    { field: 'title', row: 'title: 42\n    status: pending\n    type: task', consequence: /EMPTY title/ },
+    { field: 'agent', row: 'title: t\n    status: in_progress\n    type: task\n    agent: 7', consequence: /unclaimed/ },
+    { field: 'updated', row: 'title: t\n    status: pending\n    type: task\n    updated: 2021-01-01', consequence: /staleness never fires/ },
+    { field: 'description', row: 'title: t\n    status: pending\n    type: task\n    description: false', consequence: /body is dropped/ },
+  ];
+
+  for (const { consequence, field, row } of REJECTS) {
+    const yaml = `tasks:\n  - id: R\n    ${row}\n`;
+
+    it(`an invalid \`${field}:\` is REPORTED`, (t) => {
+      const { err } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-reject-'), 'x', yaml));
+      assert.match(err, new RegExp(`invalid ${field}`), `\`${field}\` was DROPPED IN SILENCE`);
+    });
+
+    it(`...and the \`${field}:\` complaint names the CONSEQUENCE`, (t) => {
+      const { err } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-reject-'), 'x', yaml));
+      assert.match(err, consequence, `\`${field}\` was reported without saying what it costs`);
+    });
+  }
+
+  it('an unquoted YAML date is not rendered as though it were a string', (t) => {
+    // THE ONE CASE WHERE THE MESSAGE COULD LIE, and it is the commonest hand-edit slip in the
+    // whole store. `JSON.stringify(new Date(...))` is `"2021-01-01T00:00:00.000Z"` — a QUOTED
+    // string, printed inside a sentence whose entire claim is that the value is not a string.
+    // A reporting path that renders the reported value wrongly fails the same law it serves.
+    const yaml = 'tasks:\n  - id: R\n    title: t\n    status: pending\n    type: task\n    updated: 2021-01-01\n';
+    const { err } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-reject-'), 'x', yaml));
+    assert.match(err, /a YAML date, not a string/);
+    assert.match(err, /quotes/, 'must say what to actually DO about it');
   });
 
-  it('...and it says WHY it matters (a lost `epic` label re-arms the container bug)', (t) => {
-    const { err } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-reject-'), 'x', BAD));
-    assert.ok(/epic/.test(err));
-  });
+  it('THE CENSUS: every `reject()` site in the loader has a row above', async () => {
+    // WHAT THIS INSTRUMENT ANSWERS: "does the table name every reject site in THIS FILE's
+    // source". What it CANNOT answer: whether a reject site in another module is covered, or
+    // whether any message is TRUE. Stated because the suite it guards is titled "every field",
+    // and a completeness claim needs to say what its completeness is over.
+    //
+    // Without this, adding a seventh `reject(...)` to the loader costs nothing and the suite
+    // keeps calling itself exhaustive — which is exactly how four of the ten stayed silent.
+    const source = await readFile(new URL('../lib/store/load-tasks.js', import.meta.url), 'utf8');
+    const sites = [...source.matchAll(/\breject\('(\w+)'/g)].flatMap(m => m[1] ?? []);
 
-  it('an invalid `type:` is REPORTED', (t) => {
-    const { err } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-reject-'), 'x', BAD));
-    assert.ok(/invalid type/.test(err));
-  });
+    assert.ok(sites.length > 0, 'found no reject() sites at all — the regex has rotted');
 
-  it('an invalid `priority:` is REPORTED', (t) => {
-    const { err } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-reject-'), 'x', BAD));
-    assert.ok(/invalid priority/.test(err));
+    const covered = new Set(REJECTS.map(r => r.field));
+    const missing = [...new Set(sites)].filter(f => !covered.has(f));
+
+    assert.deepEqual(missing, [], `loader reject() sites with no row in REJECTS: ${missing.join(', ')}`);
   });
 
   it('a row with an invalid `type` surfaces in needsAttention rather than vanishing', (t) => {

@@ -9,18 +9,18 @@ updated: '2026-08-04'
 
 ## Decision
 
-**Decided 2026-08-04.** Exactly three invocations are *orientation* and exit 0 with help on stdout:
+**Decided 2026-08-04.** Exactly three invocations are _orientation_ and exit 0 with help on stdout:
 
-| invocation | exit | stdout |
-| ---------- | ---- | ------ |
-| `diarie` | 0 | help — the npm/yarn convention |
-| `diarie --help` | 0 | help (peowly answers) |
-| `diarie --version` | 0 | the version (peowly answers) |
+| invocation         | exit | stdout                         |
+| ------------------ | ---- | ------------------------------ |
+| `diarie`           | 0    | help — the npm/yarn convention |
+| `diarie --help`    | 0    | help (peowly answers)          |
+| `diarie --version` | 0    | the version (peowly answers)   |
 
 **Everything else is a mistake: `InputError` / `EUSAGE` / exit 1, with JSON on stdout under `--json`.**
 That includes `diarie ""`, `diarie --json`, `diarie -j`, `diarie -h`, `diarie --nosuchflag`, and —
-the one this decision exists for — `diarie --json ready`. Unknown command *names*
-(`diarie frobnicate`) and bad flags *on a named command* (`diarie ready --nosuchflag`) were always
+the one this decision exists for — `diarie --json ready`. Unknown command _names_
+(`diarie frobnicate`) and bad flags _on a named command_ (`diarie ready --nosuchflag`) were always
 EUSAGE and stay so.
 
 ## Why the line falls there
@@ -35,23 +35,23 @@ difference is not stylistic — it is the difference between the two answers a t
 **and the exit code reports success.** That is this package's founding defect, served by its own
 entry point, under the flag that promises machine-readable output.
 
-An earlier draft of this record ratified that: it declared *"any leading-dash flag with no command"*
-to be orientation, reading peowly's `:31-33` behaviour as an upstream *convention*. It is an upstream
+An earlier draft of this record ratified that: it declared _"any leading-dash flag with no command"_
+to be orientation, reading peowly's `:31-33` behaviour as an upstream _convention_. It is an upstream
 **bug**, and the appeal to npm was backwards. Measured rather than assumed:
 
-| invocation | exit | ran the command? |
-| ---------- | ---- | ---------------- |
-| `git --short status` | **129** | no — `unknown option: --short` |
-| `git --oneline log` | **129** | no |
-| `cargo --nosuchflag build` | **1** | no |
-| `gh --nosuchflag repo` | **1** | no |
-| `npm --json ls` | 0 | **yes — routed it** |
-| `npm --nosuchflag ls` | 0 | yes, **with a warning on stderr** |
+| invocation                 | exit    | ran the command?                  |
+| -------------------------- | ------- | --------------------------------- |
+| `git --short status`       | **129** | no — `unknown option: --short`    |
+| `git --oneline log`        | **129** | no                                |
+| `cargo --nosuchflag build` | **1**   | no                                |
+| `gh --nosuchflag repo`     | **1**   | no                                |
+| `npm --json ls`            | 0       | **yes — routed it**               |
+| `npm --nosuchflag ls`      | 0       | yes, **with a warning on stderr** |
 
 Every comparable tool either routes the flag and runs the command, or refuses with a non-zero exit
 naming the offending token. **Not one silently succeeds.** npm — the very convention the earlier
-draft invoked — is the most permissive of the set and still does both. npm's convention is *be
-helpful when no command is given*, not *swallow a command that was given*.
+draft invoked — is the most permissive of the set and still does both. npm's convention is _be
+helpful when no command is given_, not _swallow a command that was given_.
 
 `git status --short` works and `git --short status` exits 129. `diarie ready --json` and
 `diarie --json ready` have exactly that shape, and must answer the same way.
@@ -59,13 +59,13 @@ helpful when no command is given*, not *swallow a command that was given*.
 ## Two sub-decisions worth stating outright
 
 **`diarie ""` is EUSAGE, not orientation.** `diarie "$CMD"` with an unset variable is how a wrapper
-script writes it — so an empty first argument is a bug *in the wrapper*, and exit 0 plus prose is
+script writes it — so an empty first argument is a bug _in the wrapper_, and exit 0 plus prose is
 precisely what makes it invisible. (Upstream cannot currently distinguish it: `peowly-commands`
 funnels a named-but-empty command and no command at all to the same terminus, and
 `PeowlyCommandOmittedError` carries no args. Logged as upstream friction.)
 
 **`-h` is dropped, and that is stricter than both `main` and the branch.** peowly defines only the
-long forms. `diarie -h` printed help purely *because it starts with a dash* — the identical accident
+long forms. `diarie -h` printed help purely _because it starts with a dash_ — the identical accident
 as `diarie --json ready` — while `diarie ready -h` has always been EUSAGE. Adding `-h` as an alias
 would have papered over that asymmetry; peowly sets the standard for its own flag vocabulary, so the
 alias is not diarie's to invent. `diarie -h` now exits 1 like any other unrecognised flag.
@@ -74,7 +74,7 @@ alias is not diarie's to invent. `diarie -h` now exits 1 like any other unrecogn
 
 The `--json`-errors-on-stdout guarantee still has exactly one exception: a genuinely bare `diarie`,
 or an explicit `--help`, prints human help to stdout and exits 0 even under `--json`. That is a
-deliberate, *narrow* exception — the user asked for orientation, so orientation is the right answer
+deliberate, _narrow_ exception — the user asked for orientation, so orientation is the right answer
 in every mode — and it is far smaller than the earlier draft's, which covered every leading-dash
 token and therefore covered the founding defect.
 
@@ -87,10 +87,10 @@ INVARIANT suite pins the split, and a dedicated regression test pins `diarie --j
 * `lib/cli.js` classifies **before** dispatch, then hands the bare case to peowly-commands' own
   `showHelpOnNoCommand: true`. The classification is categorical, not a heuristic: diarie passes
   `peowlyCommands` no flag options, so its entire top-level vocabulary is `--help` and `--version`,
-  and any other leading-dash first token is unroutable *by construction*.
+  and any other leading-dash first token is unroutable _by construction_.
 * The guard is gated on peowly dispatching nothing, so it is unreachable for any invocation that
   currently runs a command. **No working command line can regress through it.**
-* Detection of *which* token was misplaced feeds only the suggestion, never the exit code. A hint
+* Detection of _which_ token was misplaced feeds only the suggestion, never the exit code. A hint
   that is sometimes wrong is honest; an exit code that is sometimes wrong is the founding defect.
 * Exit 0 now has two meanings: "the answer is on stdout" and "here is the help". The README's `0`
   row says both.

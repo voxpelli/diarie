@@ -38,7 +38,7 @@ the thing you cannot leave.
 npm install --save-dev diarie
 ```
 
-Requires Node.js `^22.13.0 || >=24.0.0`.
+Requires Node.js `^22.22.2 || ^24.15.0 || >=26.0.0` — the same range npm itself supports.
 
 ## Quick start
 
@@ -106,11 +106,11 @@ them is how a broken tracker gets reported as a clean sprint.
 
 So:
 
-| exit  | meaning                                                                                                                                 |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| exit  | meaning                                                                                                                                                           |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **0** | The answer is on stdout. An **empty but present** store is a legitimate answer. A bare `diarie`, or `--help`/`--version`, also exits 0 — with the help on stdout. |
-| **1** | You asked wrong. A machine-readable `code` says how: `ENOSTORE` (no store here), `EUSAGE`, `EEXIST`, `ETWOSTORES`, `ELEGACY`, `ELOSSY`. |
-| **2** | It ran, and the answer is **no**: the store is unsound (`validate` found errors, or `ready --strict` on a store with dropped rows).     |
+| **1** | You asked wrong. A machine-readable `code` says how: `ENOSTORE` (no store here), `EUSAGE`, `EEXIST`, `ETWOSTORES`, `ELEGACY`, `ELOSSY`.                           |
+| **2** | It ran, and the answer is **no**: the store is unsound (`validate` found errors, or `ready --strict` on a store with dropped rows).                               |
 
 With `--json`, an error is a JSON object on **stdout**, not a message on stderr:
 
@@ -132,8 +132,14 @@ orientation is the answer in every mode. A **flag standing where a command belon
 `diarie --json ready` exits 1 with `EUSAGE`, because the command was given and would otherwise be
 silently discarded. `git --short status` refuses for the same reason.
 
-`ready --strict` exits 2 if the store is unsound: a malformed row was dropped, a dependency dangles, a
-cycle exists. Use it in a hook or CI step that must not proceed on a store it cannot trust.
+`ready --strict` exits 2 if the store is unsound: the loader rejected a field, a row survived but could
+not be made sense of, or the queue cannot be walked at all (nothing ready while work exists — everything
+claimed, or a cycle). Use it in a hook or CI step that must not proceed on a store it cannot trust.
+
+`--strict` is about **the answer being trustworthy**, not about the store being well-formed. A dangling
+dep or a cycle that still leaves other work ready does not stop `ready` giving a correct answer, so it
+exits 0 — `diarie validate` is the authority on well-formedness and exits 2 for both. Run `validate`
+in CI; run `ready --strict` where something is about to act on the answer.
 
 ## The write side is your editor
 
