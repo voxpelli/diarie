@@ -1583,6 +1583,9 @@ tasks:
       - decision
     acceptance_criteria:
       - "THE FRAMING, from the user 2026-08-05: refusing on an untrustworthy answer should arguably be the DEFAULT, with a flag to RELAX it — not an opt-in. The founding law is that anything a caller must not miss shows up in the exit code, and `ENOSTORE` is already an error by default rather than something you opt into. `--strict` today inverts that for a store that is PARTLY unreadable"
+      - "🛑 BUT DO NOT INVERT THE DEFAULT. Adversarial review 2026-08-05, and I verified both decisive claims myself rather than taking them: (1) `test/cli.spec.js:1082` is a NAMED test — '`--strict` stays OPT-IN — a broken store without it still exits 0' — so the current default is a deliberate, pinned decision, not an oversight; changing it is an ASK-FIRST test rewrite. (2) A REAL consumer breaks, and breaks into this project's own founding defect: `vp-beads/hooks/session-start.sh:265` runs `$tracker_cmd --json --root \"$PWD\" 2>/dev/null || echo \"\"` and `:273` runs `if ! claims_json=$(... --filter in_progress --json ...)`. Both guards fire on ANY non-zero exit, and `:274`'s own comment states the assumption — `InputError (ENOSTORE/EUSAGE): stdout holds an error OBJECT, not an array. Discard it.` But exit 2 is ResultError, where stdout holds a VALID array. Under strict-by-default a healthy mid-sprint store (everything claimed -> `ambiguous`) exits 2, the guard discards a CORRECT answer, and the session-start hook silently reports no claims — exactly when a sprint is busiest"
+      - "so the fusion is the bug and the DEFAULT IS NOT. Fixing the fusion is what this row is for; flipping the default while the fusion stands would make the cry-wolf worse, because the falsely-alarming half (`ambiguous`) would then gate the common case instead of the opt-in one"
+      - "also breaks if the default flips, enumerated so a future attempt does not rediscover them: ~a dozen assertions in test/cli.spec.js:951-1212; README's whole exit-code table (its `0 = the answer is on stdout` row becomes conditionally false); `brand/index.html:681-711`, which NO gate can check for a false claim; CLAUDE.md's own exit-code section; and vp-beads' CLAUDE.md, which documents bare `diarie ready` as the canonical sprint-start command"
       - "REPRODUCED 2026-08-05, and it is the founding defect in the default path: a store with `title: 42` answers plain `diarie ready` with the row printed and NO title, exit 0, and the complaint on STDERR — the stream ten call sites pipe to /dev/null. The answer is partly fictional and the exit code says success"
       - "THE REASON IT CANNOT SIMPLY BECOME DEFAULT, also reproduced: `unsound` ALSO fires on `ambiguous` (ready.length === 0 && blocked.length > 0), which is a PERFECTLY NORMAL store where everything open is claimed. Strict-by-default would exit 2 on a healthy backlog. One boolean, one real defect and one normal state — so the flag has to be opt-in to avoid crying wolf, which leaves the defect half quiet by default. THE FUSION IS THE BUG"
       - "so SPLIT BY WHETHER THE ANSWER IS WRONG, not by how it was caused: (a) the loader REJECTED something, so the answer is missing data it should have had — a defect, and the candidate for default-loud; (b) `needsAttention` — the row IS in the output, in its own partition, so it is already reported and arguably needs no exit code; (c) `ambiguous` — see the trap below before filing this one as merely `stays opt-in`"
@@ -1603,6 +1606,11 @@ tasks:
       already computed separately and already ride in the `--json` payload — this is about the
       exit-code channel, i.e. the caller who pipes nothing, which is the caller the founding thesis
       is written for.
+      - "THE DESIGN, from a code-architect pass 2026-08-05. THREE TIERS, split by whether the ANSWER IS WRONG rather than by mechanism. Tier A CORRUPTED (candidate for default-loud): `warnings.length > 0`, plus a NEW real `cyclic` signal. Tier B NOTABLE (stays opt-in behind `--strict`): `needsAttention`, `blocked[].attention`, and `allClaimed`. Tier none: plain `blocked` on a live dep"
+      - "THE STRUCTURAL MOVE THAT MAKES IT WORK, and it is the point rather than a nicety: STOP PROXYING CYCLES. Extract `buildBlockingGraph` + `findCycles` out of lib/validate.js (private today, ~:267-292 and ~:358-428) into a shared `lib/graph.js`, and have `ready` detect cycles FOR REAL over the same graph. Then `allClaimed` becomes `ready.length === 0 && blocked.length > 0 && !cyclic`, which can only mean `every open chain terminates in claimed work` — benign, so diarie-cyc dies and repro #2 stops being a false alarm. Precedent for one-graph-one-place is nsId (schema.js ~:362-377): `Two implementations of one id rule is what let one of them be incomplete`"
+      - "`--strict` KEEPS ITS NAME and shrinks: it stops meaning `refuse on everything` and means `also refuse on Tier B`. Proposed semantics: exit 2 iff `(corrupted && !relaxFlag) || (strict && (notable || allClaimed))`. The two compose. Relax-flag name is the least settled part — `--lossy` pairs with `migrate --lossy` in house vocabulary but reads oddly for `the graph is cyclic`, where nothing is literally lost; `--best-effort` is the alternative"
+      - "⚖️ THE UNRESOLVED TENSION, stated so nobody thinks it is settled: the architect's Tier A is still a DEFAULT FLIP, which the adversarial pass argued against. The split DOES neutralise the adversary's headline case — a healthy mid-sprint store is `allClaimed`, which lands in Tier B and still exits 0, so vp-beads' session-start hook is untouched by it. What survives is narrower: a store with genuine loader warnings would newly exit 2, and that hook's `|| echo \"\"` would still discard a correct answer. Decide THAT, not the general question"
+      - "REJECTED: a `doctor` subcommand. `brew`/`npm`/`flutter doctor` check the ENVIRONMENT the tool runs in; `validate` checks the user's DATA. diarie has almost no environment — no daemon, no cache, no auth, no plugin matrix, and by decision diarie-pos the store's location on disk IS the entire configuration. So `doctor` would either duplicate `validate` under a second name or bolt on checks that belong in `lintTasks` as a fifth pass"
     updated: '2026-08-05'
   - id: diarie-cyc
     title: '`ready --strict` exits 0 on a cycle that still leaves other work ready — decide if that is right'
@@ -1637,4 +1645,40 @@ tasks:
       Raised by the user 2026-08-05 while approving the change that made `--filter` name the value it
       rejected: "we should consider whether it's in line with the spirit of the tool to limit the
       states, but that's an entirely different topic." Filed rather than folded in.
+    updated: '2026-08-05'
+  - id: diarie-rtx
+    title: '`ready`/`stats` text mode put the ANSWER on stdout and the complaint on stderr — the founding defect shape'
+    status: pending
+    type: task
+    priority: high
+    labels:
+      - bug
+    acceptance_criteria:
+      - "REPRODUCED 2026-08-05. A store with `title: 42`, `node cli.js ready --root <dir> 2>/dev/null`, i.e. stdout alone, prints exactly `  d/T-1  [medium]` — a row with no title and NOTHING saying why. The loader warning that explains it goes to stderr only. That is the founding defect's exact shape: the answer on stdout, the complaint on the stream ten call sites pipe to /dev/null"
+      - "`validate` already gets this right — it prints its `Warnings:`/errors block to STDOUT before the verdict (lib/commands/validate.js). `ready` and `stats` do not. The asymmetry is the finding; `validate` is the model to copy"
+      - "NOTE this is independent of diarie-snd and does NOT need the default to change. Under `--json` the warnings already ride in the payload, so only TEXT mode whispers. Fix text mode and a human reading plain `diarie ready` learns what a `--json` consumer already learns"
+      - "keep the stderr `warn()` too — redundant is cheap, and some callers already grep stderr. The requirement is that stdout is not SILENT about it"
+      - "watch the brand surfaces: diarie.dev carries verbatim CLI transcripts, and CLAUDE.md requires them to be real bytes. Adding a stdout line changes what `diarie ready` prints on a warning-carrying store — re-capture rather than hand-edit, and check test/brand.spec.js's fixtures are clean stores (they are, or the assertion would already differ)"
+    description: >-
+      Found 2026-08-05 by a code-architect pass while designing diarie-snd, then reproduced directly.
+      Filed separately BECAUSE it is separate: it is a live defect in the current default path, needs
+      no decision, and should not wait on the strict/default design thread. The plan's earlier H2
+      design reached the same conclusion for `stats` ("a one-line stdout notice in formatStats").
+    updated: '2026-08-05'
+  - id: diarie-dup
+    title: '`validate` may not catch a duplicate id ACROSS files — the `all` map silently overwrites'
+    status: pending
+    type: task
+    priority: medium
+    labels:
+      - bug
+    acceptance_criteria:
+      - "UNVERIFIED — filed as a lead, not a finding. Spotted by a code-architect pass reading lib/validate.js: the `all` Map is keyed by GlobalId, so a collision OVERWRITES rather than erroring, unlike the in-file dedup which does error (`duplicate id ... within file`)"
+      - "FIRST STEP IS TO FALSIFY IT: ids are namespaced by slug via nsId, so two files with different slugs cannot collide by construction. Work out whether a collision is reachable AT ALL — e.g. two files that resolve to the same slug, or an id already containing a `/`. If it is not reachable, close this row with that reasoning recorded, which is worth as much as a fix"
+      - "if reachable: error rather than warn, matching the in-file case, and add a fixture with two files"
+    description: >-
+      Filed 2026-08-05 from a code-architect side observation while extracting the graph code. Recorded
+      with its own falsification step because an unverified structural claim that LOOKS right is exactly
+      the kind this project has been bitten by — see the CLAUDE.md table on instruments answering a
+      narrower question than the one asked.
     updated: '2026-08-05'
