@@ -108,7 +108,7 @@ So:
 
 | exit  | meaning                                                                                                                                 |
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| **0** | The answer is on stdout. An **empty but present** store is a legitimate answer.                                                         |
+| **0** | The answer is on stdout. An **empty but present** store is a legitimate answer. A bare `diarie`, or `--help`/`--version`, also exits 0 — with the help on stdout. |
 | **1** | You asked wrong. A machine-readable `code` says how: `ENOSTORE` (no store here), `EUSAGE`, `EEXIST`, `ETWOSTORES`, `ELEGACY`, `ELOSSY`. |
 | **2** | It ran, and the answer is **no**: the store is unsound (`validate` found errors, or `ready --strict` on a store with dropped rows).     |
 
@@ -126,6 +126,11 @@ $ echo $?
 
 So a script can tell _"this project tracks its work elsewhere"_ from _"this project has no work left"_ —
 which is the entire point. Ask for `--json`, and never discard the exit code.
+
+A bare `diarie` (or `diarie --help`) is help on stdout with exit 0 — you asked for orientation, so
+orientation is the answer in every mode. A **flag standing where a command belongs** is not that:
+`diarie --json ready` exits 1 with `EUSAGE`, because the command was given and would otherwise be
+silently discarded. `git --short status` refuses for the same reason.
 
 `ready --strict` exits 2 if the store is unsound: a malformed row was dropped, a dependency dangles, a
 cycle exists. Use it in a hook or CI step that must not proceed on a store it cannot trust.

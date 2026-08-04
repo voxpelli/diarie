@@ -24,7 +24,7 @@
   "license": "MIT",
   "type": "module",
   "engines": {
-    "node": "^22.13.0 || >=24.0.0"
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
   },
   "bin": {
     "diarie": "cli.js"
@@ -80,8 +80,8 @@
   "dependencies": {
     "@voxpelli/typed-utils": "^5.0.0",
     "js-yaml": "^4.1.0",
-    "peowly": "^1.3.3",
-    "peowly-commands": "^1.1.0",
+    "peowly": "^2.0.1",
+    "peowly-commands": "^2.0.0",
     "pony-cause": "^2.1.11"
   },
   "devDependencies": {
@@ -97,7 +97,7 @@
     "@voxpelli/tsconfig": "^16.2.1",
     "eslint": "^9.39.4",
     "hast-util-from-html": "^2.0.3",
-    "installed-check": "^10.0.1",
+    "installed-check": "^11.0.0",
     "knip": "^6.29.0",
     "npm-run-all2": "^9.0.3",
     "opentype.js": "^2.0.0",

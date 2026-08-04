@@ -120,9 +120,16 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
 
 ## Exit codes (load-bearing — a machine consumer branches on these)
 
-* `0` — success; the answer is on stdout.
+* `0` — success; the answer is on stdout. Also: a **genuinely bare `diarie`**, or an explicit
+  `--help`/`--version`, prints the help and exits 0 — the npm/yarn convention, and the one
+  deliberate exception to the `--json`-errors-on-stdout rule. 🚨 **The exception is NARROW and the
+  narrowness is the decision** (`diarie-ncm`): a **flag standing where a command belongs** —
+  `diarie --json ready`, `diarie -h`, `diarie ""` — is **EUSAGE/exit 1**, because peowly-commands
+  discards `args[0]` when it starts with `-` and the command would vanish under a success code.
+  `git --short status` exits 129 for the identical shape; no comparable CLI silently succeeds.
 * `1` — `InputError` ("you got it wrong"). Under `--json`, emitted as JSON on **stdout** with a `code`:
-  **`ENOSTORE`** (no store here — the most important one), **`EUSAGE`** (bad command/flag, incl. a
+  **`ENOSTORE`** (no store here — the most important one), **`EUSAGE`** (bad command name, a bad
+  flag/value **on a named command**, a flag where a command belongs, incl. a
   stale `TASKS_ROOT` in any command that reads the env — `migrate` reads none, by design, and says
   so), **`EEXIST`** (`init` or `migrate` refusing an existing store, in either posture),
   **`ETWOSTORES`** (both forms of the pair present — refuses to guess), **`ELEGACY`** (`init`
@@ -147,6 +154,10 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
   --globs '!.impeccable/**'` (agent-tooling state). Those are declarative — ast-grep's walker already
   skips dot-directories, so they exclude nothing that was scanned before — but a `--globs` added to that
   script IS a coverage decision and belongs in this bullet. (See `sgconfig.yml` for the reasoning.)
+  The Litho agent bundle is a THIRD lever, and it differs in kind: `.litho/` (dot-dir, tool state —
+  skipped natively anyway) and **`litho.docs/` (NOT a dot-dir: ~250 KB of generated markdown that
+  `check:md`/`check:ast-grep` now skip via .gitignore)** — a real coverage exclusion, deliberate
+  because it is generated, recorded here so it stays deliberate.
 * **When a change ADDS to a vocabulary** (exit codes, a `VALID_*` enum, flags), grep the set's OTHER
   members, not the new name — that is what finds the surfaces that enumerate it. A token-grep cannot.
 * **ast-grep runs 10 rules from TWO ruleDirs** (`sgconfig.yml`). `@voxpelli/ast-grep-rules` owns the

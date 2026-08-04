@@ -515,9 +515,9 @@ describe('the --blocked TEXT rendering (the default human output — JSON-only t
 // This is belt-and-braces on top of that.
 describe('driving cli() with its own args (no ordinary spawn can catch this)', () => {
   it('cli(argv) parses ITS OWN argv, not process.argv', () => {
-    // By path, not by package subpath: `lib/main.js` is deliberately NOT in diarie's
+    // By path, not by package subpath: `lib/cli.js` is deliberately NOT in diarie's
     // `exports` map (only `.` and `./schema` are public). The CLI entry is internal.
-    const main = new URL('../lib/main.js', import.meta.url).href;
+    const main = new URL('../lib/cli.js', import.meta.url).href;
     const script = `const { cli } = await import(${JSON.stringify(main)})\n` +
       `await cli(['ready', '--json', '--root', ${JSON.stringify(FIXTURES)}])\n`;
     const r = spawnSync('node', ['--input-type=module', '-e', script], { encoding: 'utf8' });
@@ -633,16 +633,20 @@ describe('validate CLI (error paths, via tmpdir)', () => {
 
 describe('the exit-code taxonomy — a typo is not a bug, and 2 means only one thing', () => {
   // Exit 2 is ResultError: "it ran, and the answer is no" (a cyclic backlog, --strict).
-  // peowly's showHelp() defaults to exit(2) for "incorrect usage", so BEFORE this suite a
-  // bare `diarie` also exited 2 — leaving a CI job branching on 2 unable to tell a
-  // dependency cycle from a forgotten subcommand. Two meanings, one code, no way back.
+  // peowly's showHelp() defaults to exit(2) for "incorrect usage", so BEFORE the EUSAGE
+  // interception a bare `diarie` also exited 2 — leaving a CI job branching on 2 unable to
+  // tell a dependency cycle from a forgotten subcommand. Two meanings, one code, no way back.
+  //
+  // Since the peowly v2 upgrade, NO COMMAND is deliberately NOT an error at all: help on
+  // stdout, exit 0 (the npm/yarn convention — see lib/cli.js). The "never 2" half of the
+  // invariant survives with a different value; the mistake family below still exits 1.
 
-  it('a bare `diarie` is an InputError (1), NOT the ResultError code (2)', () => {
+  it('a bare `diarie` prints help and exits 0 — never the ResultError code (2)', () => {
     const { code } = run([], [], FIXTURES);
-    assert.equal(code, 1);
+    assert.equal(code, 0);
   });
 
-  it('a bare `diarie` still SHOWS the commands — exiting 1 must not mean staying silent', () => {
+  it('a bare `diarie` SHOWS the commands — help is the answer, not silence', () => {
     const { both } = run([], [], FIXTURES);
     assert.match(both, /ready/);
     assert.match(both, /migrate/);
@@ -720,10 +724,30 @@ describe('THE INVARIANT: a user mistake is never a crash, and never exit 2', () 
   // asserted the RULE. A rule needs a test that quantifies over inputs, not a test per input.
   //
   // Exit 2 is ResultError, and nothing else. `unexpected error` is a bug in diarie, and nothing
-  // else. Every row below is a user mistake, so every row must satisfy both.
+  // else. The rows below split into TWO families with different bars, and the split is the rule:
+  //
+  // - NO_COMMAND: the user asked for ORIENTATION and nothing else — a genuinely bare `diarie`,
+  //   or an explicit `--help`. Help on stdout + exit 0 (the npm/yarn convention — lib/cli.js).
+  //   They must never be 2 and never crash, and they must always ANSWER with the command list.
+  // - MISTAKES: anything the user got wrong — a bad command, a bad flag, a bad value, OR a flag
+  //   standing where a command belongs. The InputError/EUSAGE family: exit 1, JSON with a code
+  //   on stdout under --json.
+  //
+  // THE SPLIT MOVED, AND THAT IS THE POINT. Five rows below used to sit in NO_COMMAND, which
+  // meant `diarie --json ready` answered a discarded command with exit 0 and 633 bytes of help
+  // prose — a wrapper piping that to `jq .ready` gets prose, jq fails, the wrapper reports "no
+  // work", and the exit code says success. That is this package's founding defect served by its
+  // own entry point. Measured against the field: `git --short status` exits 129, cargo and gh
+  // exit 1; no comparable CLI silently succeeds. A forgotten command is orientation; a MISPLACED
+  // one is a mistake, and only the first belongs above.
+
+  const NO_COMMAND = [
+    { what: 'no command at all', argv: [] },
+    { what: 'an explicit --help', argv: ['--help'] },
+  ];
 
   const MISTAKES = [
-    { what: 'no command at all', argv: [] },
+    { what: 'an unknown command', argv: ['frobnicate'] },
     // THE LIST IS THE TEST. This row was missing from the first cut, and its absence — not any
     // weak assertion — is what let `diarie ""` keep exiting 2 with 589 bytes of help prose on
     // stdout, through TWO rounds of review. `diarie "$CMD"` with an unset variable is how a
@@ -731,14 +755,37 @@ describe('THE INVARIANT: a user mistake is never a crash, and never exit 2', () 
     { what: 'an empty first argument', argv: [''] },
     { what: 'a flag where a command belongs', argv: ['--json'] },
     { what: 'a short flag where a command belongs', argv: ['-j'] },
-    { what: 'a bare -h (peowly does NOT treat this as help)', argv: ['-h'] },
+    // peowly defines ONLY the long forms. This printed help at exit 0 purely because it starts
+    // with a dash — the same accident as the two rows below it — never because `-h` was defined.
+    { what: 'a bare -h, which peowly does not define', argv: ['-h'] },
     { what: 'an unknown top-level flag', argv: ['--nosuchflag'] },
-    { what: 'an unknown command', argv: ['frobnicate'] },
+    // The founding-defect rows: a REAL command, discarded because a flag preceded it.
+    { what: 'a flag before the command', argv: ['--json', 'ready'] },
+    { what: 'a flag with a value before the command', argv: ['--root', '/tmp', 'ready'] },
     { what: 'an unknown flag on a real command', argv: ['ready', '--nosuchflag'] },
     { what: 'an invalid enum value', argv: ['ready', '--filter', 'bogus'] },
     { what: 'a non-numeric number', argv: ['stats', '--days', 'abc'] },
     { what: 'a negative staleness window', argv: ['stats', '--days', '-5'] },
   ];
+
+  for (const { argv, what } of NO_COMMAND) {
+    it(`${what} — prints help and exits 0, not 2, and is never called "unexpected"`, () => {
+      const { code, err, out } = run([], argv, FIXTURES);
+
+      // 2 would mean "it ran, and your backlog is broken". None of these ran.
+      assert.notEqual(code, 2, 'exited 2 — the ResultError code');
+      assert.equal(code, 0);
+
+      // The tell of a crash reaching the user. It is never the right answer to a typo.
+      assert.doesNotMatch(err, /unexpected error/);
+      assert.doesNotMatch(err + out, /Cannot read properties of undefined/);
+      assert.doesNotMatch(err + out, /node:internal/);
+
+      // Help is the answer, on STDOUT, and it must NAME the commands.
+      assert.match(out, /ready/);
+      assert.match(out, /migrate/);
+    });
+  }
 
   for (const { argv, what } of MISTAKES) {
     it(`${what} — exits 1, not 2, and is never called "unexpected"`, () => {
@@ -758,12 +805,54 @@ describe('THE INVARIANT: a user mistake is never a crash, and never exit 2', () 
     });
   }
 
+  it('an explicit --help under --json still answers with help on STDOUT at exit 0', () => {
+    // The documented exception to the --json-errors-on-stdout rule, and it is now scoped to the
+    // shapes that EARN it: the user asked for orientation, so orientation is the correct answer
+    // in every mode. The founding defect — an important message whispered to a stream ten call
+    // sites pipe to /dev/null — does not apply: the help is ON stdout.
+    //
+    // Note this list is deliberately NOT quantified over NO_COMMAND. Appending `--json` to the
+    // bare row does not produce another orientation case — it produces `diarie --json`, which is
+    // a MISTAKE and is pinned as such directly below. A loop here would have hidden that.
+    const { code, out } = run([], ['--help', '--json'], FIXTURES);
+    assert.equal(code, 0);
+    assert.match(out, /ready/);
+    assert.match(out, /migrate/);
+  });
+
+  it('REGRESSION: a flag before the command exits 1 with JSON on stdout — it must never answer 0 with help', () => {
+    // The defect this unit exists to kill, pinned by input rather than by rule because the rule
+    // above could not see it: `peowly-commands` nulls out args[0] when it starts with `-` and
+    // never looks past it, so `ready` was silently discarded and the answer was exit 0 plus 633
+    // bytes of help. A wrapper running `diarie --json ready | jq '.ready'` got prose, jq failed,
+    // and the wrapper concluded "no work" — with the exit code reporting success.
+    const { code, out } = run([], ['--json', 'ready'], FIXTURES);
+
+    assert.equal(code, 1, 'a discarded command must not report success');
+
+    const parsed = JSON.parse(out);   // throws on the help prose this used to print
+    assert.equal(parsed.code, 'EUSAGE');
+    assert.match(parsed.error, /ready/, 'must name the command that was discarded');
+
+    // The HINT is asserted on the human path, because that is the only place it survives:
+    // cli.js serializes exactly {error, code}, so no extra field reaches a --json consumer.
+    // (That is a known gap in its own right — see the plan's M7 — not something to paper over
+    // here by asserting the hint against a payload that structurally cannot carry it.)
+    //
+    // It points at the fix without fabricating a command line. Rebuilding the line by filtering
+    // the offending token out drops EVERY occurrence, so `diarie --root ready` would suggest
+    // `diarie ready --root` — a line missing its flag value, stated confidently. The ellipsis is
+    // what keeps the suggestion honest, so assert the ellipsis rather than the absence of a wart.
+    const { err: hint } = run([], ['--root', '/tmp', 'ready'], FIXTURES);
+    assert.match(hint, /Try: diarie ready …/);
+    assert.doesNotMatch(hint, /Try: diarie ready --root\s*$/);
+  });
+
   for (const { argv, what } of MISTAKES) {
     it(`${what} — under --json, STDOUT carries parseable JSON with a code`, () => {
       // The defect this whole CLI exists to kill: important things whispered to stderr, a stream
-      // ten call sites pipe to /dev/null. Before the fix, `diarie --json` printed 589 bytes of
-      // HUMAN HELP PROSE to stdout under the flag that promises machine-readable output, and
-      // `ready --filter bogus --json` printed nothing at all.
+      // ten call sites pipe to /dev/null. Before the fix, `ready --filter bogus --json` printed
+      // nothing at all. Every mistake row must answer with a JSON error on STDOUT.
       const { code, out } = run([], [...argv, '--json'], FIXTURES);
       assert.equal(code, 1);
 
