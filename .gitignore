@@ -50,6 +50,13 @@ node_modules/
 !.impeccable/design.json
 .cache/
 
+# The Litho agent-tooling bundle: `.litho/` is tool state (caches), `litho.docs/` its generated
+# docs. DELIBERATE lint-scope exclusion per the warning above — both are generated, so linting the
+# copies would be noise; but that means a lint rule cannot see them, by design. Same shape as
+# brand-dist/ below. Recorded in CLAUDE.md's lint-scope bullet.
+.litho/
+litho.docs/
+
 # impeccable's DESIGN.md discovery symlink → brand/DESIGN.md (the canonical, tracked, linted copy).
 # Local-only glue so `/impeccable` resolves the design system. Committing it would double-lint the
 # same content from the wrong base dir — remark-validate-links resolves brand/'s relative links from
