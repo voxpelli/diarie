@@ -1611,6 +1611,11 @@ tasks:
       - "`--strict` KEEPS ITS NAME and shrinks: it stops meaning `refuse on everything` and means `also refuse on Tier B`. Proposed semantics: exit 2 iff `(corrupted && !relaxFlag) || (strict && (notable || allClaimed))`. The two compose. Relax-flag name is the least settled part — `--lossy` pairs with `migrate --lossy` in house vocabulary but reads oddly for `the graph is cyclic`, where nothing is literally lost; `--best-effort` is the alternative"
       - "⚖️ THE UNRESOLVED TENSION, stated so nobody thinks it is settled: the architect's Tier A is still a DEFAULT FLIP, which the adversarial pass argued against. The split DOES neutralise the adversary's headline case — a healthy mid-sprint store is `allClaimed`, which lands in Tier B and still exits 0, so vp-beads' session-start hook is untouched by it. What survives is narrower: a store with genuine loader warnings would newly exit 2, and that hook's `|| echo \"\"` would still discard a correct answer. Decide THAT, not the general question"
       - "REJECTED: a `doctor` subcommand. `brew`/`npm`/`flutter doctor` check the ENVIRONMENT the tool runs in; `validate` checks the user's DATA. diarie has almost no environment — no daemon, no cache, no auth, no plugin matrix, and by decision diarie-pos the store's location on disk IS the entire configuration. So `doctor` would either duplicate `validate` under a second name or bolt on checks that belong in `lintTasks` as a fifth pass"
+      - "PRIOR ART, researched 2026-08-05 against primary sources and binaries rather than recall, and it converges with the tier design above. THE DECISION RULE the evidence supports: tools refuse by default when proceeding yields a SILENTLY WRONG OR IRREVERSIBLE result, and stay lenient when the output is advisory and a human can judge. Every mature tool uses a PER-CHECK SEVERITY DIAL, not one switch — rustc `allow/warn/deny/forbid`, `git fsck.<msg-id>=error|warn|ignore`, `kubectl --validate=strict|warn|ignore`. That is the same shape as the three tiers above, arrived at independently"
+      - "DIRECTION OF TRAVEL: TypeScript flipped `strict: true` to the DEFAULT in 6.0/7.0 (verified empirically — 5.9 exits 0 where 7.0.2 rejects, and `--strict false` is now a genuine RELAXING flag). Its stated rationale is nearly our founding thesis verbatim: lenient defaults are `a pit-of-failure experience that we want users to avoid`. Same arc: npm 7 made peer conflicts a hard error where v6 only warned; PEP 668; kubectl field validation went default-strict in 1.27. NO mainstream tool was found moving strict -> lenient"
+      - "🔧 PREMISE CORRECTED: `git fsck --strict` is NOT the lenient-default precedent it was taken for. Git's ORDINARY READERS refuse hard — `git show`/`status`/`log --stat` exit 128 when they need a corrupt object; `--strict` only adds a pedantic legacy check. Git is a STRICT-BY-DEFAULT data point and the closest analogue to diarie. Also: `terraform validate` has no strict/relax axis and does not document its exit codes, so it is precedent for nothing"
+      - "A LINE WORTH COPYING, from `npm ls`: it exits 1 on MISSING/INVALID but 0 on EXTRANEOUS-only. `the tree is wrong` refuses; `there is extra stuff` does not. Pairs with Allman's caveat that liberality is what allows EXTENSION — so tolerate keys we do not recognise (see diarie-ext) but refuse a known key with the wrong type. `title: 42` is not extension"
+      - "TIMING IS THE STRONGEST PRACTICAL ARGUMENT FOR DOING IT NOW: we are at 0.2.2, pre-1.0. Every tool in the survey paid dearly for tightening AFTER mass adoption. The counter-cost is real too — `ready` is the interactive command you run all day, so one bad row would block every invocation; TS carved out loose/inferred files for exactly that. Mitigation: the relaxing flag must be named IN THE REFUSAL MESSAGE, not merely in --help"
     updated: '2026-08-05'
   - id: diarie-cyc
     title: '`ready --strict` exits 0 on a cycle that still leaves other work ready — decide if that is right'
@@ -1681,4 +1686,110 @@ tasks:
       with its own falsification step because an unverified structural claim that LOOKS right is exactly
       the kind this project has been bitten by — see the CLAUDE.md table on instruments answering a
       narrower question than the one asked.
+    updated: '2026-08-05'
+  - id: diarie-wsp
+    title: 'THE INVARIANT: stderr may only ever DUPLICATE, never ORIGINATE — make it greppable'
+    status: pending
+    type: task
+    priority: high
+    labels:
+      - decision
+    acceptance_criteria:
+      - "A whisper audit 2026-08-05 found 10 findings, and four of them are ONE rule being broken four times. The rule is already stated in lib/format.js:13-20 (stdout = THE ANSWER, stderr = ASIDES) but nothing enforces the sharp version: NO FACT MAY EXIST ONLY ON STDERR. stderr may repeat what stdout or the --json payload already carries; it may never be the sole carrier"
+      - "the audit's own table shows why this is the right abstraction: neither channel is consistently richer. `--json` beats human for loader warnings; human beats `--json` for InputError.body (now fixed) and for validate's lint warnings. There is no rule a reader could apply to PREDICT which stream carries a given fact — which is how each violation got written one at a time without anyone noticing the pattern"
+      - "MAKE IT MECHANICAL: an ast-grep rule or a test that walks `warn()` call sites and requires each message to have a stdout or payload counterpart. That is the instrument; a comment is not. Note the repo already has the precedent — the exit(2) walker in test/cli.spec.js greps the tree to enforce a claim rather than trusting a comment"
+      - "known violations to close under this rule: ignored task files (see H4/U6 in the review plan), migrate's --lossy loss report on stderr while the success report is on stdout, ready/stats text-mode warnings (diarie-rtx), and validate's `notices`"
+      - "counter-check before building it: `warn()` is also used for genuinely advisory asides. Enumerate those first and decide whether they are exempt or whether they too should be on stdout — if MOST calls need an exemption the rule is wrong and should not be built"
+    description: >-
+      Filed 2026-08-05. This is the generalisation of the founding thesis, and it is worth more than
+      any single finding it would catch: the tool exists because a complaint lived only on the stream
+      ten call sites pipe to /dev/null, and that shape keeps recurring because nothing makes it
+      visible. Related: diarie-rtx, diarie-sta, and H4 (mis-named task files) in the review plan.
+    updated: '2026-08-05'
+  - id: diarie-sta
+    title: '`stats` throws away `needsAttention` entirely, and has no exit-code channel at all'
+    status: pending
+    type: task
+    priority: high
+    labels:
+      - bug
+    acceptance_criteria:
+      - "REPRODUCED 2026-08-05 and verified by me, not just reported. A store whose every row is unworkable (one dangling dep, one dangling parent) answers `diarie stats` with `total 2  ready 0  blocked 0  stale 0` and ZERO BYTES on stderr, and `stats --json` carries no signal either. `ready --strict` and `validate` both exit 2 on the identical store"
+      - "`total 2 ready 0 blocked 0` reads as `two tasks, all claimed or done` — a confident, entirely wrong summary. This is the founding defect with the numbers filled in"
+      - "the cause is not a whisper, it is a DISCARD: `computeStats` (lib/ready.js) calls `computeReady` and takes `ready.length`/`blocked.length` while dropping `needsAttention` on the floor. It is already computed. Nothing needs designing — surface it in the human render and append it to the pinned JSON shape"
+      - "`warnings` DOES reach `stats --json` (including under `--stale` — verified), so the JSON channel is half-right already. Human stdout gets neither, which is diarie-rtx"
+      - "SEPARATELY, and this one IS a design question: `stats` has no --strict and no ResultError path, so a caller who pipes nothing can learn nothing from `stats` except that the store was findable. Decide with diarie-snd, not before it"
+    description: >-
+      From a silent-failure audit 2026-08-05. `stats` is what a dashboard or a session-start hook
+      calls, which makes it the worst place for this. The needsAttention half needs no decision and
+      should not wait on the strict/default thread.
+    updated: '2026-08-05'
+  - id: diarie-did
+    title: 'Duplicate ids collapse silently in the loader, and YAML line order then decides the answer'
+    status: pending
+    type: task
+    priority: high
+    labels:
+      - bug
+    acceptance_criteria:
+      - "REPRODUCED 2026-08-05. Two rows both `id: T-1` (first `completed`, second `pending`) plus a `T-2` with `deps: [T-1]`. `lib/ready.js`'s `byId = new Map(tasks.map(t => [t.id, t]))` keeps the LAST one, so `ready --strict` serves the second T-1 and exits 0. `validate` exits 2 on the same store"
+      - "the consequence is the finding: whether T-2 is ready is decided by WHICH ROW APPEARS LAST IN THE FILE, not by the graph. And `--strict` — the flag whose whole job is certifying the answer — says the answer is trustworthy"
+      - "a Map is a guard that DROPS a value (the earlier row's identity) with no report — the exact shape the loader's ten `reject()` sites exist to prevent, one layer up"
+      - "FIX: `loadTasks` warns on a repeated GlobalId naming the consequence (`the later row wins, so dep resolution is decided by file order`). That routes it into `warnings` -> --json payload -> `unsound` -> `--strict` exit 2, reusing machinery that already exists"
+      - "validate already errors on this WITHIN a file (lib/validate.js `duplicate id ... within file`). Check the ACROSS-file case too — see diarie-dup, which may prove it unreachable by construction"
+    description: >-
+      From a silent-failure audit 2026-08-05, reproduced independently by me before filing. Sits in
+      the same family as diarie-rdr: a reader that drops something and does not say so.
+    updated: '2026-08-05'
+  - id: diarie-mig
+    title: '`migrate` reports success having migrated nothing, then blocks the retry'
+    status: pending
+    type: task
+    priority: high
+    labels:
+      - bug
+    acceptance_criteria:
+      - "REPORTED 2026-08-05 by a silent-failure audit — VERIFY BEFORE FIXING, I have not reproduced this one myself. Claim: `parseBdExport` ends in `.filter(r => isBdIssue(r))`, a guard that DROPS every unrecognised row and reports NONE of them, and `censusFields` runs on what SURVIVED the filter so it structurally cannot see what the filter ate"
+      - "claimed repro: an export whose rows have `_type: task` rather than `_type: issue` produces `migrated 0 live issues (of 0 total)` on stdout at exit 0, writes an empty store, and the retry then fails EEXIST — so the operator cannot re-run without --force, and every reader afterwards reports an honest-looking empty backlog"
+      - "`(of 0 total)` phrased as a success is the whole defect: `migrated 0 of 0` from a file WITH BYTES IN IT is never a success"
+      - "FIX SHAPE: count the non-issue rows and report them; refuse when `records.length === 0` while the input was non-empty. Note this is the same class as the ELOSSY census — a parse boundary with no report is not a boundary (bd-map.js calls itself `THE PARSE BOUNDARY, and it has to be a real one`)"
+    description: >-
+      Filed 2026-08-05 from a silent-failure audit. Recorded as UNVERIFIED-BY-ME deliberately: the
+      claim is specific and plausible and the agent reproduced it, but this project's own rule is to
+      verify a premise before spending fix cycles on it, and a migrate change is one-way.
+    updated: '2026-08-05'
+  - id: diarie-unx
+    title: 'A non-InputError under `--json` emits ZERO BYTES on stdout — the contract says it always emits JSON'
+    status: pending
+    type: task
+    priority: medium
+    labels:
+      - bug
+    acceptance_criteria:
+      - "REPORTED 2026-08-05 — verify the repro first. Claim: `cli.js`'s `genuinely unexpected` branch writes only to stderr regardless of `--json`, and it is reachable without anything exotic — e.g. `diarium/tasks` existing as a FILE rather than a directory gives ENOTDIR, exit 1, and 0 bytes on stdout"
+      - "the sting: `lib/commands/validate.js` asserts in a comment that ``--json` ALWAYS emits JSON. That is the contract.` A consumer sees exit 1 for both a missing store and this, but can branch on `code` in only one of them; `jq` fails on empty input for the other"
+      - "FIX SHAPE: emit `{error, code}`-shaped JSON on stdout when --json is set, keeping the stack trace on stderr. Needs a code — check whether an existing member of VALID_ERROR_CODES fits before adding one, since adding a code costs a README row, a boundary-table case, and FOUR brand surfaces that list the set verbatim and which no gate can check"
+      - "note this is the generic door. Two specific instances were already closed individually (bootstrap.js and store/init.js both have comments about it), which is evidence the class is real and that closing it once is better than closing it a third time"
+    description: >-
+      Filed 2026-08-05 from a silent-failure audit. Related to the founding thesis directly: exit 1
+      with an empty stdout is exactly what an automated caller reads as "no store here".
+    updated: '2026-08-05'
+  - id: diarie-doc
+    title: 'If a `doctor` is ever added it must check the ENVIRONMENT, not the data — and the scope is small'
+    status: pending
+    type: task
+    priority: low
+    labels:
+      - decision
+    acceptance_criteria:
+      - "RESEARCHED 2026-08-05 across primary sources: `doctor` conventionally diagnoses THE TOOL'S OWN ENVIRONMENT, not the user's data — `brew doctor` (system), `npm doctor` (registry reachability, node/npm versions, cache checksums, directory permissions), `flutter doctor` (SDK/toolchain/IDE/devices; Dart SOURCE analysis is a separate verb, `flutter analyze`), `pnpm doctor`, `bundle doctor`. The apt precedent for a DATA-integrity check is `fsck` — and note `git fsck` inspects the object database and is deliberately not called doctor"
+      - "so a `doctor` that lints `.diarium/` YAML would be a SECOND NAME FOR `validate`. Reject that framing outright; it is the one-authority anti-pattern wearing a friendly name"
+      - "the only defensible content is store-DISCOVERY health, which genuinely is not validate's job: both forms of the pair present (ETWOSTORES), a legacy `.diarie/` present, an ANCESTOR store shadowing the one you expected, an unwritable store, the Node version against `engines`. Note every one of these is currently only reachable by TRIPPING it during real work — a doctor would let you ask proactively"
+      - "counter-argument to weigh before building it: diarie deliberately has almost no environment. No daemon, no cache, no auth, no plugin matrix, and by decision diarie-pos the store's location on disk IS the entire configuration. The list above may simply be too short to earn a subcommand — `diarie where` (deferred in diarie-spa) may be the honest size of it"
+      - "if it is built, decide the exit code deliberately: the convention is INCONSISTENT (`brew doctor` exits 1, `pnpm doctor` non-zero, but `flutter doctor` returns a warning status and NEVER fails — a long-standing CI complaint). A doctor that only reports sits badly with a project whose thesis is that nothing important is whispered"
+    description: >-
+      Filed 2026-08-05 after the user raised `doctor` as a possible deeper mode beyond `validate`. Both
+      a code-architect pass and an independent prior-art survey reached the same conclusion from
+      different directions, so the row exists to STOP the idea being re-raised in its data-linting
+      form — and to preserve the one form that would be legitimate.
     updated: '2026-08-05'

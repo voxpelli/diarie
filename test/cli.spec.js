@@ -880,6 +880,25 @@ describe('THE INVARIANT: a user mistake is never a crash, and never exit 2', () 
     });
   }
 
+  it('a refusal carries its REMEDY into the --json payload, not just the human one', () => {
+    // `body` is where this codebase puts every actionable detail, and cli.js used to write it
+    // ONLY on the human branch — so the machine channel got the refusal without the fix. The
+    // case that costs data is ELOSSY: bootstrap.js says of its field list that "every omission
+    // costs the reader the one chance they get to see what they are about to lose", and under
+    // --json that list was not truncated, it was ABSENT. A consumer told two fields would be
+    // lost, and never which two.
+    //
+    // The tell that the split was accidental: ELEGACY puts its `git mv` in the MESSAGE, so that
+    // one remedy survived while its siblings did not.
+    const { code, out } = run([], ['--nosuchflag', '--json'], FIXTURES);
+    assert.equal(code, 1);
+
+    const parsed = JSON.parse(out);
+    assert.equal(parsed.code, 'EUSAGE');
+    assert.ok(parsed.body, 'the remedy did not reach the machine channel');
+    assert.match(parsed.body, /Commands:/);
+  });
+
   it('an explicit --help under --json still answers with help on STDOUT at exit 0', () => {
     // The documented exception to the --json-errors-on-stdout rule, and it is now scoped to the
     // shapes that EARN it: the user asked for orientation, so orientation is the correct answer

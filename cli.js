@@ -63,8 +63,24 @@ try {
 
     if (err instanceof InputError) {
       if (argv.includes('--json') || argv.includes('-j')) {
-        const { code } = err;
-        process.stdout.write(JSON.stringify({ error: err.message, ...(code ? { code } : {}) }, undefined, 2) + '\n');
+        // `body` RIDES ALONG, and leaving it out was a founding-thesis bug of its own: `body` is
+        // where this codebase puts every actionable detail, so the machine channel was getting the
+        // refusal without the fix. ELOSSY is the case that costs data — the human is handed the
+        // full list of fields that would be lost, and bootstrap.js says of it that "every omission
+        // costs the reader the one chance they get to see what they are about to lose". Under
+        // `--json` that list was not truncated, it was ABSENT: a consumer told two fields would be
+        // lost and never which two. EUSAGE dropped the command list; migrate's dropped its usage.
+        //
+        // The tell that the split was accidental rather than principled: ELEGACY puts its `git mv`
+        // in the MESSAGE, so that one remedy survived while its siblings did not.
+        //
+        // Additive key — the `{error, code}` shape is unchanged for anyone already parsing it.
+        const { body, code } = err;
+        process.stdout.write(JSON.stringify({
+          error: err.message,
+          ...(code ? { code } : {}),
+          ...(body ? { body } : {}),
+        }, undefined, 2) + '\n');
       } else {
         stderr.write(`diarie: ${err.message}\n`);
         if (err.body) {
