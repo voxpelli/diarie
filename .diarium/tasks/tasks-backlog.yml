@@ -1574,3 +1574,67 @@ tasks:
       Filed 2026-07-29 after the regex failed once for real during a polish pass. Both a maintainer-lens
       and an advocate-lens reviewer reached the same remedy independently.
     updated: '2026-07-29'
+  - id: diarie-snd
+    title: '`--strict` fuses a real defect with a normal state, which is why refusing cannot be the DEFAULT — split it'
+    status: pending
+    type: task
+    priority: high
+    labels:
+      - decision
+    acceptance_criteria:
+      - "THE FRAMING, from the user 2026-08-05: refusing on an untrustworthy answer should arguably be the DEFAULT, with a flag to RELAX it — not an opt-in. The founding law is that anything a caller must not miss shows up in the exit code, and `ENOSTORE` is already an error by default rather than something you opt into. `--strict` today inverts that for a store that is PARTLY unreadable"
+      - "REPRODUCED 2026-08-05, and it is the founding defect in the default path: a store with `title: 42` answers plain `diarie ready` with the row printed and NO title, exit 0, and the complaint on STDERR — the stream ten call sites pipe to /dev/null. The answer is partly fictional and the exit code says success"
+      - "THE REASON IT CANNOT SIMPLY BECOME DEFAULT, also reproduced: `unsound` ALSO fires on `ambiguous` (ready.length === 0 && blocked.length > 0), which is a PERFECTLY NORMAL store where everything open is claimed. Strict-by-default would exit 2 on a healthy backlog. One boolean, one real defect and one normal state — so the flag has to be opt-in to avoid crying wolf, which leaves the defect half quiet by default. THE FUSION IS THE BUG"
+      - "so SPLIT BY WHETHER THE ANSWER IS WRONG, not by how it was caused: (a) the loader REJECTED something, so the answer is missing data it should have had — a defect, and the candidate for default-loud; (b) `needsAttention` — the row IS in the output, in its own partition, so it is already reported and arguably needs no exit code; (c) `ambiguous` — see the trap below before filing this one as merely `stays opt-in`"
+      - "🚨 THE TRAP, and it is why a naive split is WRONG: `ambiguous` is NOT simply `a normal state`. The comment above it (lib/commands/ready.js ~180-189) records that the predicate was DELIBERATELY WIDENED because the narrow version `made --strict exit 0 on a parent cycle: the one thing its own flag description promises to catch`. So `ready.length === 0 && blocked.length > 0` is a CYCLE DETECTOR IMPLEMENTED AS A SIDE EFFECT — it fires only once the cycle has starved the whole queue, which is exactly why diarie-cyc reproduces. File `ambiguous` as `normal, stays opt-in` and the cycle coverage leaves with it, silently. diarie-cyc and this row are ONE bug seen from two ends and must be designed together"
+      - "consider therefore whether `ready` should stop proxying cycles AT ALL and let `validate` own them (it finds cycles properly, by Kahn, rather than by starvation) — and if so, what `ready` still owes a caller who never runs `validate`"
+      - "NOTE the flag description was rewritten 2026-08-05 to name all its causes, ending `...or nothing is ready while work remains`. That clause is accurate about the MECHANISM but calls a healthy store untrustworthy — it documents this defect rather than fixing it, and must be revisited when this row resolves. Do not treat the description as settled"
+      - "then decide the default for (a) alone, and what the relaxing flag is called (`--lenient`? `--no-strict`?). Note `--strict` would keep meaning `refuse on all three`, so it does not have to be removed"
+      - "do NOT add a second exit code — 2 is reserved for ResultError and NOTHING ELSE MAY USE 2 (lib/utils/exit.js). This row must not become a vocabulary change"
+      - "changing the default is BREAKING for real: plain `diarie ready` would go 0 -> 2 on stores that work today. Announce it, and check whether `stats` (which has no exit-code channel at all) should get the same treatment in the same release"
+    description: >-
+      Filed 2026-08-05 while fixing the flag's own description, which named only two of the four
+      causes it actually fires on. Companion to diarie-unk, which already records that `--strict` is
+      a `ready` flag and not a `validate` one, and to diarie-cyc.
+
+      The question is not where the verdict lives but whether ONE boolean can honestly carry it. A
+      consumer that gets exit 2 cannot tell "a field was rejected" from "everything is claimed", and
+      those want opposite responses: go fix your YAML, versus go finish something. The causes are
+      already computed separately and already ride in the `--json` payload — this is about the
+      exit-code channel, i.e. the caller who pipes nothing, which is the caller the founding thesis
+      is written for.
+    updated: '2026-08-05'
+  - id: diarie-cyc
+    title: '`ready --strict` exits 0 on a cycle that still leaves other work ready — decide if that is right'
+    status: pending
+    type: task
+    priority: medium
+    labels:
+      - decision
+    acceptance_criteria:
+      - "REPRODUCED 2026-08-05: a store with a 2-cycle (A deps B, B deps A) PLUS one unblocked task answers `ready --strict` with exit 0, while `validate` exits 2. `unsound` reaches a cycle only via `ambiguous` (ready.length === 0 && blocked.length > 0), so any ready work anywhere masks it"
+      - "the flag's description promised `or the queue looks cyclic` — which is why README also claimed `a cycle exists`, a false claim now corrected. The description no longer promises it, so the code and the docs agree TODAY; this row is about whether they agree on the RIGHT behaviour"
+      - "THE CASE FOR LEAVING IT: `--strict` asks `is the answer I just gave trustworthy`, not `is the store well-formed`. A cycle in an unrelated corner does not make the ready list wrong, and `validate` already exits 2 on it. Deliberately NOT nested predicates — see the comparison table in the diarie-snd discussion"
+      - "THE CASE FOR CHANGING IT: a consumer running only `ready --strict` in a hook never learns the graph is rotting, and the founding law says nothing important is whispered"
+      - "whichever way it goes, say so in the flag description and in README, and add a test pinning the chosen behaviour — there is currently NO test for cycle-plus-ready-work"
+    description: >-
+      Filed 2026-08-05. Found while checking a README claim during the diarie-rdr fix; the README
+      was corrected, the underlying question was not. See also diarie-unk and diarie-snd.
+    updated: '2026-08-05'
+  - id: diarie-flt
+    title: 'Is constraining `--filter` to the status vocabulary in the spirit of the tool?'
+    status: pending
+    type: task
+    priority: low
+    labels:
+      - decision
+    acceptance_criteria:
+      - "`--filter` rejects anything outside VALID_STATUSES with EUSAGE. That is defensible for a CLOSED vocabulary — but diarie's whole posture is that the store is a substrate you own, and the tool is a reader over it"
+      - "consider: does a filter that refuses an unknown status help, or does it just make the reader opinionated about a value the user is allowed to write? Note the loader REPORTS an unknown status rather than refusing it — the two surfaces answer the same input differently"
+      - "if it stays constrained, say WHY in the flag's own comment (the vocabulary is closed and validate enforces it, so a filter on an impossible value is always a typo)"
+      - "if it loosens, `--filter bogus` should return an empty list rather than an error, and the test in test/flags.spec.js changes shape"
+    description: >-
+      Raised by the user 2026-08-05 while approving the change that made `--filter` name the value it
+      rejected: "we should consider whether it's in line with the spirit of the tool to limit the
+      states, but that's an entirely different topic." Filed rather than folded in.
+    updated: '2026-08-05'
