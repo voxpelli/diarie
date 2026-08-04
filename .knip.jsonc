@@ -29,8 +29,10 @@
   ],
   "ignoreUnresolved": ["remark-@voxpelli/remark-preset"],
 
-  // `@planned` marks an export that is deliberately kept without a caller. It must SAY WHY in the
-  // JSDoc — a silenced knip warning that implies somebody still needs the export is worse than no
-  // warning at all. See `projectRecords` in lib/migrate/bd-map.js.
+  // `@planned` marks an export that is deliberately kept without a caller. It must SAY WHY in
+  // the JSDoc — a silenced knip warning that implies somebody still needs the export is worse
+  // than no warning at all. Kept for any future such export: the mechanism's only example so
+  // far (`projectRecords` in lib/migrate/bd-map.js) gained a test-suite consumer and no longer
+  // needs the tag.
   "tags": ["-planned"]
 }

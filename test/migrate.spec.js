@@ -35,6 +35,7 @@ import {
 
 import { load } from 'js-yaml';
 
+import { projectRecords } from '../lib/migrate/bd-map.js';
 import {
   groupTasks, MIGRATE_OPTIONS, normalizeBody, projectLive, splitBody, USAGE,
 } from '../lib/migrate/bootstrap.js';
@@ -157,6 +158,26 @@ describe('projectLive (type / status / priority mapping)', () => {
     // bd has statuses beyond STATUS_MAP's four (`reopened`, …). Unmapped → undefined →
     // js-yaml DROPS the key → a task row with no status. Silent corruption; must throw.
     assert.throws(() => projectLive(issue({ status: 'reopened' }), liveIds, []));
+  });
+});
+
+describe('projectRecords (the read-only spike — @planned)', () => {
+  // The spike's projection is retired-from-use but kept (see its @planned tag). It is where the
+  // priority-0 falsy bug lived — `r.priority ? …` treated bd's numeric 0 (critical) as absent —
+  // so its mapping stays pinned: bd priority is 0–4 and 0 IS a value, not a missing one.
+
+  it('bd priority 0 maps to critical, never to the medium default', () => {
+    const { tasks } = projectRecords([issue({ priority: 0 })]);
+    assert.equal(tasks[0]?.priority, 'critical');
+  });
+
+  it('absent priority defaults to medium AND is reported in the loss', () => {
+    // The `priority` key is omitted entirely: an explicit `undefined` is not assignable to
+    // `BdIssue` under exactOptionalPropertyTypes, and an absent key is the honest input anyway.
+    const { loss, tasks } = projectRecords([{ id: 'p-1', title: 't', status: 'open', issue_type: 'task' }]);
+    assert.equal(tasks[0]?.priority, 'medium');
+    const reported = /** @type {{ priorityDefaultedIds: Array<{ id: string }> }} */ (loss).priorityDefaultedIds;
+    assert.ok(reported.some(({ id }) => id === 'p-1'));
   });
 });
 
