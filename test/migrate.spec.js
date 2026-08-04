@@ -644,3 +644,78 @@ describe('the field census (transparency: nothing is discarded quietly)', () => 
     assert.match(out, /owner — 1 record\(s\)/);
   });
 });
+
+/**
+ * Migrate ONE decision record and return the markdown it wrote.
+ *
+ * @param {import('node:test').TestContext} t
+ * @param {Record<string, unknown>} issue
+ * @returns {string}
+ */
+function decisionBody (t, issue) {
+  const dir = tmpDir(t);
+  const file = join(dir, 'export.jsonl');
+  writeFileSync(file, JSON.stringify({
+    _type: 'issue',
+    id: 'd-1',
+    title: 'A decision',
+    status: 'open',
+    issue_type: 'decision',
+    priority: 2,
+    ...issue,
+  }) + '\n');
+  const r = spawnSync('node', [SCRIPT, file, '--root', dir], { encoding: 'utf8' });
+  assert.equal(r.status, 0, `migrate failed: ${(r.stdout ?? '') + (r.stderr ?? '')}`);
+  return readFileSync(join(dir, 'diarium', 'decisions', 'd-1.md'), 'utf8');
+}
+
+describe('the decision WRITE path — a record whose entire content is prose', () => {
+  // NOTHING IN THIS SUITE EVER OPENED A FILE UNDER `decisions/` BEFORE, and that is exactly why
+  // the bug below survived. `projectLive` composes description + `## Notes` + `## Design` into
+  // `task.description`; `dumpDecision` was handed the RAW `r.description` as a SECOND argument
+  // and destructured the composed one off. So every migrated decision lost its notes and design
+  // — on the happy path, with well-formed string input, at exit 0, with no residue report and no
+  // ELOSSY. One-way migration, and a decision is the record type that is nothing BUT prose.
+  //
+  // The task path was fine throughout, which is what makes the pair below the real assertion:
+  // two records, identical `notes`/`design`, differing only in `issue_type`.
+
+  it('carries `notes` and `design` into the body, exactly as the task path does', (t) => {
+    const md = decisionBody(t, {
+      description: 'We chose YAML.',
+      notes: 'Considered TOML and JSON5.',
+      design: 'Frontmatter plus a prose body.',
+    });
+
+    assert.match(md, /We chose YAML\./);
+    assert.match(md, /## Notes/);
+    assert.match(md, /Considered TOML and JSON5\./);
+    assert.match(md, /## Design/);
+    assert.match(md, /Frontmatter plus a prose body\./);
+  });
+
+  it('a decision with NO description still gets a body, not just frontmatter', (t) => {
+    // The starkest shape: notes and design and nothing else produced a file with frontmatter
+    // and a COMPLETELY EMPTY body — the record type whose whole payload is prose, written
+    // with none of it.
+    const md = decisionBody(t, { notes: 'Only notes here.', design: 'And a design.' });
+
+    const body = md.split(/^---$/m).slice(2).join('---').trim();
+    assert.ok(body.length > 0, 'the decision was written with an empty body');
+    assert.match(body, /Only notes here\./);
+    assert.match(body, /And a design\./);
+  });
+
+  it('does not write the acceptance criteria twice', (t) => {
+    // The same single token caused this: using the raw description meant the AC section was
+    // emitted as frontmatter AND left inline in the prose.
+    const md = decisionBody(t, {
+      description: 'Body.',
+      acceptance_criteria: '- one\n- two',
+    });
+
+    assert.equal((md.match(/Acceptance Criteria/gi) ?? []).length, 0,
+      'the AC heading survived in the prose after being lifted into frontmatter');
+    assert.match(md, /acceptance_criteria:/, 'AC should still reach the frontmatter');
+  });
+});
