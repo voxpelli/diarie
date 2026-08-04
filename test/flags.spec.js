@@ -37,7 +37,11 @@ describe('validateFilterFlags', () => {
       () => validateFilterFlags({ filter: 'bogus' }),
       (/** @type {unknown} */ err) => {
         assert.ok(err instanceof InputError);
-        assert.match(err.message, /^--filter must be one of: pending, in_progress, completed, failed, cancelled, deferred$/);
+        // Still anchored at both ends — the vocabulary is a contract and a silent addition to it
+        // should fail here. The tail now also pins that the REJECTED VALUE is named: listing the
+        // alternatives says what is allowed, not what was received, and a refusal that omits the
+        // value cannot be told apart from one that quietly dropped it.
+        assert.match(err.message, /^--filter must be one of: pending, in_progress, completed, failed, cancelled, deferred \(got "bogus"\)$/);
         return true;
       }
     );

@@ -792,26 +792,40 @@ describe('THE INVARIANT: a user mistake is never a crash, and never exit 2', () 
     { what: 'an explicit --help', argv: ['--help'] },
   ];
 
+  // `names` is THE TOKEN THE ANSWER MUST QUOTE BACK — not every token, the one that identifies
+  // the mistake. `diarie ready --nosuchflag` must name `--nosuchflag` and has no business naming
+  // `ready`, which was fine. Where a flag DISPLACES a command, the actionable token is the
+  // discarded COMMAND, because that is what the user has to move.
+  //
+  // `['']` is the one row with nothing to quote: an empty argument has no text to show, which is
+  // itself why "no command given" is the honest answer there.
   const MISTAKES = [
-    { what: 'an unknown command', argv: ['frobnicate'] },
+    { what: 'an unknown command', argv: ['frobnicate'], names: 'frobnicate' },
     // THE LIST IS THE TEST. This row was missing from the first cut, and its absence — not any
     // weak assertion — is what let `diarie ""` keep exiting 2 with 589 bytes of help prose on
     // stdout, through TWO rounds of review. `diarie "$CMD"` with an unset variable is how a
     // wrapper script writes it. When a quantified suite misses a bug, suspect the domain first.
-    { what: 'an empty first argument', argv: [''] },
-    { what: 'a flag where a command belongs', argv: ['--json'] },
-    { what: 'a short flag where a command belongs', argv: ['-j'] },
+    { what: 'an empty first argument', argv: [''], names: undefined },
+    { what: 'a flag where a command belongs', argv: ['--json'], names: '--json' },
+    { what: 'a short flag where a command belongs', argv: ['-j'], names: '-j' },
     // peowly defines ONLY the long forms. This printed help at exit 0 purely because it starts
     // with a dash — the same accident as the two rows below it — never because `-h` was defined.
-    { what: 'a bare -h, which peowly does not define', argv: ['-h'] },
-    { what: 'an unknown top-level flag', argv: ['--nosuchflag'] },
+    { what: 'a bare -h, which peowly does not define', argv: ['-h'], names: '-h' },
+    { what: 'an unknown top-level flag', argv: ['--nosuchflag'], names: '--nosuchflag' },
     // The founding-defect rows: a REAL command, discarded because a flag preceded it.
-    { what: 'a flag before the command', argv: ['--json', 'ready'] },
-    { what: 'a flag with a value before the command', argv: ['--root', '/tmp', 'ready'] },
-    { what: 'an unknown flag on a real command', argv: ['ready', '--nosuchflag'] },
-    { what: 'an invalid enum value', argv: ['ready', '--filter', 'bogus'] },
-    { what: 'a non-numeric number', argv: ['stats', '--days', 'abc'] },
-    { what: 'a negative staleness window', argv: ['stats', '--days', '-5'] },
+    { what: 'a flag before the command', argv: ['--json', 'ready'], names: 'ready' },
+    { what: 'a flag with a value before the command', argv: ['--root', '/tmp', 'ready'], names: 'ready' },
+    { what: 'an unknown flag on a real command', argv: ['ready', '--nosuchflag'], names: '--nosuchflag' },
+    { what: 'an invalid enum value', argv: ['ready', '--filter', 'bogus'], names: 'bogus' },
+    { what: 'a non-numeric number', argv: ['stats', '--days', 'abc'], names: 'abc' },
+    // BOTH SPELLINGS, because they take different paths and only one of them was ever tested.
+    // `--days -5` never reaches diarie at all: node:util.parseArgs rejects it first as an
+    // ambiguous argument (and helpfully names the `--days=-XYZ` form). So this row, labelled "a
+    // negative staleness window", has been exercising parseArgs' dash handling — while
+    // `validateStaleFlags`'s own guard, whose comment explains that a NaN cutoff would report
+    // zero stale tasks, was unreachable through the CLI. The token assertion is what surfaced it.
+    { what: 'a dash-led flag value, which parseArgs rejects before we see it', argv: ['stats', '--days', '-5'], names: '--days' },
+    { what: 'a negative staleness window', argv: ['stats', '--days=-5'], names: '-5' },
   ];
 
   for (const { argv, what } of NO_COMMAND) {
@@ -833,7 +847,7 @@ describe('THE INVARIANT: a user mistake is never a crash, and never exit 2', () 
     });
   }
 
-  for (const { argv, what } of MISTAKES) {
+  for (const { argv, names, what } of MISTAKES) {
     it(`${what} — exits 1, not 2, and is never called "unexpected"`, () => {
       const { code, err, out } = run([], argv, FIXTURES);
 
@@ -848,6 +862,21 @@ describe('THE INVARIANT: a user mistake is never a crash, and never exit 2', () 
 
       // Silence is its own failure: the user must be told SOMETHING.
       assert.ok((err + out).trim().length > 0, 'said nothing at all');
+
+      // AND IT MUST NAME THE OFFENDING TOKEN. This is the assertion whose ABSENCE let
+      // `['--nosuchflag']` be filed as "not a mistake" for an entire release: the row answered
+      // with generic help in which `--nosuchflag` appeared nowhere, and every assertion passed,
+      // because "said something" cannot distinguish REPORTED IT from THREW IT AWAY. A table that
+      // quantifies over user mistakes has to check the one thing that makes a report a report.
+      //
+      // Empty-string and numeric tokens are exempt: `''` has nothing to name (its message says
+      // "no command given"), and a bare number would match by coincidence rather than by report.
+      if (names !== undefined) {
+        assert.ok(
+          (err + out).includes(names),
+          `\`diarie ${argv.join(' ')}\` never named \`${names}\` — a report that does not quote back what it rejected cannot be told apart from a silent drop`
+        );
+      }
     });
   }
 
