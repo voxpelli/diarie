@@ -35,9 +35,9 @@ import {
 
 import { load } from 'js-yaml';
 
-import { parseBdExport, projectRecords } from '../lib/migrate/bd-map.js';
+import { CONSUMED_BD_FIELDS, parseBdExport, projectRecords } from '../lib/migrate/bd-map.js';
 import {
-  groupTasks, MIGRATE_OPTIONS, normalizeBody, projectLive, splitBody, USAGE,
+  groupTasks, MIGRATE_OPTIONS, normalizeBody, PLACED_BY, projectLive, splitBody, USAGE,
 } from '../lib/migrate/bootstrap.js';
 
 /** @import { TestContext } from 'node:test' */
@@ -662,6 +662,130 @@ describe('the field census (transparency: nothing is discarded quietly)', () => 
     assert.equal(code, 0);
     assert.match(out, /not carried over/);
     assert.match(out, /owner — 1 record\(s\)/);
+  });
+});
+
+describe('CONSUMED IS NOT PLACED: a field the projector names but cannot read', () => {
+  // The blind spot this closes, and how it was made: `censusFields` exempts a field from the
+  // residue check because the projector claims to read it. The 2026-07-28 fix for lost
+  // acceptance criteria added `acceptance_criteria`, `notes` and `design` to that list — and
+  // every one of those reads is CONDITIONAL on a shape. So the fix for a silent data loss
+  // installed the exemption that made the next one silent, and three comments then promised
+  // "the residue census reports this" beside a census that structurally could not.
+  //
+  // Reproduced before the fix, and it is the founding defect in the migrator's own voice:
+  // one record carrying all three as unreadable shapes migrated at EXIT 0, empty stderr, no
+  // residue report, no ELOSSY, `diarie validate` clean afterwards — and a row with none of
+  // the three fields on it.
+
+  it('all three unreadable at once: refuses, and NAMES every one', (t) => {
+    const { code, out } = migrateOne(t, {
+      acceptance_criteria: { nested: 'criteria' },
+      notes: { a: 'structured' },
+      design: ['authored design'],
+    });
+    assert.equal(code, 1);
+    assert.match(out, /refusing to migrate: 3 field\(s\)/);
+    assert.match(out, /acceptance_criteria — 1 record\(s\): x-1/);
+    assert.match(out, /notes — 1 record\(s\): x-1/);
+    assert.match(out, /design — 1 record\(s\): x-1/);
+  });
+
+  it('leaves NO TRACE, exactly as an unknown-field refusal does', (t) => {
+    const { dir } = migrateOne(t, { notes: { a: 'structured' } });
+    assert.ok(!existsSync(join(dir, 'diarium')), 'wrote a store despite refusing');
+  });
+
+  // ONE TEST PER PREDICATE. `placesCriteria` and `placesProse` accept different shapes, and a
+  // single combined case would let either one be deleted with the other still going red —
+  // which is how a reviewer comes to remove "the redundant one" and reopen exactly one bug.
+
+  it('acceptance_criteria: an object is neither a string nor a list, so it is REFUSED', (t) => {
+    const { code, out } = migrateOne(t, { acceptance_criteria: { nested: 'criteria' } });
+    assert.equal(code, 1);
+    assert.match(out, /acceptance_criteria — 1 record\(s\): x-1/);
+  });
+
+  it('design: a LIST is refused, because prose is placed only from a string', (t) => {
+    // The case that proves the two predicates are not interchangeable: `['authored design']`
+    // passes `placesCriteria` and fails `placesProse`, and it is an entirely plausible bd
+    // shape. Give both fields one predicate and this record migrates silently again.
+    const { code, out } = migrateOne(t, { design: ['authored design'] });
+    assert.equal(code, 1);
+    assert.match(out, /design — 1 record\(s\): x-1/);
+  });
+
+  it('the refusal names the SHAPE to change the value to, not a wrong remedy', (t) => {
+    // The old single message told every reader their field had "no home in the store" and to
+    // move the content into the description. For this class both halves are false: the field's
+    // home exists, and the fix is the shape. A refusal that names the wrong cause is worse
+    // than a terser one, because it sends the reader to change the wrong thing.
+    const { out } = migrateOne(t, { notes: { a: 'structured' } });
+    assert.match(out, /have a home, but not for the shape they carry here/);
+    assert.match(out, /notes — 1 record\(s\): x-1 · placed only from a string/);
+    assert.doesNotMatch(out, /no home in the store/);
+  });
+
+  it('carries ELOSSY on the --json channel, as PARSEABLE stdout', (t) => {
+    const { code, stdout } = migrateOne(t, { design: ['authored design'] }, ['--json'], true);
+    assert.equal(code, 1);
+    assert.equal(JSON.parse(stdout).code, 'ELOSSY');
+  });
+
+  it('--lossy proceeds, and still NAMES what it drops', (t) => {
+    const { code, dir, out } = migrateOne(t, { notes: { a: 'structured' } }, ['--lossy']);
+    assert.equal(code, 0);
+    assert.match(out, /notes — 1 record\(s\): x-1/);
+    assert.ok(existsSync(join(dir, 'diarium', 'tasks', 'tasks-backlog.yml')));
+  });
+
+  // THE COUNTERWEIGHT, and it is the half that keeps this guard from being a regression. A
+  // stricter census is only correct if every shape the projector DOES read still migrates —
+  // measured over two real exports (43 live issues): `acceptance_criteria` occurs as a string
+  // and as a list of strings, `notes` as a string, and nothing else occurs at all.
+
+  it('a readable shape still migrates, and the content still lands in the row', (t) => {
+    const { code, dir } = migrateOne(t, {
+      acceptance_criteria: ['first', 'second'],
+      notes: 'real prose',
+    });
+    assert.equal(code, 0);
+
+    const row = rowsIn(dir)[0];
+    assert.deepEqual(row?.acceptance_criteria, ['first', 'second']);
+    assert.match(row?.description ?? '', /## Notes\n\nreal prose/);
+  });
+
+  it('a blank list yields nothing but loses nothing, so it does NOT refuse', (t) => {
+    // `[]` and `''` never reach the gate — the census's own "carries content" check drops them
+    // first. Pinned because the alternative is an ELOSSY on an export where nothing is lost,
+    // and a guard that refuses working input is a regression however correct its reasoning.
+    assert.equal(migrateOne(t, { acceptance_criteria: [], notes: '', design: '' }).code, 0);
+  });
+
+  it('every consumed field declares whether its consumption is CONDITIONAL', () => {
+    // THE ANTI-BLINDING DEVICE. Adding a name to CONSUMED_BD_FIELDS is what blinds the census
+    // — it is the one edit that silently shrinks what the residue check can see. This makes
+    // that edit cost a red test until someone states which class the new field is in, and
+    // whether its consumer has a `return []` that needs gating.
+    //
+    // Driven by `Object.keys`, so a new key with no case here fails rather than defaulting to
+    // the quiet answer.
+    const UNCONDITIONAL = [
+      '_type', 'dependencies', 'description', 'id', 'issue_type',
+      'labels', 'priority', 'status', 'title', 'updated_at',
+    ];
+    const GATED = ['acceptance_criteria', 'design', 'notes'];
+
+    assert.deepEqual(
+      Object.keys(CONSUMED_BD_FIELDS).toSorted(),
+      [...UNCONDITIONAL, ...GATED].toSorted(),
+      'a consumed field is unclassified — say whether its consumer can decline a shape'
+    );
+
+    // And the classification has to match the code, not just this list: PLACED_BY is what the
+    // census actually consults.
+    assert.deepEqual(Object.keys(PLACED_BY).toSorted(), GATED.toSorted());
   });
 });
 
