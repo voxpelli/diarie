@@ -1768,6 +1768,7 @@ tasks:
       - "a Map is a guard that DROPS a value (the earlier row's identity) with no report — the exact shape the loader's ten `reject()` sites exist to prevent, one layer up"
       - "FIX: `loadTasks` warns on a repeated GlobalId naming the consequence (`the later row wins, so dep resolution is decided by file order`). That routes it into `warnings` -> --json payload -> `unsound` -> `--strict` exit 2, reusing machinery that already exists"
       - "validate already errors on this WITHIN a file (lib/validate.js `duplicate id ... within file`). Check the ACROSS-file case too — see diarie-dup, which may prove it unreachable by construction"
+      - "NARROWED 2026-08-05 by 6eb01ac, not closed. The TYPE-MISMATCHED variant (`id: 42` beside `id: '42'`) is gone: the loader now refuses a non-string id before `nsId` mints from it, so the two never meet in `byId` and the surviving row is the legitimate one. What remains — and what the reproduction above actually uses — is two rows claiming the SAME LITERAL id, which still collapses silently with the later winning. Do not re-verify with the numeric pair; it no longer reproduces"
     description: >-
       From a silent-failure audit 2026-08-05, reproduced independently by me before filing. Sits in
       the same family as diarie-rdr: a reader that drops something and does not say so.
