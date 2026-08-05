@@ -1972,3 +1972,96 @@ tasks:
       every call site and the marginal cost drops to near zero; (c) another `String(unknown)`
       coercion defect is reproduced anywhere in the id domain.
     updated: '2026-08-05'
+  - id: diarie-crc
+    title: '`migrate --coerce`: keep what CAN be kept, and say so, instead of refusing the whole run'
+    status: pending
+    type: task
+    priority: medium
+    labels:
+      - feature
+      - migrate
+    acceptance_criteria:
+      - "THE HOOK ALREADY EXISTS, and it is not called what earlier notes called it. There is no `outcome accumulator`. `d4ed4c6` landed `PLACED_BY` in lib/migrate/bootstrap.js — a per-field record `{ accepts: <prose>, places: (value) => boolean }` consulted by `censusFields(live, PLACED_BY)`, whose third return map `unplaceable` names every field whose consumer could not read the shape it carried"
+      - "SO THE DESIGN IS ONE MORE KEY on those same entries: `coerce: (value) => string | undefined`, tried BEFORE a field is filed as unplaceable. Each success is a stdout line naming the field, the row and what it became. This is a much smaller job than a from-scratch accumulator, and it inherits step 4's anti-blinding test for free"
+      - "`--coerce` NEVER implies `--lossy`, and the two compose. --lossy means `drop it and tell me`; --coerce means `keep it in a form you can read and tell me`. A flag that silently turned one into the other would re-open the data-loss class ELOSSY exists to close"
+      - "Joins MIGRATE_OPTIONS (lib/migrate/bootstrap.js:148 — re-verified 2026-08-06). test/migrate.spec.js:405 (`every flag listed in USAGE is a MIGRATE_OPTIONS key, and vice versa`) then covers it for FREE: it deepEquals both directions, so adding the flag to one side only goes red"
+      - "Verified still absent 2026-08-06: `grep -rn -- \"--coerce\" lib test README.md` returns 0 hits. Add the trio to README.md and to CLAUDE.md's migrate bullet, which today names only ELOSSY and --lossy"
+      - "REVIVAL TRIGGER: a real export refuses on a shape that is obviously coercible (a list where prose is wanted, a number where a string is wanted). Until that happens, ELOSSY-plus---lossy is a complete answer and this is additional surface a consumer must learn"
+    description: >-
+      Deferred out of the diarium-pair branch deliberately. `migrate` refuses (ELOSSY) rather than
+      dropping data it cannot map, and `--lossy` overrides by dropping and naming what it dropped.
+      The gap between them is the value this tool COULD have carried but cannot read in the shape
+      it arrived in. Not urgent: nothing is silently lost today, which is the property that
+      mattered.
+    updated: '2026-08-06'
+  - id: diarie-sui
+    title: 'The largest module on the branch has ZERO in-process tests, against the project''s own doctrine'
+    status: pending
+    type: task
+    priority: medium
+    labels:
+      - test
+    acceptance_criteria:
+      - "MEASURED 2026-08-06: there is no `test/store.spec.js`. The ten spec files are api, brand, cli, commands, flags, migrate, ready, records, update-stamp, validate. So `lib/store/` (6 files, ~800 lines) is exercised only through spawned CLI runs"
+      - "That contradicts the project's own doctrine, stated in CLAUDE.md: work is exported so it is assertable IN-PROCESS, with no spawn and no stdout capture. `ready`/`stats`/`validate` each split out a `doTheWork` for exactly this reason; the store layer never got the same treatment even though `initStore` is already exported for it"
+      - "ADD `test/store.spec.js` covering the store layer directly: trackerDirIn / defaultTrackerDir / the ETWOSTORES throw / legacy .diarie detection / listTaskFiles's third `ignored` return / loadTasks's warning channel. Assert exit CODES through a spawned cli.js as usual — the {error, code} contract is produced at the boundary, not in the work stage"
+      - "SEPARATE FINDING, same shape (was `T-11`): test/cli.spec.js asserts the help ONLY via /ready/ and /migrate/ — at :822-823, :970-971 and :1038 — so REMOVING a command is caught and ADDING one is free. `COMMAND_LIST` (lib/cli.js:33, and the body of two InputErrors at :98 and :158) is never asserted anywhere in test/. Pin the command list by equality, the way test/api.spec.js pins the export surface"
+      - "Falsify before trusting any new assertion: break the thing it covers and confirm a DIFFERENT test goes red for each half. A suite added wholesale is the easiest place in this repo to add a guard that cannot fail"
+    description: >-
+      Deferred out of the diarium-pair branch deliberately — it adds no behaviour and closes no
+      reproduced defect, so it was never a release blocker. It is filed because the branch's own
+      history is the argument for it: the six-way lib/store.js split, the loader's warning channel
+      and the ignored-files gap all landed in a module that no in-process test has ever looked at.
+      REVIVAL TRIGGER: any further change to lib/store/ — at which point write the suite first, so
+      the change has something to break.
+    updated: '2026-08-06'
+  - id: diarie-slg
+    title: '`init --slug` writes files the reader cannot see, and one bad slug bricks the directory forever'
+    status: pending
+    type: task
+    priority: high
+    labels:
+      - bug
+    acceptance_criteria:
+      - "ALL THREE REPRODUCED 2026-08-06 against the real binary. (a) `init --slug 'a/b'` exits 1 with an ENOENT stack trace through lib/store/init.js:127 and ZERO BYTES on stdout under --json — and it LEAVES diarium/, diarium/tasks/ and diarium/decisions/ on disk, because the crash happens after the mkdirs. `ready` on that half-store then answers `(no ready tasks)` at exit 0, and re-`init` is EEXIST (init.js:86) FOREVER with no `rm -rf` in the message. The only init refusal that names a remedy is the legacy-name branch (init.js:97-111), a different case"
+      - "(b) THE SILENT ONE IS WORSE: `init --slug '../../x'` prints `Created a task store ...: diarium/tasks/tasks-../../x.yml` and EXITS 0 — the `..` pops the `tasks-` component, so the real file is diarium/tasks/x.yml, which does not match the reader's glob. `ready` never mentions it (exit 0); `validate` emits a stderr NOTICE and still exits 0. `--slug ''` is the same shape: writes tasks-.yml (TASKS_FILE_RE's `.+` needs one char), notice from validate, exit 0 from both. NOTE the earlier phrasing `validate catches it` is too strong — it notices, it does not fail"
+      - "🚨 THE WRITERS ALREADY DISAGREE, and this is the fact that reframes the whole row: `migrate` DOES guard the slugs it mints — SLUG_RE = /^[a-z0-9][a-z0-9-]*$/ at lib/migrate/bootstrap.js:97, enforced at :897 with EUSAGE — while `init` applies NO rule at all and interpolates straight into the filename at lib/store/init.js:127. Two commands that mint the same kind of name, one strict and one wide open. Whatever lands here should close that gap deliberately rather than adding a third opinion"
+      - "DESIGN (unimplemented — `assertSlugWritable` has 0 hits in lib/ and test/): four clauses in lib/store/utils.js, each killing a case no other kills — (A) the reader's own TASKS_FILE_RE, IMPORTED not restated, kills ''; (B) one path component, asked of the NAME in both separator dialects, kills every traversal; (C) NUL; (D) 255 bytes. EUSAGE, add no new error code. Order it as the FIFTH refusal, AFTER assertStorePathFree (lib/store/init.js:154, refusal 4 of the four documented at :47, read-only lstatSync) — that check is a fact about the world, so a typo check first would let a bad slug mask a genuinely occupied path"
+      - "REJECTED, so they are not re-proposed: a charset SLUG_RE for INIT — verified 2026-08-06 that tasks-Roadmap.yml, tasks-my_backlog.yml and tasks-v1.2.yml all work today and all three would break (this is why init cannot simply adopt migrate's rule as-is); containment-by-dirname — for ../../x the dirname EQUALS the expected dir, so it misses the headline case; slugOf(basename) === slug — a tautology that can never fire, a guard that cannot fail inside a gate"
+      - "THE READER STAYS DELIBERATELY MORE PERMISSIVE THAN THE WRITER: a tool refuses to MINT a name it cannot round-trip; it does not refuse to READ one. If you ever unify them you are deleting stores. Same asymmetry lib/ids.js reached from the other end — isUsableRef declines to constrain the slug half of a ref, because nothing decides a slug's shape; THIS row is where that decision belongs, as a write-time rule"
+      - "WHILE IN THERE: `what is a task file` has no single home. TASKS_FILE_RE is lib/store/list-task-files.js:10; a byte-identical inline copy sits at lib/migrate/bootstrap.js:112 (inside taskFilesIn at :110); slugOf (lib/store/utils.js:10) encodes the same rule in split form. Earlier notes called this `a third fork` — loose: there are two literal copies plus slugOf's split encoding. Consolidate into one home"
+      - "LEAVE-NO-TRACE IS UNDECIDED and does NOT block the guard — (A) mkdtemp-beside + rename; (B) non-recursive rmdir unwind, original error always wins; (C) guard only, document the residue. Two facts for whoever decides: schema.js reserves write-then-rename for PER-FILE writes and this would rename a DIRECTORY (different granularity, so it does not spend the reserved answer), and nothing in lib/ does mkdtemp or rename today (0 hits — all mkdtempSync is in test/). 🚨 rename across filesystems throws EXDEV, so a rename design MUST mkdtemp in the STORE'S PARENT, never os.tmpdir(). (EXDEV is POSIX-documented but was not empirically re-verified here: /private/tmp and the repo report the same device id)"
+      - "THE GUARD ALONE CAN LAND, leaving the residue question open. Zero working invocations break"
+    description: >-
+      Deferred out of the diarium-pair branch, and filed because it is a live data-integrity bug
+      rather than a tidy-up: the silent branch writes a file the reader will never see, at exit 0,
+      with `ready` and `validate` both reporting success. That is the founding defect produced by
+      the tool's own write path.
+      REVIVAL TRIGGER: any change to `init`, or the first report of a store with a file in tasks/
+      that nothing reads.
+    updated: '2026-08-06'
+  - id: diarie-frz
+    title: 'Freeze the vocabularies for real — `Object.freeze` does not protect a Set, and the guard that says it does would not guard'
+    status: pending
+    type: task
+    priority: medium
+    labels:
+      - refactor
+    acceptance_criteria:
+      - "🚨 THE TRAP THIS ROW EXISTS TO AVOID, re-probed 2026-08-06: `Object.freeze(new Set(['a'])).add('b')` SUCCEEDS (size becomes 2), while `Object.freeze(['a']).push('b')` throws TypeError. So writing `Object.freeze(VALID_STATUSES)` ships a guard that does not guard — in the very change whose purpose is closing that anti-pattern. Use `FrozenSet` (@voxpelli/typed-utils, already a runtime dep) for the three Sets, and `Object.freeze` for the arrays and objects"
+      - "SHAPE: `const STATUSES = Object.freeze(/** @type {const} */ (['pending', ...]));` then `export const VALID_STATUSES = new FrozenSet(STATUSES);` and `isStatus = (v) => guardedArrayIncludes(STATUSES, v)` — the TUPLE, not the Set. ✅ The nesting `Object.freeze` OUTSIDE `@type {const}` IS load-bearing: the reverse (`/** @type {const} */ (Object.freeze([...]))`) fails outright with TS1355, because a call expression is not a literal. ❌ But `@satisfies` placement is NOT load-bearing — tested both inside and outside the freeze wrapper, both compile clean with identical narrowing. Earlier notes claimed it mattered; it does not"
+      - "WHY IT DELETES lib/utils/type-utils.js: that file has ONE export, `extendedGuardedArrayIncludes` (:9), whose only difference from the upstream `guardedArrayIncludes` is a widened template accepting `ReadonlySet<unknown>`. Verified: passing a ReadonlySet to plain `guardedArrayIncludes` is TS2345 (`missing add, clear, delete, [Symbol.toStringTag]`). The file carries NO written rationale — only per-function JSDoc — so the reason it exists is undocumented and must be recorded wherever it moves"
+      - "⚠️ NOT A WHOLESALE DELETE, measured: its only importer is lib/schema.js:92 with FIVE call sites — isStatus:465, isTaskType:471, isPriority:477, isTrackerDir:492, isAnyStoreDir:509. Swapping to plain `guardedArrayIncludes` yields EXACTLY 3 errors (464/470/476 — the Set-backed checks); isTrackerDir and isAnyStoreDir are ARRAY-backed (over TRACKER_DIRS/LEGACY_TRACKER_DIRS tuples) and already compile fine. So two of the five sites need no change at all"
+      - "NOT AN API BREAK on types: `FrozenSet<T> extends Set<T>` (typed-utils lib/set.d.ts:5), `instanceof Set` is true, `.has`/spread are identical, and only add/delete/clear are overridden to throw. VALID_STATUSES/VALID_TYPES/VALID_PRIORITIES (lib/schema.js:187-192) stay declared `ReadonlySet<T>` and stay on the public allowlist (test/api.spec.js:42, :68). ⚠️ BUT IT IS A RUNTIME BEHAVIOUR CHANGE ON A PUBLIC SURFACE: a consumer mutating the export from plain JS, or through a cast (ReadonlySet is compile-time only), sees silent success today and a thrown TypeError afterwards. Announce it"
+      - "SECOND COMMIT — `fix(ready)!` un-widen the boundary types. lib/ready.js:155 declares `blockers: string[], children?: string[]` while the implementation already uses GlobalId[] (:162); lib/ready.js:298 declares `Record<string, number>` while `tally()` (:33) already infers `Record<T, number>` from its ReadonlySet argument. ❌ `7 test sites go red` is DEAD — measured by applying both narrowings: EXACTLY 3 test sites, 4 error lines, all in test/ready.spec.js (:105, :194, :248 which carries two). Identical with default lib and with --lib es2024. test/cli.spec.js is unaffected because its blockers usages sit behind manual casts on parsed JSON"
+      - "THIRD COMMIT — a named `LossReport` type plus a narrowed `censusFields` @returns. NOTE the target MOVED: `censusFields` is now lib/migrate/bd-map.js:467, returns THREE maps { ignored, residue, unplaceable } and takes a second `placed` argument (d4ed4c6). The reasonless-line fallback is no longer inside it — it is in the CONSUMER at lib/migrate/bootstrap.js:985, where `hasOwn(PLACED_BY, f) ? ... : ''` prints a loss-report line naming a field and record ids but stating NO reason when the branch is false. Making unplaceable's keys provably PLACED_BY members is what lets that fallback be deleted rather than merely never taken"
+      - "⚠️ TUPLE ORDER IS A MACHINE CONTRACT — verified both halves: lib/ready.js:301-303 seeds byStatus/byPriority/byType via tally(VALID_STATUSES/PRIORITIES/TYPES), and tally() (:33-38) iterates in the Set's own order, i.e. the insertion order of the _MAP literals in schema.js. And lib/flags/filter.js:20 (help text) and :49 (the EUSAGE message) spread VALID_STATUSES into user-facing strings in that same order. Reordering a vocabulary reorders published output"
+    description: >-
+      Deferred out of the diarium-pair branch: it closes no reproduced defect and changes no
+      behaviour a user can currently trigger. Filed because the branch repeatedly found guards that
+      do not guard, and this is the one place where writing the OBVIOUS version of the fix
+      (`Object.freeze` on a Set) would ship exactly that — a guard that silently permits the thing
+      it names.
+      REVIVAL TRIGGER: any change to the VALID_* vocabularies, or the first report of a consumer
+      mutating one of the exported Sets.
+    updated: '2026-08-06'
