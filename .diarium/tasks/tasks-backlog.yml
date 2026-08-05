@@ -1940,3 +1940,33 @@ tasks:
       relying on someone re-reading the decision later. If diarie-frm settles on option (d), close
       this row as cancelled with that reason recorded.
     updated: '2026-08-05'
+  - id: diarie-mnt
+    title: Type-gate the loader's id-mint sites so a future unguarded `nsId` call fails `tsc` rather than shipping
+    status: pending
+    type: task
+    priority: low
+    deps:
+      - diarie-xid
+    labels:
+      - refactor
+    acceptance_criteria:
+      - "A `UsableRef`/`UsableId` brand sits beside `GlobalId` in lib/schema.js, and lib/ids.js's predicates become type predicates over it (`v is UsableRef`). Reuse `GlobalId`'s own argument — the brand buys PROVENANCE, not detection — rather than re-litigating it"
+      - "A narrow internal `mintRef(ref: UsableRef, slug): GlobalId` delegates to `nsId` in one line. It must NOT restate the namespacing rule: that rule already has one home, and the whole point of this row is to stop id logic having two"
+      - "`npm run check` fails if any of the loader's three guarded sites passes an un-narrowed value to `mintRef`; `npm test` shows NO behaviour change for any store that is valid today"
+      - "OUT OF SCOPE, and say so in a comment beside `mintRef`: validate.js's five `nsId` sites keep calling `nsId` directly. They mint unconditionally ON PURPOSE, even for an invalid row, because the whole-store duplicate and cycle passes must survive one bad id — forcing them through the brand would break the analysis this row is meant to protect"
+      - "`nsId`'s published signature, test/api.spec.js's pinned surface, and test/ready.spec.js's `nsId(1, 'alpha')` coercion contract are all UNCHANGED — this is internal discipline, not an API change"
+    description: >-
+      6eb01ac closed the reproduced defect by judging every ref before `nsId` mints from it, and
+      deliberately left `nsId` itself permissive: it is published, and a test pins its coercion.
+      What that does not close is call-site DISCIPLINE. Nothing stops a future feature calling
+      `nsId` on unvalidated data and re-opening the same hole, and the invariant now rests entirely
+      on six guarded sites across two files — which is the configuration that produced the
+      half-globalized `parent` in the first place.
+      DEFERRED DELIBERATELY, not forgotten: no live defect stays open by waiting, and this repo's
+      convention is to earn a hand-held rule into a hard gate on the SECOND incident, not the
+      first. REVIVAL TRIGGERS, any one of them — (a) a second `nsId` call site appears in lib/
+      outside schema.js, load-tasks.js and validate.js, i.e. the discipline has to be taught to a
+      new file; (b) diarie-xid lands and touches id namespacing, since that work already visits
+      every call site and the marginal cost drops to near zero; (c) another `String(unknown)`
+      coercion defect is reproduced anywhere in the id domain.
+    updated: '2026-08-05'
