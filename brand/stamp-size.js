@@ -3,7 +3,7 @@
  *
  * A BUILD step (`brand:size`): it stamps the deploy output
  * `brand-dist/index.html`, NOT the source `brand/index.html` — same rule as
- * update-stamp.js. Runs LAST in `brand:build`, because every earlier step
+ * update-stamp.js. Runs LAST in `brand`, because every earlier step
  * (copy, stamp) changes the byte count this one reports.
  *
  * ── Why this is generated rather than written ────────────────────────────

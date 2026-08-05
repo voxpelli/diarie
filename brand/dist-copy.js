@@ -2,7 +2,7 @@
  * dist-copy.js — reset `brand-dist/` to a clean snapshot of the deployable
  * source, ready for the stamp + favicon generators to write into.
  *
- * A BUILD step (`brand:copy`), the first stage of `brand:build`. It copies
+ * A BUILD step (`brand:1-copy`), the first stage of `brand`. It copies
  * only the ALLOWLIST below — the files diarie.dev actually serves — so the
  * design docs and the build tooling never leak into the deploy. `cp` throws
  * if a listed source is missing (loud, per the founding thesis — a missing
@@ -19,12 +19,12 @@ const DIST = new URL('../brand-dist/', import.meta.url); // repo-root sibling
 
 // The deployable set (diarie.dev root). `CNAME` pins the custom domain (Pages
 // removes it on deploy if the artifact lacks it); `.nojekyll` is belt-and-suspenders
-// for the artifact deploy. Generated favicons are written by brand:favicon.
+// for the artifact deploy. Generated favicons are written by brand:3-favicon.
 //
 // `tokens.css` IS here because index.html links it rather than inlining a copy.
 // That link is render-blocking, so omitting it does not merely lose colour — it
 // ships an unstyled page. This is the one entry whose absence is catastrophic
-// rather than cosmetic, which is why brand:check asserts referenced assets exist.
+// rather than cosmetic, which is why brand-check asserts referenced assets exist.
 //
 // brand-book.html is published UNLISTED: it carries `noindex`, and nothing on
 // diarie.dev links to it. It drags in the canonical artifacts it displays —

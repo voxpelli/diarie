@@ -26,16 +26,22 @@ verb:
 * `npm run check` — **linting/checks ONLY** (`run-p check:*`: lint, tsc, type-coverage, knip,
   installed-check, md, ast-grep, ast-grep-test, tasks). Does NOT run tests.
 * `npm run test-ci` / `npm run test:node` — tests only (`node --test`).
-* `npm run build` — emit `.d.ts` via `declaration.tsconfig.json` (also runs on `prepack`).
+* `npm run build` — `run-s build:*`: `build:0` (`clean`) then `build:1-declaration`, which emits
+  `.d.ts` via `declaration.tsconfig.json`. Also runs on `prepack`.
 * `npm run serve` — live-reload preview of the `brand/` HTML pages (`index.html` = diarie.dev) at
   `localhost:${PORT:-3334}` via `@domstack/sync`. Dev-only; `brand/` is not in the package `files`.
-* **Brand tooling (`brand:*`) is maintainer/CI-run and NEVER in the gate.** `brand:build` = `run-s
-  brand:copy brand:stamp brand:favicon` writes the deployable site into the **gitignored `brand-dist/`**
-  (never source `brand/`, whose committed stamp is the designer's bespoke artifact). `brand:stamp`
-  (`update-stamp.js`, opentype.js) outlines the INKOM stamp; `brand:favicon` (`generate-favicons.js`,
-  `@voxpelli/generate-favicon`) renders `apple-touch-icon.png` from the full mark (flattening its CSS
-  `var()` first — rasterizers don't resolve custom properties). `brand:check`
-  (`scripts/check-brand-assets.js`) asserts referenced deploy assets exist; it runs post-build in
+* **Brand tooling is maintainer/CI-run and NEVER in the gate.** `npm run brand` = `run-s brand:*`
+  — `brand:1-copy` (`dist-copy.js`), `brand:2-stamp`, `brand:3-favicon`, `brand:4-size` — writes the
+  deployable site into the **gitignored `brand-dist/`** (never source `brand/`, whose committed stamp
+  is the designer's bespoke artifact). The numeric prefixes are load-bearing: `run-s brand:*` expands
+  in lexical order, so a new step must be numbered into place, not appended. `brand:2-stamp`
+  (`update-stamp.js`, opentype.js) outlines the INKOM stamp; `brand:3-favicon`
+  (`generate-favicons.js`, `@voxpelli/generate-favicon`) renders `apple-touch-icon.png` from the full
+  mark (flattening its CSS `var()` first — rasterizers don't resolve custom properties);
+  `brand:4-size` (`stamp-size.js`) reports the result. 🚨 **`brand-check`
+  (`scripts/check-brand-assets.js`) is deliberately spelled with a HYPHEN, not `brand:check`** — that
+  is what keeps `run-s brand:*` from running the verifier as part of the build it is meant to verify.
+  It asserts referenced deploy assets exist and runs post-build in
   `.github/workflows/pages.yml` (GitHub Pages, `deploy-pages@v5`), **not** in `npm test` (the local gate
   never builds `brand-dist/`). A mutating generator must never join `check:*`/`test:*`. If the build
   ever outgrows plain-Node copy+stamp+favicon, adopt domstack (already the `serve` tool) rather than
@@ -185,10 +191,12 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
 
 * **ESM only**, JSDoc types (`tsc` checks, never compiles), **neostandard** via
   `@voxpelli/eslint-config` (semicolons on). Prefer `unknown` + type guards over `any`.
-* **`.gitignore` is load-bearing for lint scope.** `check:ast-grep` takes no path args and is bounded
-  by `.gitignore`, and `check:md` runs `--ignore-path .gitignore`, so adding a broad ignore entry
-  SILENTLY shrinks lint coverage with nothing going red. Treat every `.gitignore` line as a lint-scope
-  decision. There is now a SECOND scope lever: `check:ast-grep` also carries `--globs '!.design-sync/**' --globs '!.impeccable/**'` (agent-tooling state). Those are declarative — ast-grep's walker already
+* **`.gitignore` is load-bearing for lint scope, and FOUR checks read it — not two.** `check:ast-grep`
+  takes no path args and is bounded by it; `check:md` runs `--ignore-path .gitignore`; **`check:lint`**
+  is plain `eslint`, and `@voxpelli/eslint-config` spreads in `resolveIgnoresFromGitignore()`; and
+  **`check:knip`** respects `.gitignore` by default (it would take `--no-gitignore` to opt out, which
+  nothing passes). So adding a broad ignore entry SILENTLY shrinks coverage across all four with
+  nothing going red. Treat every `.gitignore` line as a lint-scope decision. There is now a SECOND scope lever: `check:ast-grep` also carries `--globs '!.design-sync/**' --globs '!.impeccable/**'` (agent-tooling state). Those are declarative — ast-grep's walker already
   skips dot-directories, so they exclude nothing that was scanned before — but a `--globs` added to that
   script IS a coverage decision and belongs in this bullet. (See `sgconfig.yml` for the reasoning.)
   The Litho agent bundle is a THIRD lever, and it differs in kind: `.litho/` (dot-dir, tool state —

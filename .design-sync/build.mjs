@@ -26,7 +26,7 @@
  * ── Deliberately NOT in the deploy ───────────────────────────────────────
  * Nothing here is part of diarie.dev. `brand/foundations.{html,css}` are
  * absent from dist-copy.js's ASSETS on purpose; adding them would publish an
- * internal specimen sheet. `brand:check` therefore never verifies this path.
+ * internal specimen sheet. `brand-check` therefore never verifies this path.
  * Rendering foundations.html locally checks the LOOK, but it cannot check the
  * bundle's own wiring — there, `fonts/` and `tokens.css` resolve against
  * brand/, where they exist regardless. The assertions below are the substitute:

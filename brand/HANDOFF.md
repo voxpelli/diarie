@@ -5,7 +5,7 @@ _Implementation contract for the two built pages. Token values:
 [`BRAND.md`](../BRAND.md). Both pages are static HTML files reading three
 self-hosted woff2:s from the adjacent `fonts/` directory. The deployed site is
 served as static files — no framework, nothing to run at serve time; a small
-`brand:build` step (`update-stamp.js` + `generate-favicons.js`) regenerates the
+`npm run brand` step (`update-stamp.js` + `generate-favicons.js`) regenerates the
 INKOM stamp and favicons into `brand-dist/` before deploy (see Deployment). The
 reference implementation is the spec's executable form, and this document is what
 must survive any rewrite._
@@ -162,7 +162,7 @@ exact sRGB values the hex labels claim.
 
 ## Deployment
 
-diarie.dev is built from `brand/` by `npm run brand:build`, which writes the
+diarie.dev is built from `brand/` by `npm run brand`, which writes the
 deployable set into the gitignored `brand-dist/`: `index.html` with a freshly
 generated INKOM stamp (build date + package version), the generated
 `apple-touch-icon.png`, `og.png`, the `fonts/` directory (three woff2:s, plus
@@ -171,7 +171,7 @@ software), and `CNAME` + `.nojekyll`. Source `brand/` stays pristine — its
 committed stamp is the designer's bespoke artifact, never overwritten by the build.
 
 CI deploys `brand-dist/` to GitHub Pages via `.github/workflows/pages.yml`
-(build → `brand:check` → `upload-pages-artifact` → `deploy-pages`). `brand:check`
+(build → `brand-check` → `upload-pages-artifact` → `deploy-pages`). `brand-check`
 asserts every referenced local asset exists and is non-empty, so a missing
 icon or font fails the build instead of 404-ing on the live site. One-time setup:
 enable Pages (Settings → Pages → Source: GitHub Actions) and confirm the

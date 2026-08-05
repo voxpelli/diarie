@@ -64,7 +64,7 @@ litho.docs/
 # by `/impeccable init`.
 /DESIGN.md
 
-# The brand deploy build output. `brand:build` regenerates it (copy of the deployable source +
+# The brand deploy build output. `brand` regenerates it (copy of the deployable source +
 # freshly generated stamp + favicons); CI builds it and deploys it to diarie.dev via pages.yml.
 # A DELIBERATE lint-scope exclusion per the warning above: it is generated, so linting the copies
 # would be noise — but that means a lint rule cannot see it, by design.

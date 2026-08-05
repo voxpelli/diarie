@@ -4,7 +4,7 @@
  * `/apple-touch-icon.png` or a missing font would 404 on the live site while
  * the page itself still renders — the exact silent gap this guard closes.
  *
- * Runs AFTER `brand:build` (as `brand:check`, in the deploy workflow) — NOT in
+ * Runs AFTER `npm run brand` (as `brand-check`, in the deploy workflow) — NOT in
  * the local `npm test` gate, which never builds brand-dist/.
  *
  * HTML is PARSED, not pattern-matched. A regex over markup answers a narrower
@@ -22,7 +22,7 @@
  *
  * Skipped by design: `data:` refs (the tab favicon is a self-contained
  * data-URI) and `http(s)://` refs (external links aren't ours; og.png is an
- * absolute same-origin URL and is instead covered by brand:copy's loud failure
+ * absolute same-origin URL and is instead covered by brand:1-copy's loud failure
  * — a missing source throws there).
  */
 import { readFile, stat } from 'node:fs/promises';
