@@ -1859,3 +1859,29 @@ tasks:
       here is a false claim about the contract with nothing able to go red. CLAUDE.md records this
       exact surface shipping a false CLI claim twice already.
     updated: '2026-08-05'
+  - id: diarie-frm
+    title: 'Storage FORM is coupled to entity TYPE, and the stated reason is measurably false — decide whether to decouple them'
+    status: pending
+    type: task
+    priority: high
+    labels:
+      - decision
+    acceptance_criteria:
+      - "THE MEASUREMENT THAT PROMPTED THIS (2026-08-05, this repo's own store): 72 rows, 57 of them carrying >1000 characters of prose in `description` + `acceptance_criteria`, 25 carrying >2000, and ZERO carrying under 100. The 16 decision records' bodies run 2161/5527/13195 (min/median/max). The largest ROW (diarie-snd, 10773 chars) out-proses 14 of the 16 RECORDS. schema.js justifies the split as `the body is the prose the terse row can't hold` — the rows are not terse and the distributions overlap almost completely, so TYPE does not predict prose volume, which is the only stated reason two forms exist"
+      - "SECOND MEASUREMENT, same pass: all 72 rows are `type: task`. Zero milestones exist, and `docs/` is created by nothing (see diarie-typ). So the four-type/two-form mapping has exactly TWO live cases — task→YAML row, decision→markdown file — and the other two arms are asserted, not exercised"
+      - "THE REFRAME the user proposed and the evidence supports: the rule is drawn on the wrong axis. `does this entity carry prose` is an INSTANCE property; `what kind of thing is this` is a TYPE property. Coupling them means a 10k-character task cannot become a file and a one-line decision cannot become a row, for no reason either the schema or the data can defend"
+      - "WHAT MAKES THIS NEWLY CHEAP: as of 2026-08-05 the field schema is already ONE implementation across both forms (`lintFields` in lib/validate.js validates a task row and a record's frontmatter identically). The entity model is therefore ALREADY unified; what remains coupled is only which directory the bytes sit in and which serialization they use"
+      - "THE STRONGEST COUNTER, and it must not be waved through: today a decision in force is STRUCTURALLY incapable of being offered as workable, because the loader globs `tasks-*.yml` and records are not in it — schema.js and README both state this as a guarantee, and bd got it wrong precisely here. Decoupling downgrades that from `cannot happen` to `there is a type check`. That check already exists in ready.js:171 for the SUBJECT — and the dep loop forty lines below it lacks the same check (see the non-task-deps work), which is live evidence that the runtime check is easy to forget and the structural property is doing real work"
+      - "SECOND COUNTER: a flat `tasks-<slug>.yml` is reviewable as ONE unit in a PR diff and greppable as one file — arguably diarie's best property, and the reason `collapse everything to one-file-per-entity` is not obviously the clean answer. 70 markdown files is not a thing you read top to bottom"
+      - "THIRD COUNTER, the one most likely to bite: if form is per-instance, users need a way to PROMOTE a row to a file and demote it back. That is a CRUD operation, and VISION.md refuses a CRUD layer on the grounds that it would make diarie the owner of your data. Either the promotion is a hand-edit (plausible — delete a YAML entry, write a file) and stays honest, or the demand for `diarie promote` becomes the thin end of exactly the wedge the vision declines. Decide this BEFORE the model, because it may be what settles it"
+      - "OPTIONS TO WEIGH EXPLICITLY, not just the first two: (a) decouple — any type in either form, loader reads both; (b) collapse to files — one entity per markdown file, no YAML rows at all; (c) collapse to rows — prose moves into YAML block scalars, no record files at all (note this repo already writes 6-line `description: >-` blocks, so it is less absurd than it sounds); (d) keep the coupling but fix its JUSTIFICATION in schema.js to say what is actually true, which is that batching suits terse entities and files suit prose ones — a defensible rule stated on the right axis, still enforced by type as a proxy"
+      - "SEQUENCING: this pressures diarie-rel (can a record satisfy a dep) and diarie-ids (a record has no slug, so what is its GlobalId — decoupling forces that answer), and it subsumes part of diarie-typ (`doc` being vestigial). Do not answer those separately first; whichever option wins here decides them"
+    description: >-
+      Raised 2026-08-05 by the user immediately after `validate` was widened to read the whole store:
+      "why do we have to rule which to choose for what, can't we support both for everything and get
+      a cleaner entity model?". Filed as a DECISION rather than work because every option here is a
+      one-way door on the store format, and because the measurement above turns it from a taste
+      question into a factual one — the current split is justified by a claim about prose volume that
+      this repo's own data contradicts. Note the honest possibility that the answer is (d): keep the
+      behaviour, fix the reasoning. A rule can be right while its stated reason is wrong.
+    updated: '2026-08-05'
