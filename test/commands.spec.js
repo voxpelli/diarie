@@ -1,9 +1,17 @@
 /**
- * Unit tests for the WORK stage of each command — `doTheWork`.
+ * Unit tests for the WORK stage of each command.
  *
  * This file is the point of the four-part command shape. `doTheWork` returns a typed
  * `WorkResult` and prints nothing, so every assertion below runs IN-PROCESS: no spawn,
  * no stdout capture, no env seam.
+ *
+ * `init` is the exception, and it is named rather than disguised: it has no `doTheWork`.
+ * Its work is `initStore`, which lives in `lib/store/init.js` because creating a store is
+ * the store layer's job. What the shape actually buys — work that is assertable without a
+ * spawn — is preserved, which is why this file can drive it beside the other three. It is
+ * imported under its real name below: aliasing it to `initWork` would have made the suite
+ * read as evidence for a convention `init` does not follow, and a test that misdescribes
+ * its subject is the cheapest possible false claim to ship.
  *
  * That matters concretely. The one test that previously tried to drive the CLI
  * in-process had to monkey-patch `process.stdout.write` — which, under `node --test`,
@@ -24,10 +32,10 @@ import {
   existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync,
 } from 'node:fs';
 
-import { doTheWork as initWork } from '../lib/commands/init.js';
 import { doTheWork as readyWork } from '../lib/commands/ready.js';
 import { doTheWork as statsWork } from '../lib/commands/stats.js';
 import { doTheWork as validateWork } from '../lib/commands/validate.js';
+import { initStore } from '../lib/store/init.js';
 
 const FIXTURES = fileURLToPath(new URL('fixtures', import.meta.url));
 
@@ -47,8 +55,8 @@ after(() => {
 function storeWith (yaml) {
   const root = mkdtempSync(join(tmpdir(), 'diarie-cmd-'));
   scratch.push(root);
-  mkdirSync(join(root, '.diarie', 'tasks'), { recursive: true });
-  writeFileSync(join(root, '.diarie', 'tasks', 'tasks-backlog.yml'), yaml, 'utf8');
+  mkdirSync(join(root, 'diarium', 'tasks'), { recursive: true });
+  writeFileSync(join(root, 'diarium', 'tasks', 'tasks-backlog.yml'), yaml, 'utf8');
   return root;
 }
 
@@ -160,8 +168,8 @@ describe('validate — doTheWork', () => {
     // lint warning from every machine consumer.
     const root = mkdtempSync(join(tmpdir(), 'diarie-cmd-'));
     scratch.push(root);
-    mkdirSync(join(root, '.diarie', 'tasks'), { recursive: true });
-    writeFileSync(join(root, '.diarie', 'tasks', 'tasks_old.yml'), 'tasks: []\n', 'utf8');
+    mkdirSync(join(root, 'diarium', 'tasks'), { recursive: true });
+    writeFileSync(join(root, 'diarium', 'tasks', 'tasks_old.yml'), 'tasks: []\n', 'utf8');
 
     const result = await validateWork({ root });
 
@@ -171,30 +179,30 @@ describe('validate — doTheWork', () => {
   });
 });
 
-describe('init — doTheWork', () => {
-  // The ONLY command whose work has a side effect, and the only one whose `doTheWork` was
+describe('init — initStore', () => {
+  // The ONLY command whose work has a side effect, and the only one whose work was
   // exported and never tested — knip found it the day diarie started running its own gates.
-  // A four-part command that nobody drives through the seam has the seam and none of the benefit.
+  // Exporting the work and then driving nothing through it has the seam and none of the benefit.
 
   it('creates the store and REPORTS what it created', async () => {
     const root = mkdtempSync(join(tmpdir(), 'diarie-init-'));
     scratch.push(root);
 
-    const { created, root: where } = await initWork({ root, slug: 'backlog' });
+    const { created, root: where } = await initStore({ dotted: false, root, slug: 'backlog' });
 
     assert.equal(where, root);
     assert.ok(created.length > 0);
-    assert.ok(existsSync(join(root, '.diarie', 'tasks', 'tasks-backlog.yml')));
-    assert.ok(existsSync(join(root, '.diarie', 'decisions')));
+    assert.ok(existsSync(join(root, 'diarium', 'tasks', 'tasks-backlog.yml')));
+    assert.ok(existsSync(join(root, 'diarium', 'decisions')));
   });
 
   it('honours --slug — the first task file is named, not assumed', async () => {
     const root = mkdtempSync(join(tmpdir(), 'diarie-init-slug-'));
     scratch.push(root);
 
-    await initWork({ root, slug: 'roadmap' });
+    await initStore({ dotted: false, root, slug: 'roadmap' });
 
-    assert.ok(existsSync(join(root, '.diarie', 'tasks', 'tasks-roadmap.yml')));
+    assert.ok(existsSync(join(root, 'diarium', 'tasks', 'tasks-roadmap.yml')));
   });
 
   it('REFUSES an existing store, and the refusal carries EEXIST', async () => {
@@ -204,9 +212,9 @@ describe('init — doTheWork', () => {
     const root = mkdtempSync(join(tmpdir(), 'diarie-init-twice-'));
     scratch.push(root);
 
-    await initWork({ root, slug: 'backlog' });
+    await initStore({ dotted: false, root, slug: 'backlog' });
     await assert.rejects(
-      () => initWork({ root, slug: 'backlog' }),
+      () => initStore({ dotted: false, root, slug: 'backlog' }),
       (/** @type {Error & {code?: string}} */ err) => {
         assert.equal(err.name, 'InputError');
         assert.equal(err.code, 'EEXIST');
@@ -220,9 +228,115 @@ describe('init — doTheWork', () => {
     const root = mkdtempSync(join(tmpdir(), 'diarie-init-valid-'));
     scratch.push(root);
 
-    await initWork({ root, slug: 'backlog' });
+    await initStore({ dotted: false, root, slug: 'backlog' });
     const result = await validateWork({ root });
 
     assert.deepEqual(result.errors, []);
+  });
+});
+
+describe('init — the store pair', () => {
+  // Paths spelled out rather than built from TRACKER_DIRS: these assertions are about the
+  // two NAMES, and deriving them from the constant proves only that it equals itself.
+
+  it('--dotted writes the other posture', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'diarie-init-dotted-'));
+    scratch.push(root);
+
+    const { created } = await initStore({ dotted: true, root, slug: 'backlog' });
+
+    assert.ok(existsSync(join(root, '.diarium', 'tasks', 'tasks-backlog.yml')));
+    assert.ok(!existsSync(join(root, 'diarium')));
+    assert.ok(created.every(f => f.startsWith('.diarium/')), `created reported ${created.join(', ')}`);
+  });
+
+  it('refusing the OTHER posture names the form that is actually there', async () => {
+    // The message must name the FOUND form, not the requested one. Told "`.diarium/`
+    // already exists" after asking for `.diarium/`, you go looking for a bug in the flag
+    // instead of at the visible store sitting in front of you.
+    const root = mkdtempSync(join(tmpdir(), 'diarie-init-other-'));
+    scratch.push(root);
+
+    await initStore({ dotted: false, root, slug: 'backlog' });
+    await assert.rejects(
+      () => initStore({ dotted: true, root, slug: 'backlog' }),
+      (/** @type {Error & {code?: string}} */ err) => {
+        assert.equal(err.code, 'EEXIST');
+        assert.match(err.message, /^diarium\//, 'named the requested form, not the one on disk');
+        assert.match(err.message, /other posture/);
+        return true;
+      }
+    );
+  });
+
+  it('BOTH forms present: ETWOSTORES rather than a third thing on top of an ambiguity', async () => {
+    // IN-PROCESS ONLY, and saying so is the point. This asserts what `doTheWork` THROWS; it
+    // cannot see what `cli.js` PRINTS, and those two disagreed for a whole release: the error
+    // reached cli.js's "genuinely unexpected" branch and produced a stack trace on stderr with
+    // an EMPTY stdout — the `--json` caller's founding defect — while this test stayed green
+    // the entire time. The `{error, code}`-on-stdout contract belongs to `cli.spec.js`'s
+    // error-code table, which drives a spawned binary. Keep both: this one localises the
+    // throw, that one owns the contract. Do not read a green here as the contract holding.
+    const root = mkdtempSync(join(tmpdir(), 'diarie-init-both-'));
+    scratch.push(root);
+    mkdirSync(join(root, 'diarium'), { recursive: true });
+    mkdirSync(join(root, '.diarium'), { recursive: true });
+
+    await assert.rejects(
+      () => initStore({ dotted: false, root, slug: 'backlog' }),
+      (/** @type {Error & {code?: string}} */ err) => {
+        assert.equal(err.code, 'ETWOSTORES');
+        return true;
+      }
+    );
+  });
+
+  it('REFUSES beside a legacy store — ELEGACY, not a second backlog', async () => {
+    // The read side answers a legacy store with ENOSTORE, and a helpful caller answers
+    // ENOSTORE by running init. Without this the project ends up with TWO backlogs, the
+    // old one holding all the work and nothing pointing at it.
+    const root = mkdtempSync(join(tmpdir(), 'diarie-init-legacy-'));
+    scratch.push(root);
+    mkdirSync(join(root, '.diarie', 'tasks'), { recursive: true });
+
+    await assert.rejects(
+      () => initStore({ dotted: false, root, slug: 'backlog' }),
+      (/** @type {Error & {code?: string}} */ err) => {
+        assert.equal(err.code, 'ELEGACY');
+        // ABSOLUTE on both sides. A relative pair is correct only when cwd happens to BE the
+        // root — and this test's root is a tmpdir reached via `--root`, which is the ordinary
+        // case for every automated caller. Pasted from anywhere else, `git mv .diarie diarium`
+        // renames a directory in the wrong project. A suggestion you cannot paste is worse
+        // than no suggestion: it reads as instructions.
+        assert.ok(
+          err.message.includes(`git mv ${join(root, '.diarie')} ${join(root, 'diarium')}`),
+          `both sides of the git mv must be absolute — got: ${err.message}`
+        );
+        return true;
+      }
+    );
+    assert.ok(!existsSync(join(root, 'diarium')), 'created a second store anyway');
+  });
+
+  it('a FILE on the store path is an InputError, not a raw ENOTDIR from mkdir', async () => {
+    // The write-side twin of cli.spec.js's "a FILE named like a store is not a store". The
+    // reader correctly refuses to see a file as a store — which left `init` seeing nothing at
+    // all, walking into `mkdir`, and throwing ENOTDIR. That is not an `InputError`, so cli.js
+    // answers it in its "genuinely unexpected" branch: stack trace on stderr, EMPTY stdout,
+    // which a `--json` caller reads as no data. The visible posture makes the collision cheap
+    // — `diarium` is an ordinary filename.
+    const root = mkdtempSync(join(tmpdir(), 'diarie-init-notdir-'));
+    scratch.push(root);
+    writeFileSync(join(root, 'diarium'), 'not a store\n', 'utf8');
+
+    await assert.rejects(
+      () => initStore({ dotted: false, root, slug: 'backlog' }),
+      (/** @type {Error & {code?: string}} */ err) => {
+        assert.equal(err.name, 'InputError');
+        assert.equal(err.code, 'EEXIST');
+        assert.match(err.message, /not a directory/);
+        return true;
+      }
+    );
   });
 });

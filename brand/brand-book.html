@@ -6,37 +6,47 @@
   tokens.json, diarie-mark.svg and diarie-lockup.svg, in the repo beside
   this file. When this page and those files disagree, the files win.
 
-  One file, no external requests: both typefaces are subset and inlined
-  (Fraunces and Fragment Mono, OFL — license note at the bottom).
+  No third-party requests, and nothing that phones home. It is not one file
+  and never was: the two subset typefaces (Fraunces and Fragment Mono, OFL —
+  license note at the bottom) are three same-origin font requests, and the
+  palette is a fourth, tokens.css. Loading the palette rather than copying
+  it is the point — a hand-copied subset drifts, and this page's did.
 -->
-<html lang="en">
+<!-- pa-papper is tokens.css's paper posture: same palette, roles flipped for a
+     light ground. This page used to hand-copy those six role values into its
+     own :root, which is exactly the drift tokens.css exists to prevent. -->
+<html lang="en" class="pa-papper">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>diarie — brand book</title>
 <meta name="description" content="The visual and verbal identity of diarie, held to the same test as the code: plain files you own, and nothing that owns you back.">
+<!-- Published but unlisted: reachable if you know it is here, absent from search
+     results and from any link on diarie.dev. noindex is the right instrument —
+     a robots.txt Disallow would stop the crawl without stopping the indexing,
+     since a page can be indexed from inbound links it was never crawled through. -->
+<meta name="robots" content="noindex, follow">
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTYgMjU2IiByb2xlPSJpbWciPgogIDx0aXRsZT5kaWFyaWU8L3RpdGxlPgogIDxkZXNjPkZhdmljb24gY3V0IG9mIHRoZSBkaWFyaWUgbWFyazogdGhlIHN0ZXBwZWQgaGFsbyBhbmQgdGhlIHR3byBub2RkaW5nIGJlbGxzLCBzaW1wbGlmaWVkIGZvciAxNiBwaXhlbHMuPC9kZXNjPgogIDwhLS0gZGlhcmllIGZhdmljb24gY3V0IC0gdjAuMS4xCiAgICAgICBTaW1wbGlmaWVkIGZyb20gZGlhcmllLW1hcmsuc3ZnIGZvciAxNi0zMiBweDogbGVhdmVzIGFuZCBicmFjdHMKICAgICAgIGRyb3BwZWQsIHN0cm9rZXMgdGhpY2tlbmVkLCBiZWxscyBlbmxhcmdlZC4gVXNlIHRoZSBmdWxsIG1hcmsgYXQKICAgICAgIDI0IHB4IGFuZCBhYm92ZTsgdXNlIHRoaXMgY3V0IGZvciBmYXZpY29ucyBhbmQgcGl4ZWwtc21hbGwgY2hyb21lLiAtLT4KICA8c3R5bGU+c3Zney0tbDE6IzIyMTk0MDstLWwyOiMyRTIyNTc7LS1sMzojM0MyRDZFOy0tbDQ6IzRCM0E4NzstLXA6I0VGRTZEMn08L3N0eWxlPgogIDxjaXJjbGUgY3g9IjEyOCIgY3k9IjEyMiIgcj0iMTEyIiBmaWxsPSJ2YXIoLS1sMSkiLz4KICA8Y2lyY2xlIGN4PSIxMjgiIGN5PSIxMjIiIHI9Ijg2IiAgZmlsbD0idmFyKC0tbDIpIi8+CiAgPGNpcmNsZSBjeD0iMTI4IiBjeT0iMTIyIiByPSI2MiIgIGZpbGw9InZhcigtLWwzKSIvPgogIDxjaXJjbGUgY3g9IjEyOCIgY3k9IjEyMiIgcj0iNDIiICBmaWxsPSJ2YXIoLS1sNCkiLz4KICA8ZyBmaWxsPSJub25lIiBzdHJva2U9InZhcigtLXApIiBzdHJva2UtbGluZWNhcD0icm91bmQiPgogICAgPHBhdGggZD0iTTEyOCwyMTAgQzEyNiwxODggMTI5LDE2NiAxMjYsMTQ0IiBzdHJva2Utd2lkdGg9IjExIi8+CiAgICA8cGF0aCBkPSJNMTI2LDE0NCBDMTExLDEyNiA5OSwxMTQgOTQsMTAwIiAgc3Ryb2tlLXdpZHRoPSIxMCIvPgogICAgPHBhdGggZD0iTTEyNiwxNDQgQzEzOSwxMjIgMTU0LDEwNiAxNjQsODgiIHN0cm9rZS13aWR0aD0iMTAiLz4KICA8L2c+CiAgPGcgZmlsbD0idmFyKC0tcCkiPgogICAgPHBhdGggdHJhbnNmb3JtPSJ0cmFuc2xhdGUoOTQsMTAwKSByb3RhdGUoLTE4KSBzY2FsZSgxLjUpIiBkPSJNMCwwIEMtNywxLjUgLTkuNSw4IC05LDE1IEwtMTEuNSwyMyBMLTUuNSwyMCBMMCwyNS41IEw1LjUsMjAgTDExLjUsMjMgTDksMTUgQzkuNSw4IDcsMS41IDAsMCBaIi8+CiAgICA8cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxNjQsODgpIHJvdGF0ZSgyMCkgc2NhbGUoMS40MikiIGQ9Ik0wLDAgQy03LDEuNSAtOS41LDggLTksMTUgTC0xMS41LDIzIEwtNS41LDIwIEwwLDI1LjUgTDUuNSwyMCBMMTEuNSwyMyBMOSwxNSBDOS41LDggNywxLjUgMCwwIFoiLz4KICA8L2c+Cjwvc3ZnPg==">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="fonts/Fraunces-VF.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/FragmentMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/Fraunces-Italic-static.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="tokens.css">
 <style>
 @font-face{font-family:"Fraunces";font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/Fraunces-VF.woff2) format("woff2")}
 @font-face{font-family:"Fraunces";font-style:italic;font-weight:100 900;font-display:swap;src:url(fonts/Fraunces-Italic-static.woff2) format("woff2")}
 @font-face{font-family:"Fragment Mono";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/FragmentMono-Regular.woff2) format("woff2")}
+/* Not a third typeface: a metric-adjusted alias for the system serif already in
+   the stack, so `font-display:swap` reflows prose well under 1% instead of
+   roughly 5% when Fraunces lands. 105.7% = Fraunces advance / Georgia advance
+   at body settings; where Georgia is absent the adjustment is approximate. */
+@font-face{font-family:"Fraunces Fallback";src:local("Georgia"),local("Times New Roman");
+  size-adjust:105.7%;ascent-override:92%;descent-override:24%;line-gap-override:0%}
 
-:root{
-  --arkiv:#171126;--yta:#1F1733;--yta-2:#2A1F45;
-  --lysning-1:#221940;--lysning-2:#2E2257;--lysning-3:#3C2D6E;--lysning-4:#4B3A87;
-  --papper:#EFE6D2;--papper-2:#F6EFDE;
-  --hektograf:#6B4FC8;--hektograf-ljus:#9C90C4;--lavendel:#B7ABDD;
-  --fosfor:#5CE49A;--barnsten:#E8A13C;--stampel:#D8453E;--stampel-ljus:#E8756B;--stampel-mork:#A83732;
-  --text:#171126;--text-2:#4A3B6B;--text-3:#6B5E92;
-  --kant:rgba(23,17,38,.22);
-  --stil-arkiv:"Fraunces",Georgia,"Times New Roman",serif;
-  --stil-lasare:"Fragment Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-  --ease-lysning:cubic-bezier(.22,0,.18,1);
-}
+/* The palette arrives from tokens.css, and the paper posture from .pa-papper on
+   <html>. What stays here is what is not a token: this page's colour scheme. */
+:root{color-scheme:light}
+
 *{box-sizing:border-box;margin:0}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scrollbar-color:var(--hektograf-ljus) var(--papper)}
 h1,h2,h3{text-wrap:balance}
@@ -49,7 +59,7 @@ body{
   padding-left:env(safe-area-inset-left);
   padding-right:env(safe-area-inset-right);
 }
-::selection{background:#DCCEF0}
+::selection{background:var(--lavendel-ljus)}
 a{color:var(--hektograf);text-decoration-thickness:.06em;text-underline-offset:.18em}
 a:hover{color:var(--text)}
 :focus-visible{outline:2px solid var(--hektograf);outline-offset:3px;border-radius:2px}
@@ -62,7 +72,7 @@ p+p{margin-top:.9rem}
 em{font-style:italic}
 
 /* cover */
-.cover{padding:4.5rem 0 3.5rem;border-bottom:.5px solid var(--kant)}
+.cover{padding:4.5rem 0 3.5rem;border-bottom:var(--hallinje) solid var(--kant)}
 .cover .wrap{display:grid;grid-template-columns:auto 1fr;gap:2.6rem;align-items:center}
 .cover svg{width:clamp(150px,20vw,200px);height:auto;view-transition-name:diarie-mark}
 @media (prefers-reduced-motion:no-preference){
@@ -73,14 +83,23 @@ em{font-style:italic}
   font-variation-settings:"opsz" 144,"wght" 520,"SOFT" 60,"WONK" 1;font-weight:520;
   font-size:clamp(3rem,7vw,4.6rem);line-height:1;
 }
-.cover .kicker{font-family:var(--stil-lasare);font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;color:var(--hektograf);margin-bottom:.7rem;display:block}
+/* Was a kicker above the wordmark — the same 4.x ban as the chapter labels.
+   Below the mark it stops announcing the title and starts describing the
+   edition, which is what the words actually do. */
+.cover .edition{font-family:var(--stil-lasare);font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;color:var(--hektograf);margin-top:.7rem;display:block}
 .cover .essence{font-variation-settings:"opsz" 30,"wght" 430,"SOFT" 40,"WONK" 0;font-size:1.25rem;margin-top:1rem;max-width:32rem}
 .cover .fine{font-family:var(--stil-lasare);font-size:.78rem;color:var(--text-3);margin-top:1.2rem}
 
 /* chapters */
-.chapter{padding:3.6rem 0;border-bottom:.5px solid var(--kant)}
+.chapter{padding:3.6rem 0;border-bottom:var(--hallinje) solid var(--kant)}
 .chapter:last-of-type{border-bottom:0}
-.eyebrow{font-family:var(--stil-lasare);font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;color:var(--hektograf);display:block;margin-bottom:.8rem}
+/* The chapter number lives INSIDE its heading. It used to be a separate label
+   above the h2 — which Impeccable 4.x bans outright, and which a screen reader
+   read as loose text before an unnumbered heading. In the heading it numbers
+   the outline instead of decorating it. Mono, so it reads as an index term and
+   not as part of the sentence; variation settings reset because the heading's
+   Fraunces axes mean nothing to Fragment Mono. */
+h2 .num{font-family:var(--stil-lasare);font-variation-settings:normal;font-weight:400;font-size:.58em;letter-spacing:.08em;color:var(--hektograf);margin-right:.8em;vertical-align:.3em}
 h2{
   font-variation-settings:"opsz" 72,"wght" 480,"SOFT" 40,"WONK" 1;font-weight:480;
   font-size:clamp(1.7rem,3.2vw,2.2rem);line-height:1.15;margin-bottom:1.1rem;
@@ -93,14 +112,14 @@ li+li{margin-top:.45rem}
 /* mark chapter */
 .mark-row{display:flex;gap:2rem;align-items:center;flex-wrap:wrap;margin:1.6rem 0}
 .mark-card{background:var(--arkiv);border-radius:6px;padding:1.6rem;flex:none}
-.mark-card.paper{background:var(--papper-2);border:.5px dashed var(--kant)}
+.mark-card.paper{background:var(--papper-2);border:var(--hallinje) dashed var(--kant)}
 .mark-card svg{display:block;height:auto}
 
 /* color chapter */
-.swatches{margin:1.6rem 0;border:.5px solid var(--kant);border-radius:6px;overflow:hidden}
-.sw{display:grid;grid-template-columns:64px 12rem 7rem 1fr 10rem;gap:1rem;align-items:center;padding:.6rem 1rem;border-top:.5px solid var(--kant);font-size:.92rem}
+.swatches{margin:1.6rem 0;border:var(--hallinje) solid var(--kant);border-radius:6px;overflow:hidden}
+.sw{display:grid;grid-template-columns:64px 12rem 7rem 1fr 10rem;gap:1rem;align-items:center;padding:.6rem 1rem;border-top:var(--hallinje) solid var(--kant);font-size:.92rem}
 .sw:first-child{border-top:0}
-.sw .chip{width:64px;height:36px;border-radius:4px;border:.5px solid var(--kant)}
+.sw .chip{width:64px;height:36px;border-radius:4px;border:var(--hallinje) solid var(--kant)}
 .sw .name{font-variation-settings:"opsz" 20,"wght" 470,"SOFT" 20,"WONK" 0}
 .sw .hex,.sw .cr{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3)}
 .sw .role{color:var(--text-2);font-size:.9rem}
@@ -112,16 +131,16 @@ li+li{margin-top:.45rem}
 
 /* type chapter */
 .voices{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.4rem 0}
-.voice{border:.5px solid var(--kant);border-radius:6px;padding:1.2rem 1.3rem;background:var(--papper-2)}
+.voice{border:var(--hallinje) solid var(--kant);border-radius:6px;padding:1.2rem 1.3rem;background:var(--papper-2)}
 .voice .sample{font-size:1.9rem;line-height:1.2;margin-bottom:.5rem}
 .voice.archive .sample{font-variation-settings:"opsz" 72,"wght" 480,"SOFT" 60,"WONK" 1}
 .voice.reader .sample{font-family:var(--stil-lasare);font-size:1.4rem}
 .voice p{font-size:.92rem;color:var(--text-2)}
 table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:.94rem}
-th,td{text-align:left;padding:.5rem .8rem;border-bottom:.5px solid var(--kant)}
+th,td{text-align:left;padding:.5rem .8rem;border-bottom:var(--hallinje) solid var(--kant)}
 th{font-family:var(--stil-lasare);font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);font-weight:400}
 td code{font-size:.82rem}
-.specimen{border:.5px solid var(--kant);border-radius:6px;background:var(--papper-2);padding:1.4rem 1.5rem;margin:1.4rem 0}
+.specimen{border:var(--hallinje) solid var(--kant);border-radius:6px;background:var(--papper-2);padding:1.4rem 1.5rem;margin:1.4rem 0}
 .specimen .big{font-size:clamp(2.6rem,7vw,4.2rem);line-height:1.1;overflow-wrap:anywhere}
 .specimen .ctrl{display:grid;grid-template-columns:5.5rem 1fr 3.5rem;gap:.8rem;align-items:center;margin-top:1rem;font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-2)}
 .specimen input[type=range]{width:100%;accent-color:var(--hektograf)}
@@ -131,9 +150,9 @@ td code{font-size:.82rem}
 .dodont{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.4rem 0}
 .dd{border-radius:6px;padding:1.1rem 1.2rem;font-size:.95rem}
 .dd .tag{font-family:var(--stil-lasare);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;display:inline-block;margin-bottom:.5rem;padding:.15rem .5rem;border-radius:3px}
-.dd.do{background:#E4EFDC;border:.5px solid #9CBF87}
-.dd.do .tag{color:#2E5A1F;border:1px dashed #5D8A49}
-.dd.dont{background:#F3DBD6;border:.5px solid #D8988F}
+.dd.do{background:var(--blad-blek);border:var(--hallinje) solid var(--blad-ljus)}
+.dd.do .tag{color:var(--blad-mork);border:1px dashed var(--blad)}
+.dd.dont{background:var(--stampel-blek);border:var(--hallinje) solid var(--stampel-dov)}
 .dd.dont .tag{color:var(--stampel-mork);border:1.5px dashed var(--stampel-mork);transform:rotate(-2deg)}
 .dd p{color:var(--text)}
 
@@ -188,12 +207,12 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
   <ellipse cx="150" cy="197" rx="20" ry="11" transform="rotate(34 150 197)"/>
 </g></svg>
     <div>
-      <span class="kicker">brand book · rendered edition</span>
       <h1>diarie</h1>
+      <span class="edition">brand book · rendered edition</span>
       <p class="essence">A public record of your own work — pressed flat,
       backlit, and honest.</p>
       <p class="fine">dnr 0.1.0 · 2026-07-18 · canonical files:
-      <a href="./BRAND.md">BRAND.md</a>, <a href="./tokens.css">tokens.css</a>,
+      <a href="../BRAND.md">BRAND.md</a>, <a href="./tokens.css">tokens.css</a>,
       <a href="./tokens.json">tokens.json</a>,
       <a href="./diarie-mark.svg">diarie-mark.svg</a>,
       <a href="./diarie-lockup.svg">diarie-lockup.svg</a>,
@@ -206,8 +225,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
 
 <section class="chapter">
   <div class="wrap">
-    <span class="eyebrow">01 · the idea</span>
-    <h2>One anchor, two motifs</h2>
+    <h2><span class="num">01</span> The idea — one anchor, two motifs</h2>
     <div class="cols">
       <div>
         <p><strong>One anchor: the diarium.</strong> Every Swedish myndighet keeps one: the
@@ -233,7 +251,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
         <em>is</em> the honesty.</p>
         <p class="muted">Everything below follows from these three layers.
         Where a visual decision cannot be traced back to one of them, or to
-        an invariant in <a href="./VISION.md">VISION.md</a>, it does not
+        an invariant in <a href="../VISION.md">VISION.md</a>, it does not
         belong in the system.</p>
       </div>
     </div>
@@ -242,8 +260,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
 
 <section class="chapter">
   <div class="wrap">
-    <span class="eyebrow">02 · the mark</span>
-    <h2>A pressed twinflower, backlit</h2>
+    <h2><span class="num">02</span> The mark — a pressed twinflower, backlit</h2>
     <p style="max-width:44rem">The mark is <em>Linnaea borealis</em> — named for Linné, his
     own favorite: a small, modest, Nordic woodland plant. Two nodding bells
     on one forked stem, which is also the tool's central pair — the CLI
@@ -316,8 +333,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
 
 <section class="chapter">
   <div class="wrap">
-    <span class="eyebrow">03 · color</span>
-    <h2>The highlights have jobs</h2>
+    <h2><span class="num">03</span> Color — the highlights have jobs</h2>
     <p style="max-width:44rem">Names are Swedish, ASCII-folded in code: <em>arkiv</em> —
     archive; <em>lysning</em>, from <em>genomlysning</em> — backlighting,
     scrutiny; <em>papper</em> — paper; <em>hektograf</em> — the violet
@@ -350,7 +366,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
     mistaken for “this is workable.”</p>
     <div class="exit-strip">
       <div class="exit e0"><span class="n">0</span><strong>The answer is on stdout.</strong> An empty but present store is a legitimate answer.</div>
-      <div class="exit e1"><span class="n">1</span><strong>You asked wrong.</strong> <code>ENOSTORE</code>, <code>EUSAGE</code>, <code>EEXIST</code> — correctable, not condemned.</div>
+      <div class="exit e1"><span class="n">1</span><strong>You asked wrong.</strong> <code>ENOSTORE</code>, <code>EUSAGE</code>, <code>EEXIST</code>, <code>ETWOSTORES</code>, <code>ELEGACY</code>, <code>ELOSSY</code>, <code>EPLUGINSTORE</code> — correctable, not condemned.</div>
       <div class="exit e2"><span class="n">2</span><strong>It ran, and the answer is no.</strong> The stamp belongs to <code>validate</code> — the authority that rejects.</div>
     </div>
     <p class="muted">One hazard, named plainly because pretending otherwise
@@ -364,8 +380,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
 
 <section class="chapter">
   <div class="wrap">
-    <span class="eyebrow">04 · type</span>
-    <h2>Two voices, no third</h2>
+    <h2><span class="num">04</span> Type — two voices, no third</h2>
     <p style="max-width:44rem">Because the architecture has exactly two sides.</p>
     <div class="voices">
       <div class="voice archive">
@@ -403,14 +418,13 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
     a third party to render its own name has already lost the argument this
     project exists to make. On diarie.dev the subset woff2:s are inlined, so
     the page is one file and arrives whole. Regeneration commands live in
-    <a href="./BRAND.md">BRAND.md</a>.</p>
+    <a href="../BRAND.md">BRAND.md</a>.</p>
   </div>
 </section>
 
 <section class="chapter">
   <div class="wrap">
-    <span class="eyebrow">05 · voice</span>
-    <h2>Klarspråk</h2>
+    <h2><span class="num">05</span> Voice — klarspråk</h2>
     <p style="max-width:44rem">Swedish law requires public language to be <em>vårdat, enkelt
     och begripligt</em> — cared-for, simple, comprehensible (Språklagen
     2009:600, §11) — and a tool named after a myndighet's registry writes
@@ -453,8 +467,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
 
 <section class="chapter">
   <div class="wrap">
-    <span class="eyebrow">06 · motion</span>
-    <h2>Scarce, and with a job</h2>
+    <h2><span class="num">06</span> Motion — scarce, and with a job</h2>
     <div class="motion-grid">
       <figure class="curve">
         <svg viewBox="0 0 140 140" width="180" role="img" aria-label="The lysning easing curve: cubic-bezier 0.22, 0, 0.18, 1 — slow start, fast middle, very slow stop">
@@ -485,8 +498,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
 
 <section class="chapter">
   <div class="wrap">
-    <span class="eyebrow">07 · applications</span>
-    <h2>Where the system shows up</h2>
+    <h2><span class="num">07</span> Applications — where the system shows up</h2>
     <h3>The CLI itself</h3>
     <p>Terminal output uses the semantic tokens — and <code>NO_COLOR</code>
     and non-TTY output are respected without information loss: color is
@@ -525,8 +537,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
 
 <section class="chapter">
   <div class="wrap">
-    <span class="eyebrow">08 · the refusals, brand edition</span>
-    <h2>Identity, not backlog</h2>
+    <h2><span class="num">08</span> The refusals, brand edition — identity, not backlog</h2>
     <div class="stamps">
       <span class="stamp" style="--r:-2deg">no gradient glow</span>
       <span class="stamp" style="--r:1.5deg">no mascot</span>
@@ -547,8 +558,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
 
 <section class="chapter">
   <div class="wrap">
-    <span class="eyebrow">09 · lineage</span>
-    <h2>The canon is the author's own</h2>
+    <h2><span class="num">09</span> Lineage — the canon is the author's own</h2>
     <p style="max-width:46rem">Local-first (Ink &amp; Switch), convivial tools (Illich), calm
     technology, worse-is-better, indieweb — not borrowed for the occasion but
     long kept. Maggie Appleton's
@@ -568,7 +578,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);
     <div class="fine">
       MIT © <a href="https://kodfabrik.se/">Pelle Wessman</a> ·
       lineage: local-first, convivial tools, calm technology,
-      worse-is-better, indieweb — see <a href="./VISION.md">VISION.md</a><br>
+      worse-is-better, indieweb — see <a href="../VISION.md">VISION.md</a><br>
       Fraunces &amp; Fragment Mono under the SIL Open Font License 1.1,
       subset and inlined; full fonts at their repos.
     </div>

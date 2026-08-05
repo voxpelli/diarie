@@ -5,10 +5,10 @@
  *
  * A BUILD step: it stamps the deploy output `brand-dist/index.html`, NOT the
  * pristine source `brand/index.html` (whose stamp is the designer's bespoke
- * artifact). Run after `brand:copy` has populated brand-dist/. Part of
- * `brand:build`; never part of the local gate. Usage:
- *   npm run brand:build                                  # copy + stamp + favicons
- *   STAMP_DATE=2026-08-01 STAMP_VERSION=1.0.0 npm run brand:stamp   # stamp only
+ * artifact). Run after `brand:1-copy` has populated brand-dist/. Part of
+ * `npm run brand`; never part of the local gate. Usage:
+ *   npm run brand                                                    # every step, in order
+ *   STAMP_DATE=2026-08-01 STAMP_VERSION=1.0.0 npm run brand:2-stamp  # stamp only
  *
  * Fragment Mono is monospace, so plain glyph outlining + letter-spacing is
  * shaping-complete — no HarfBuzz needed on this side of the pipeline.
@@ -16,6 +16,10 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import opentype from 'opentype.js';
+
+/**
+ * @import { Font } from 'opentype.js'
+ */
 
 // ---- stamp geometry: keep in sync with the values in HANDOFF.md ----------
 const SIZE = 12;        // px
@@ -60,7 +64,7 @@ export function spliceStamp (html, svg) {
 /**
  * Outline the two stamp lines and assemble the rotated SVG.
  *
- * @param {import('opentype.js').Font} font - a parsed Fragment Mono
+ * @param {Font} font - a parsed Fragment Mono
  * @param {string} date - ISO date for the INKOM line
  * @param {string} version - package version for the dnr line
  * @returns {string} the stamp SVG markup

@@ -1,6 +1,6 @@
 # diarie — Roadmap
 
-*Status: `0.1.0` — built and in use, not yet published (held behind a name gate). Last reviewed 2026-07-18.*
+_Status: `0.1.0` — built and in use, not yet published (held behind a name gate). Last reviewed 2026-07-18._
 
 A living sketch of direction, not a backlog — the granular work lives in the tracker itself. This file is
 the shape of where diarie is going and, as importantly, where it will not go. Every entry here must pass
@@ -8,11 +8,11 @@ the feature test in [VISION.md](./VISION.md): plain files you own, a CLI that on
 
 ## Now — the first release
 
-- **Publish `0.1.0`.** `diarie.dev` is registered; claiming the npm name is the remaining hold. Publishing
+* **Publish `0.1.0`.** `diarie.dev` is registered; claiming the npm name is the remaining hold. Publishing
   drops `private: true` and cuts the first standalone release.
-- **Stand diarie up as its own repository.** It currently lives as a workspace inside a parent repo; the
+* **Stand diarie up as its own repository.** It currently lives as a workspace inside a parent repo; the
   package is already structured so its own gates, tests, and lint travel with it (nothing to reach back for).
-- **Ship an agent usage-skill companion at publish.** One canonical place an agent learns the
+* **Ship an agent usage-skill companion at publish.** One canonical place an agent learns the
   claim / close / validate / ready primitives and the `ENOSTORE` / exit-code contract — taught once, not
   re-derived per project.
 
@@ -25,19 +25,19 @@ announced.
 
 ## Near — small and decided
 
-- **Reconcile the `decision` lifecycle vocabulary.** A decision in force is `pending` today, but there is
-  no honest status for *superseded / reversed* among the six. Pick one deliberately — a `superseded_by:`
+* **Reconcile the `decision` lifecycle vocabulary.** A decision in force is `pending` today, but there is
+  no honest status for _superseded / reversed_ among the six. Pick one deliberately — a `superseded_by:`
   field (which keeps the status enum clean) or a mapped status — rather than reintroducing the `open` /
   `closed` scheme the tracker does not have.
 
 ## Later — open questions, not commitments
 
-Ideas that fit the vision but are not scheduled. diarie's default answer to *"should it also do X"* is no,
+Ideas that fit the vision but are not scheduled. diarie's default answer to _"should it also do X"_ is no,
 so this list stays short on purpose.
 
-- A separate schema/reference companion (types, enums, `validate` semantics), if the single usage skill
+* A separate schema/reference companion (types, enums, `validate` semantics), if the single usage skill
   proves too broad for one audience to hold.
-- Richer `ready` filtering or additional `--json` shapes, if real use demands them.
+* Richer `ready` filtering or additional `--json` shapes, if real use demands them.
 
 ## The refusals
 

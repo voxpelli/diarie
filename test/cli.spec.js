@@ -4,7 +4,7 @@
  * The unit tests (ready.spec.js / validate.spec.js) exercise the pure functions with
  * inline data and never touch disk. This test closes that gap: it spawns the real
  * `cli.js` against committed fixtures (test/fixtures/, test/fixtures-epics/) via the
- * `TASKS_ROOT` env seam, so resolveRoot, loadTasks, the YAML parse, flag dispatch and
+ * `DIARIUM_ROOT` env seam, so resolveRoot, loadTasks, the YAML parse, flag dispatch and
  * the exit codes actually run in CI.
  *
  * `run()` keeps stdout and stderr SEPARATE, deliberately. The tracker's absent-store
@@ -16,6 +16,7 @@
 
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { env } from 'node:process';
@@ -25,7 +26,27 @@ import {
   mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync,
 } from 'node:fs';
 
-import { TRACKER_DIR } from 'diarie/schema';
+import { TRACKER_DIRS, VALID_ERROR_CODES } from 'diarie/schema';
+
+import * as commands from '../lib/commands.js';
+
+/** @import { TestContext } from 'node:test' */
+
+/**
+ * The command vocabulary, taken from the barrel rather than restated.
+ *
+ * A hand-written list is a second implementation of the command set, and the failure mode is
+ * silent in the direction that matters: add a command, forget the list, and every rule this
+ * file quantifies over simply stops covering it — green, and not asking about the new one.
+ */
+const COMMAND_NAMES = Object.keys(commands);
+
+/**
+ * Which form of the store pair these tests seed. The reader accepts both; the fixtures on
+ * disk cover the OTHER one (test/fixtures is visible, test/fixtures-epics is dotted), so
+ * between them the pair is exercised for real rather than asserted about.
+ */
+const STORE = TRACKER_DIRS[0];
 
 /** The package root — `test/`'s parent. */
 const PKG = fileURLToPath(new URL('..', import.meta.url));
@@ -47,7 +68,7 @@ const STATS = ['stats'];
 /**
  * A temp dir that cleans itself up when the test ends.
  *
- * @param {import('node:test').TestContext} t
+ * @param {TestContext} t
  * @param {string} prefix
  * @returns {string}
  */
@@ -58,7 +79,7 @@ function tmpDir (t, prefix) {
 }
 
 /**
- * Create a `.diarie/tasks/tasks-<slug>.yml` store under `dir`.
+ * Create a `<store>/tasks/tasks-<slug>.yml` store under `dir`.
  *
  * @param {string} dir
  * @param {string} slug
@@ -66,15 +87,15 @@ function tmpDir (t, prefix) {
  * @returns {string} dir
  */
 function seedStore (dir, slug, body) {
-  mkdirSync(join(dir, TRACKER_DIR, 'tasks'), { recursive: true });
-  if (body !== undefined) writeFileSync(join(dir, TRACKER_DIR, 'tasks', `tasks-${slug}.yml`), body);
+  mkdirSync(join(dir, STORE, 'tasks'), { recursive: true });
+  if (body !== undefined) writeFileSync(join(dir, STORE, 'tasks', `tasks-${slug}.yml`), body);
   return dir;
 }
 
 /**
  * A store whose one row has a malformed REQUIRED field. `validate` calls this broken.
  *
- * @param {import('node:test').TestContext} t
+ * @param {TestContext} t
  * @returns {string}
  */
 function brokenRow (t) {
@@ -85,7 +106,7 @@ function brokenRow (t) {
 /**
  * A store whose JSON payload comfortably exceeds the 64 KB pipe buffer, plus one dropped row.
  *
- * @param {import('node:test').TestContext} t
+ * @param {TestContext} t
  * @returns {string}
  */
 function bigStore (t) {
@@ -100,18 +121,24 @@ function bigStore (t) {
 /**
  * A healthy file holding a live claim, beside a file that does not parse.
  *
- * @param {import('node:test').TestContext} t
+ * @param {TestContext} t
  * @returns {string}
  */
 function halfBroken (t) {
   const dir = seedStore(tmpDir(t, 'diarie-badyaml-'), 'a',
     'tasks:\n  - id: T-2\n    title: THE LIVE CLAIM\n    status: in_progress\n    type: task\n');
-  writeFileSync(join(dir, TRACKER_DIR, 'tasks', 'tasks-b.yml'), 'tasks:\n  - id: X\n    title: "unterminated\n');
+  writeFileSync(join(dir, STORE, 'tasks', 'tasks-b.yml'), 'tasks:\n  - id: X\n    title: "unterminated\n');
   return dir;
 }
 
 /**
- * Run the CLI with a given TASKS_ROOT.
+ * The ambient environment with every root-aiming variable removed — the baseline every
+ * spawn starts from, so a suite result never depends on the developer's shell.
+ */
+const cleanEnv = { ...env, DIARIUM_ROOT: undefined, TASKS_ROOT: undefined };
+
+/**
+ * Run the CLI with a given DIARIUM_ROOT.
  *
  * `out` is stdout ONLY and `err` is stderr ONLY — never merge them (see header).
  * `both` is offered for the assertions that genuinely don't care which stream a
@@ -126,10 +153,17 @@ function halfBroken (t) {
  * @returns {{ code: number, out: string, err: string, both: string }}
  */
 function run (command, args, tasksRoot, { cwd = PKG, extraEnv = {} } = {}) {
-  const seam = tasksRoot ? { TASKS_ROOT: tasksRoot } : {};
+  const seam = tasksRoot ? { DIARIUM_ROOT: tasksRoot } : {};
   const r = spawnSync('node', [CLI, ...command, ...args], {
     cwd,
-    env: { ...env, ...seam, ...extraEnv },
+    // The AMBIENT root variables are stripped before the seam is applied. A developer with
+    // either exported — plausible, since this tool reads them — would otherwise aim half
+    // this suite at their own project, and a stale `TASKS_ROOT` turns every case red with
+    // EUSAGE for a reason that has nothing to do with what is being tested. `extraEnv` is
+    // spread last, so the cases that set them ON PURPOSE still do.
+    env: {
+      ...cleanEnv, ...seam, ...extraEnv,
+    },
     encoding: 'utf8',
   });
   const out = r.stdout ?? '';
@@ -369,7 +403,7 @@ describe('containers: an epic is not workable (vp-beads-epc) — THROUGH loadTas
   });
 });
 
-// Proven against a real installed plugin by an adversarial review: a plugin's `.diarie/` is
+// Proven against a real installed plugin by an adversarial review: a plugin's store is
 // COMMITTED, so a marketplace install ships its tasks into every consumer's plugin cache. The
 // CLI resolves a store by walking UP from cwd — so a cwd anywhere inside that cache finds the
 // wrong store, succeeds, and hands a stranger someone else's backlog as their own. Exit 0, no
@@ -386,7 +420,7 @@ describe('containers: an epic is not workable (vp-beads-epc) — THROUGH loadTas
 /**
  * A tmpdir standing in as an installed plugin, carrying its own committed store.
  *
- * @param {import('node:test').TestContext} t
+ * @param {TestContext} t
  * @returns {string}
  */
 const fakePlugin = (t) => seedStore(tmpDir(t, 'diarie-plugin-'), 'theirs',
@@ -395,7 +429,7 @@ const fakePlugin = (t) => seedStore(tmpDir(t, 'diarie-plugin-'), 'theirs',
 describe('the CLI must never serve a PLUGIN\'s own backlog to a consumer', () => {
   it('refuses to serve the plugin\'s own store when cwd lands inside the plugin', (t) => {
     const plugin = fakePlugin(t);
-    // No TASKS_ROOT: the walk-up from cwd (= the plugin) is exactly the consumer's accident.
+    // No DIARIUM_ROOT: the walk-up from cwd (= the plugin) is exactly the consumer's accident.
     const { code } = run(READY, [], '', { extraEnv: { CLAUDE_PLUGIN_ROOT: plugin }, cwd: plugin });
     assert.notEqual(code, 0);
   });
@@ -431,24 +465,78 @@ describe('the loader REPORTS every field it rejects (a guard that drops is not a
     '  - id: B\n    title: type is a bd framing, not a type\n    status: pending\n    type: bug\n' +
     '  - id: P\n    title: priority not in the enum\n    status: pending\n    type: task\n    priority: urgent\n';
 
-  it('a scalar `labels:` is REPORTED, not silently dropped', (t) => {
-    const { err } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-reject-'), 'x', BAD));
-    assert.ok(/invalid labels/.test(err));
+  // ONE ROW PER REJECT SITE, and every row asserts TWICE: that the field is named, and that
+  // the CONSEQUENCE is named. The second assertion is the point — "invalid updated" alone
+  // tells a reader nothing about why they should care, and this package's law is that a guard
+  // which drops a value must report it *naming the consequence*.
+  //
+  // Four of these (title, agent, updated, description) were the `diarie-rdr` bug: bare `if`s
+  // with no `else`, silent since the loader was written, with `ready --strict` computing
+  // `unsound` from `warnings.length` and therefore answering 0 *because* they were quiet.
+  const REJECTS = [
+    { field: 'labels', row: 'title: t\n    status: pending\n    type: task\n    labels: epic', consequence: /epic/ },
+    { field: 'type', row: 'title: t\n    status: pending\n    type: bug', consequence: /NO partition|no tally/ },
+    { field: 'priority', row: 'title: t\n    status: pending\n    type: task\n    priority: urgent', consequence: /medium/ },
+    { field: 'status', row: 'title: t\n    status: bogus\n    type: task', consequence: /ready|blocked/ },
+    { variant: 'the whole list', field: 'deps', row: 'title: t\n    status: pending\n    type: task\n    deps: nope', consequence: /empty/ },
+    // PER ELEMENT, and a separate case from the row above on purpose. The census greps field
+    // NAMES, so `deps` counts as covered the moment the wholesale case exists — a second
+    // `reject('deps', …)` with a different consequence would ride in behind it, untested. This
+    // is the census stating what its completeness is over, taken at its word.
+    { variant: 'one element', field: 'deps', row: 'title: t\n    status: pending\n    type: task\n    deps: [42]', consequence: /offered as READY/ },
+    { field: 'parent', row: 'title: t\n    status: pending\n    type: task\n    parent: 42', consequence: /NO parent|ready work/ },
+    { field: 'acceptance_criteria', row: 'title: t\n    status: pending\n    type: task\n    acceptance_criteria: one', consequence: /dropped/ },
+    { field: 'title', row: 'title: 42\n    status: pending\n    type: task', consequence: /EMPTY title/ },
+    { field: 'agent', row: 'title: t\n    status: in_progress\n    type: task\n    agent: 7', consequence: /unclaimed/ },
+    { field: 'updated', row: 'title: t\n    status: pending\n    type: task\n    updated: 2021-01-01', consequence: /staleness never fires/ },
+    { field: 'description', row: 'title: t\n    status: pending\n    type: task\n    description: false', consequence: /body is dropped/ },
+  ];
+
+  for (const { consequence, field, row, variant } of REJECTS) {
+    const yaml = `tasks:\n  - id: R\n    ${row}\n`;
+    // `deps` appears TWICE — wholesale and per-element — and identical test titles are banned
+    // (an ast-grep rule), for the good reason that two same-named tests read as one.
+    const label = variant ? `${field}: (${variant})` : `${field}:`;
+
+    it(`an invalid \`${label}\` is REPORTED`, (t) => {
+      const { err } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-reject-'), 'x', yaml));
+      assert.match(err, new RegExp(`invalid ${field}`), `\`${field}\` was DROPPED IN SILENCE`);
+    });
+
+    it(`...and the \`${label}\` complaint names the CONSEQUENCE`, (t) => {
+      const { err } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-reject-'), 'x', yaml));
+      assert.match(err, consequence, `\`${field}\` was reported without saying what it costs`);
+    });
+  }
+
+  it('an unquoted YAML date is not rendered as though it were a string', (t) => {
+    // THE ONE CASE WHERE THE MESSAGE COULD LIE, and it is the commonest hand-edit slip in the
+    // whole store. `JSON.stringify(new Date(...))` is `"2021-01-01T00:00:00.000Z"` — a QUOTED
+    // string, printed inside a sentence whose entire claim is that the value is not a string.
+    // A reporting path that renders the reported value wrongly fails the same law it serves.
+    const yaml = 'tasks:\n  - id: R\n    title: t\n    status: pending\n    type: task\n    updated: 2021-01-01\n';
+    const { err } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-reject-'), 'x', yaml));
+    assert.match(err, /a YAML date, not a string/);
+    assert.match(err, /quotes/, 'must say what to actually DO about it');
   });
 
-  it('...and it says WHY it matters (a lost `epic` label re-arms the container bug)', (t) => {
-    const { err } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-reject-'), 'x', BAD));
-    assert.ok(/epic/.test(err));
-  });
+  it('THE CENSUS: every `reject()` site in the loader has a row above', async () => {
+    // WHAT THIS INSTRUMENT ANSWERS: "does the table name every reject site in THIS FILE's
+    // source". What it CANNOT answer: whether a reject site in another module is covered, or
+    // whether any message is TRUE. Stated because the suite it guards is titled "every field",
+    // and a completeness claim needs to say what its completeness is over.
+    //
+    // Without this, adding a seventh `reject(...)` to the loader costs nothing and the suite
+    // keeps calling itself exhaustive — which is exactly how four of the ten stayed silent.
+    const source = await readFile(new URL('../lib/store/load-tasks.js', import.meta.url), 'utf8');
+    const sites = [...source.matchAll(/\breject\('(\w+)'/g)].flatMap(m => m[1] ?? []);
 
-  it('an invalid `type:` is REPORTED', (t) => {
-    const { err } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-reject-'), 'x', BAD));
-    assert.ok(/invalid type/.test(err));
-  });
+    assert.ok(sites.length > 0, 'found no reject() sites at all — the regex has rotted');
 
-  it('an invalid `priority:` is REPORTED', (t) => {
-    const { err } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-reject-'), 'x', BAD));
-    assert.ok(/invalid priority/.test(err));
+    const covered = new Set(REJECTS.map(r => r.field));
+    const missing = [...new Set(sites)].filter(f => !covered.has(f));
+
+    assert.deepEqual(missing, [], `loader reject() sites with no row in REJECTS: ${missing.join(', ')}`);
   });
 
   it('a row with an invalid `type` surfaces in needsAttention rather than vanishing', (t) => {
@@ -457,6 +545,111 @@ describe('the loader REPORTS every field it rejects (a guard that drops is not a
     const { out } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-reject-'), 'x', BAD));
     const j = JSON.parse(out);
     assert.ok(j.needsAttention.some((/** @type {{ id: string, reason: string }} */ t2) => t2.id === 'x/B' && /type/.test(t2.reason)));
+  });
+});
+
+describe('AN ID IS NOT A NUMBER: a ref must be judged before `nsId` mints from it', () => {
+  // `nsId` is `String(ref)`, so it is total — it cannot fail, and therefore cannot refuse. That
+  // makes every scalar YAML admits into a plausible id, and the damage is not a dropped edge but
+  // a FABRICATED one: `parent: 42` and `id: '42'` produce the same `GlobalId` from two rows that
+  // share no identity. These assert the three fields separately, because they fail differently.
+
+  /** The bug as reported: an untouched row silently becomes the container of a child. */
+  const FABRICATED = 'tasks:\n' +
+    "  - id: '42'\n    title: an ordinary task nobody touched\n    status: pending\n    type: task\n" +
+    '  - id: T-9\n    title: parent typed unquoted\n    status: pending\n    type: task\n    parent: 42\n';
+
+  it('an unquoted `parent:` does not turn an UNRELATED row into a container', (t) => {
+    const { out } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-ref-'), 'backlog', FABRICATED));
+    const j = JSON.parse(out);
+    assert.equal(j.blocked.length, 0, 'row `42` was reclassified as a container of a child it never had');
+    assert.ok(j.ready.some((/** @type {{ id: string }} */ r) => r.id === 'backlog/42'));
+  });
+
+  it('...and the store is no longer sound, so `--strict` exits 2 where it exited 0', (t) => {
+    const { code } = run(READY, ['--strict', '--json'], seedStore(tmpDir(t, 'diarie-ref-'), 'backlog', FABRICATED));
+    assert.equal(code, 2);
+  });
+
+  it('...and `validate` agrees rather than calling the store clean', (t) => {
+    const { code, out } = run(VALIDATE, [], seedStore(tmpDir(t, 'diarie-ref-'), 'backlog', FABRICATED));
+    assert.equal(code, 2);
+    assert.match(out, /parent 42 is not a usable id/);
+  });
+
+  it('the fabricated child no longer SUPPRESSES the epic diagnostic it satisfied', (t) => {
+    // The sharpest edge of this bug: the misread row carries `labels: [epic]`, and an epic with
+    // no open children is exactly what `needsAttention` exists to report — so the typo bought
+    // silence twice, once by misfiling the row and once by answering the check that would have
+    // named it.
+    const EPIC = 'tasks:\n' +
+      "  - id: '42'\n    title: an epic with no real children\n    status: pending\n    type: task\n    labels: [epic]\n" +
+      '  - id: T-9\n    title: parent typed unquoted\n    status: pending\n    type: task\n    parent: 42\n';
+    const { out } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-ref-'), 'backlog', EPIC));
+    const j = JSON.parse(out);
+    assert.ok(
+      j.needsAttention.some((/** @type {{ id: string, reason: string }} */ r) => r.id === 'backlog/42' && /epic/.test(r.reason)),
+      'the epic-with-no-children diagnostic stayed suppressed by the fabricated child'
+    );
+  });
+
+  it('a SLASHED id cannot mint into another file\'s namespace', (t) => {
+    // Cross-file identity THEFT, and it outranks the parent case: a row in `a` claiming the id
+    // `beta/T-1` answers to bare `deps: [T-1]` written in `beta`, so a task is served as READY
+    // on a dependency that does not exist in its own file. `ID_RE` admits no `/`, which is also
+    // what keeps `../../pwned` out of the migrator's interpolated paths.
+    const dir = tmpDir(t, 'diarie-ref-');
+    seedStore(dir, 'a', 'tasks:\n  - id: beta/T-1\n    title: minting into beta\n    status: completed\n    type: task\n');
+    seedStore(dir, 'beta', 'tasks:\n  - id: T-2\n    title: depends on a T-1 it does not have\n    status: pending\n    type: task\n    deps: [T-1]\n');
+
+    const { code, out } = run(READY, ['--strict', '--json'], dir);
+    const j = JSON.parse(out);
+    assert.equal(code, 2);
+    assert.equal(j.ready.length, 0, 'a task was served as ready on a stolen dependency');
+    assert.ok(j.needsAttention.some((/** @type {{ reason: string }} */ r) => /beta\/T-1 \(missing\)/.test(r.reason)));
+  });
+
+  it('the reader stops SERVING an id the validator rejects', (t) => {
+    // The two commands disagreed in the open: `validate` exited 2 on `bad id!` while `ready`
+    // served `x/bad id!` as real work at exit 0. A string is not the same question as a usable
+    // id, which is why the type check alone does not close this.
+    const body = 'tasks:\n  - id: bad id!\n    title: a string that is not an id\n    status: pending\n    type: task\n';
+    const dir = seedStore(tmpDir(t, 'diarie-ref-'), 'x', body);
+
+    const { code, err, out } = run(READY, ['--json'], dir);
+    assert.equal(JSON.parse(out).ready.length, 0, 'ready still serves an id validate rejects');
+    assert.match(err, /unusable id "bad id!"/, 'the row vanished without the drop being reported');
+    assert.equal(code, 0, 'a malformed row is reported, not promoted to a hard failure on the default path');
+    assert.equal(run(VALIDATE, [], dir).code, 2, 'validate must still be the one that refuses');
+  });
+
+  it('a bad `deps` element is dropped ALONE — its good siblings survive', (t) => {
+    // Per element, where `labels` rejects its whole list. A dep is an EDGE and each stands on
+    // its own; blinding the ready computation to the real blockers because a sibling is
+    // malformed would trade one wrong answer for a worse one.
+    const body = 'tasks:\n' +
+      '  - id: T-1\n    title: a real blocker\n    status: pending\n    type: task\n' +
+      '  - id: T-2\n    title: one good dep, one number\n    status: pending\n    type: task\n    deps: [T-1, 42]\n';
+    const { out } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-ref-'), 'x', body));
+    const j = JSON.parse(out);
+    assert.ok(
+      j.blocked.some((/** @type {{ id: string, blockers: string[] }} */ r) => r.id === 'x/T-2' && r.blockers.includes('x/T-1')),
+      'the surviving dep went with the rejected one'
+    );
+  });
+
+  it('a CROSS-SLUG ref still resolves — the slug half is not held to `ID_RE`', (t) => {
+    // THE REGRESSION THIS GUARD COULD EASILY HAVE BEEN. A slug is not an id: it is whatever
+    // `slugOf` gets from a filename, bounded only by `TASKS_FILE_RE`'s `.+`. Requiring `ID_RE`
+    // on both halves would refuse every cross-file reference into a legal store — silently, and
+    // only for people whose file names are not ASCII.
+    const dir = tmpDir(t, 'diarie-ref-');
+    seedStore(dir, 'Ärende', 'tasks:\n  - id: T-1\n    title: a completed dep in a non-ASCII file\n    status: completed\n    type: task\n');
+    seedStore(dir, 'b', 'tasks:\n  - id: T-2\n    title: depends across files\n    status: pending\n    type: task\n    deps: [Ärende/T-1]\n');
+
+    const { code, out } = run(READY, ['--strict', '--json'], dir);
+    assert.equal(code, 0, 'a working cross-slug dep was refused');
+    assert.ok(JSON.parse(out).ready.some((/** @type {{ id: string }} */ r) => r.id === 'b/T-2'));
   });
 });
 
@@ -493,9 +686,9 @@ describe('the --blocked TEXT rendering (the default human output — JSON-only t
 // This is belt-and-braces on top of that.
 describe('driving cli() with its own args (no ordinary spawn can catch this)', () => {
   it('cli(argv) parses ITS OWN argv, not process.argv', () => {
-    // By path, not by package subpath: `lib/main.js` is deliberately NOT in diarie's
+    // By path, not by package subpath: `lib/cli.js` is deliberately NOT in diarie's
     // `exports` map (only `.` and `./schema` are public). The CLI entry is internal.
-    const main = new URL('../lib/main.js', import.meta.url).href;
+    const main = new URL('../lib/cli.js', import.meta.url).href;
     const script = `const { cli } = await import(${JSON.stringify(main)})\n` +
       `await cli(['ready', '--json', '--root', ${JSON.stringify(FIXTURES)}])\n`;
     const r = spawnSync('node', ['--input-type=module', '-e', script], { encoding: 'utf8' });
@@ -611,16 +804,20 @@ describe('validate CLI (error paths, via tmpdir)', () => {
 
 describe('the exit-code taxonomy — a typo is not a bug, and 2 means only one thing', () => {
   // Exit 2 is ResultError: "it ran, and the answer is no" (a cyclic backlog, --strict).
-  // peowly's showHelp() defaults to exit(2) for "incorrect usage", so BEFORE this suite a
-  // bare `diarie` also exited 2 — leaving a CI job branching on 2 unable to tell a
-  // dependency cycle from a forgotten subcommand. Two meanings, one code, no way back.
+  // peowly's showHelp() defaults to exit(2) for "incorrect usage", so BEFORE the EUSAGE
+  // interception a bare `diarie` also exited 2 — leaving a CI job branching on 2 unable to
+  // tell a dependency cycle from a forgotten subcommand. Two meanings, one code, no way back.
+  //
+  // Since the peowly v2 upgrade, NO COMMAND is deliberately NOT an error at all: help on
+  // stdout, exit 0 (the npm/yarn convention — see lib/cli.js). The "never 2" half of the
+  // invariant survives with a different value; the mistake family below still exits 1.
 
-  it('a bare `diarie` is an InputError (1), NOT the ResultError code (2)', () => {
+  it('a bare `diarie` prints help and exits 0 — never the ResultError code (2)', () => {
     const { code } = run([], [], FIXTURES);
-    assert.equal(code, 1);
+    assert.equal(code, 0);
   });
 
-  it('a bare `diarie` still SHOWS the commands — exiting 1 must not mean staying silent', () => {
+  it('a bare `diarie` SHOWS the commands — help is the answer, not silence', () => {
     const { both } = run([], [], FIXTURES);
     assert.match(both, /ready/);
     assert.match(both, /migrate/);
@@ -698,27 +895,84 @@ describe('THE INVARIANT: a user mistake is never a crash, and never exit 2', () 
   // asserted the RULE. A rule needs a test that quantifies over inputs, not a test per input.
   //
   // Exit 2 is ResultError, and nothing else. `unexpected error` is a bug in diarie, and nothing
-  // else. Every row below is a user mistake, so every row must satisfy both.
+  // else. The rows below split into TWO families with different bars, and the split is the rule:
+  //
+  // - NO_COMMAND: the user asked for ORIENTATION and nothing else — a genuinely bare `diarie`,
+  //   or an explicit `--help`. Help on stdout + exit 0 (the npm/yarn convention — lib/cli.js).
+  //   They must never be 2 and never crash, and they must always ANSWER with the command list.
+  // - MISTAKES: anything the user got wrong — a bad command, a bad flag, a bad value, OR a flag
+  //   standing where a command belongs. The InputError/EUSAGE family: exit 1, JSON with a code
+  //   on stdout under --json.
+  //
+  // THE SPLIT MOVED, AND THAT IS THE POINT. Five rows below used to sit in NO_COMMAND, which
+  // meant `diarie --json ready` answered a discarded command with exit 0 and 633 bytes of help
+  // prose — a wrapper piping that to `jq .ready` gets prose, jq fails, the wrapper reports "no
+  // work", and the exit code says success. That is this package's founding defect served by its
+  // own entry point. Measured against the field: `git --short status` exits 129, cargo and gh
+  // exit 1; no comparable CLI silently succeeds. A forgotten command is orientation; a MISPLACED
+  // one is a mistake, and only the first belongs above.
 
-  const MISTAKES = [
+  const NO_COMMAND = [
     { what: 'no command at all', argv: [] },
+    { what: 'an explicit --help', argv: ['--help'] },
+  ];
+
+  // `names` is THE TOKEN THE ANSWER MUST QUOTE BACK — not every token, the one that identifies
+  // the mistake. `diarie ready --nosuchflag` must name `--nosuchflag` and has no business naming
+  // `ready`, which was fine. Where a flag DISPLACES a command, the actionable token is the
+  // discarded COMMAND, because that is what the user has to move.
+  //
+  // `['']` is the one row with nothing to quote: an empty argument has no text to show, which is
+  // itself why "no command given" is the honest answer there.
+  const MISTAKES = [
+    { what: 'an unknown command', argv: ['frobnicate'], names: 'frobnicate' },
     // THE LIST IS THE TEST. This row was missing from the first cut, and its absence — not any
     // weak assertion — is what let `diarie ""` keep exiting 2 with 589 bytes of help prose on
     // stdout, through TWO rounds of review. `diarie "$CMD"` with an unset variable is how a
     // wrapper script writes it. When a quantified suite misses a bug, suspect the domain first.
-    { what: 'an empty first argument', argv: [''] },
-    { what: 'a flag where a command belongs', argv: ['--json'] },
-    { what: 'a short flag where a command belongs', argv: ['-j'] },
-    { what: 'a bare -h (peowly does NOT treat this as help)', argv: ['-h'] },
-    { what: 'an unknown top-level flag', argv: ['--nosuchflag'] },
-    { what: 'an unknown command', argv: ['frobnicate'] },
-    { what: 'an unknown flag on a real command', argv: ['ready', '--nosuchflag'] },
-    { what: 'an invalid enum value', argv: ['ready', '--filter', 'bogus'] },
-    { what: 'a non-numeric number', argv: ['stats', '--days', 'abc'] },
-    { what: 'a negative staleness window', argv: ['stats', '--days', '-5'] },
+    { what: 'an empty first argument', argv: [''], names: undefined },
+    { what: 'a flag where a command belongs', argv: ['--json'], names: '--json' },
+    { what: 'a short flag where a command belongs', argv: ['-j'], names: '-j' },
+    // peowly defines ONLY the long forms. This printed help at exit 0 purely because it starts
+    // with a dash — the same accident as the two rows below it — never because `-h` was defined.
+    { what: 'a bare -h, which peowly does not define', argv: ['-h'], names: '-h' },
+    { what: 'an unknown top-level flag', argv: ['--nosuchflag'], names: '--nosuchflag' },
+    // The founding-defect rows: a REAL command, discarded because a flag preceded it.
+    { what: 'a flag before the command', argv: ['--json', 'ready'], names: 'ready' },
+    { what: 'a flag with a value before the command', argv: ['--root', '/tmp', 'ready'], names: 'ready' },
+    { what: 'an unknown flag on a real command', argv: ['ready', '--nosuchflag'], names: '--nosuchflag' },
+    { what: 'an invalid enum value', argv: ['ready', '--filter', 'bogus'], names: 'bogus' },
+    { what: 'a non-numeric number', argv: ['stats', '--days', 'abc'], names: 'abc' },
+    // BOTH SPELLINGS, because they take different paths and only one of them was ever tested.
+    // `--days -5` never reaches diarie at all: node:util.parseArgs rejects it first as an
+    // ambiguous argument (and helpfully names the `--days=-XYZ` form). So this row, labelled "a
+    // negative staleness window", has been exercising parseArgs' dash handling — while
+    // `validateStaleFlags`'s own guard, whose comment explains that a NaN cutoff would report
+    // zero stale tasks, was unreachable through the CLI. The token assertion is what surfaced it.
+    { what: 'a dash-led flag value, which parseArgs rejects before we see it', argv: ['stats', '--days', '-5'], names: '--days' },
+    { what: 'a negative staleness window', argv: ['stats', '--days=-5'], names: '-5' },
   ];
 
-  for (const { argv, what } of MISTAKES) {
+  for (const { argv, what } of NO_COMMAND) {
+    it(`${what} — prints help and exits 0, not 2, and is never called "unexpected"`, () => {
+      const { code, err, out } = run([], argv, FIXTURES);
+
+      // 2 would mean "it ran, and your backlog is broken". None of these ran.
+      assert.notEqual(code, 2, 'exited 2 — the ResultError code');
+      assert.equal(code, 0);
+
+      // The tell of a crash reaching the user. It is never the right answer to a typo.
+      assert.doesNotMatch(err, /unexpected error/);
+      assert.doesNotMatch(err + out, /Cannot read properties of undefined/);
+      assert.doesNotMatch(err + out, /node:internal/);
+
+      // Help is the answer, on STDOUT, and it must NAME the commands.
+      assert.match(out, /ready/);
+      assert.match(out, /migrate/);
+    });
+  }
+
+  for (const { argv, names, what } of MISTAKES) {
     it(`${what} — exits 1, not 2, and is never called "unexpected"`, () => {
       const { code, err, out } = run([], argv, FIXTURES);
 
@@ -733,15 +987,91 @@ describe('THE INVARIANT: a user mistake is never a crash, and never exit 2', () 
 
       // Silence is its own failure: the user must be told SOMETHING.
       assert.ok((err + out).trim().length > 0, 'said nothing at all');
+
+      // AND IT MUST NAME THE OFFENDING TOKEN. This is the assertion whose ABSENCE let
+      // `['--nosuchflag']` be filed as "not a mistake" for an entire release: the row answered
+      // with generic help in which `--nosuchflag` appeared nowhere, and every assertion passed,
+      // because "said something" cannot distinguish REPORTED IT from THREW IT AWAY. A table that
+      // quantifies over user mistakes has to check the one thing that makes a report a report.
+      //
+      // Empty-string and numeric tokens are exempt: `''` has nothing to name (its message says
+      // "no command given"), and a bare number would match by coincidence rather than by report.
+      if (names !== undefined) {
+        assert.ok(
+          (err + out).includes(names),
+          `\`diarie ${argv.join(' ')}\` never named \`${names}\` — a report that does not quote back what it rejected cannot be told apart from a silent drop`
+        );
+      }
     });
   }
+
+  it('a refusal carries its REMEDY into the --json payload, not just the human one', () => {
+    // `body` is where this codebase puts every actionable detail, and cli.js used to write it
+    // ONLY on the human branch — so the machine channel got the refusal without the fix. The
+    // case that costs data is ELOSSY: bootstrap.js says of its field list that "every omission
+    // costs the reader the one chance they get to see what they are about to lose", and under
+    // --json that list was not truncated, it was ABSENT. A consumer told two fields would be
+    // lost, and never which two.
+    //
+    // The tell that the split was accidental: ELEGACY puts its `git mv` in the MESSAGE, so that
+    // one remedy survived while its siblings did not.
+    const { code, out } = run([], ['--nosuchflag', '--json'], FIXTURES);
+    assert.equal(code, 1);
+
+    const parsed = JSON.parse(out);
+    assert.equal(parsed.code, 'EUSAGE');
+    assert.ok(parsed.body, 'the remedy did not reach the machine channel');
+    assert.match(parsed.body, /Commands:/);
+  });
+
+  it('an explicit --help under --json still answers with help on STDOUT at exit 0', () => {
+    // The documented exception to the --json-errors-on-stdout rule, and it is now scoped to the
+    // shapes that EARN it: the user asked for orientation, so orientation is the correct answer
+    // in every mode. The founding defect — an important message whispered to a stream ten call
+    // sites pipe to /dev/null — does not apply: the help is ON stdout.
+    //
+    // Note this list is deliberately NOT quantified over NO_COMMAND. Appending `--json` to the
+    // bare row does not produce another orientation case — it produces `diarie --json`, which is
+    // a MISTAKE and is pinned as such directly below. A loop here would have hidden that.
+    const { code, out } = run([], ['--help', '--json'], FIXTURES);
+    assert.equal(code, 0);
+    assert.match(out, /ready/);
+    assert.match(out, /migrate/);
+  });
+
+  it('REGRESSION: a flag before the command exits 1 with JSON on stdout — it must never answer 0 with help', () => {
+    // The defect this unit exists to kill, pinned by input rather than by rule because the rule
+    // above could not see it: `peowly-commands` nulls out args[0] when it starts with `-` and
+    // never looks past it, so `ready` was silently discarded and the answer was exit 0 plus 633
+    // bytes of help. A wrapper running `diarie --json ready | jq '.ready'` got prose, jq failed,
+    // and the wrapper concluded "no work" — with the exit code reporting success.
+    const { code, out } = run([], ['--json', 'ready'], FIXTURES);
+
+    assert.equal(code, 1, 'a discarded command must not report success');
+
+    const parsed = JSON.parse(out);   // throws on the help prose this used to print
+    assert.equal(parsed.code, 'EUSAGE');
+    assert.match(parsed.error, /ready/, 'must name the command that was discarded');
+
+    // The HINT is asserted on the human path, because that is the only place it survives:
+    // cli.js serializes exactly {error, code}, so no extra field reaches a --json consumer.
+    // (That is a known gap in its own right — see the plan's M7 — not something to paper over
+    // here by asserting the hint against a payload that structurally cannot carry it.)
+    //
+    // It points at the fix without fabricating a command line. Rebuilding the line by filtering
+    // the offending token out drops EVERY occurrence, so `diarie --root ready` would suggest
+    // `diarie ready --root` — a line missing its flag value, stated confidently. The ellipsis is
+    // what keeps the suggestion honest, so assert the ellipsis rather than the absence of a wart.
+    const { err: hint } = run([], ['--root', '/tmp', 'ready'], FIXTURES);
+    assert.match(hint, /Try: diarie ready …/);
+    assert.doesNotMatch(hint, /Try: diarie ready --root\s*$/);
+  });
 
   for (const { argv, what } of MISTAKES) {
     it(`${what} — under --json, STDOUT carries parseable JSON with a code`, () => {
       // The defect this whole CLI exists to kill: important things whispered to stderr, a stream
-      // ten call sites pipe to /dev/null. Before the fix, `diarie --json` printed 589 bytes of
-      // HUMAN HELP PROSE to stdout under the flag that promises machine-readable output, and
-      // `ready --filter bogus --json` printed nothing at all.
+      // ten call sites pipe to /dev/null. Before the fix, `ready --filter bogus --json` printed
+      // nothing at all. Every mistake row must answer with a JSON error on STDOUT.
       const { code, out } = run([], [...argv, '--json'], FIXTURES);
       assert.equal(code, 1);
 
@@ -835,12 +1165,12 @@ describe('THE FOUNDING DEFECT, for a MALFORMED ROW: a --json consumer must never
     assert.match(parsed.warnings[0] ?? '', /invalid status "open"/);
   });
 
-  it('`ready --strict` exits 2 for a DROPPED row, exactly as it does for a broken type', (t) => {
-    // The asymmetry this fixes: `computeReady` skips any row whose status is not `pending` BEFORE
-    // it reaches the type guard. So `type: bug` landed in needsAttention and tripped --strict,
-    // while `status: open` was silently discarded and --strict exited 0. Two malformed REQUIRED
-    // fields, opposite behaviour — and CLAUDE.md says a malformed required field makes the row
-    // BROKEN, not merely non-workable.
+  it('`ready --strict` exits 2 for a row with an invalid status, as it does for a broken type', (t) => {
+    // The asymmetry this pins: two malformed REQUIRED fields must behave the same way, because
+    // CLAUDE.md says a malformed required field makes the row BROKEN, not merely non-workable.
+    // Both now reach `needsAttention`, so --strict refuses on either — and it does so by TWO
+    // independent routes (the loader's warning and the attention entry), which is why this
+    // assertion cannot tell you which one is doing the work. `test/ready.spec.js` separates them.
     assert.equal(run(READY, ['--strict'], brokenRow(t)).code, 2);
   });
 
@@ -873,9 +1203,11 @@ describe('THE TWO-FLAG CROSS: --strict was DEAD under --filter, and the suite co
   // carry a `warnings` key, so the exit code is the ONLY channel that path has — and
   // hooks/session-start.sh reads that path at every session start.
 
-  it('a DROPPED row makes `--filter --strict` exit 2 (it exited 0)', (t) => {
-    // `status: in-progress` (hyphen) is not in VALID_STATUSES, so the loader rejects the field and
-    // the row disappears from every partition AND from every filter. A live claim, gone.
+  it('a row with an invalid status makes `--filter --strict` exit 2 (it exited 0)', (t) => {
+    // `status: in-progress` (hyphen) is not in VALID_STATUSES, so the loader drops the field and
+    // the row matches no filter — a live claim, absent from the list that asked for exactly it.
+    // The row is not lost (it is in `needsAttention`), but `--filter` is a different question
+    // and still cannot answer it, so the verdict channel has to.
     const dir = seedStore(tmpDir(t, 'diarie-x-drop-'), 'a',
       'tasks:\n  - id: T-9\n    title: THE LIVE CLAIM\n    status: in-progress\n    type: task\n');
     assert.equal(run(READY, ['--filter', 'in_progress', '--strict'], dir).code, 2);
@@ -1006,7 +1338,7 @@ describe('ONE VERDICT, BOTH SHAPES: --filter --strict must agree with the partit
     { what: 'a dependency cycle', yaml: 'tasks:\n  - id: A\n    title: a\n    status: pending\n    type: task\n    deps: [B]\n  - id: B\n    title: b\n    status: pending\n    type: task\n    deps: [A]\n' },
     { what: 'an ABSENT required type', yaml: 'tasks:\n  - id: T-1\n    title: no type\n    status: pending\n' },
     { what: 'a dangling dep', yaml: 'tasks:\n  - id: T-1\n    title: x\n    status: pending\n    type: task\n    deps: [NOPE]\n' },
-    { what: 'a dropped row (bad status)', yaml: 'tasks:\n  - id: T-9\n    title: claim\n    status: in-progress\n    type: task\n' },
+    { what: 'a row with an invalid status', yaml: 'tasks:\n  - id: T-9\n    title: claim\n    status: in-progress\n    type: task\n' },
   ];
 
   for (const { what, yaml } of STORES) {
@@ -1024,5 +1356,328 @@ describe('ONE VERDICT, BOTH SHAPES: --filter --strict must agree with the partit
       'tasks:\n  - id: T-1\n    title: fine\n    status: pending\n    type: task\n');
     assert.equal(run(READY, ['--filter', 'pending', '--strict'], dir).code, 0);
     assert.equal(run(READY, ['--strict'], dir).code, 0);
+  });
+});
+
+// The store is a PAIR of names (decision `diarie-pos`), which turns "where is the store"
+// from a constant into a fact about the filesystem. Every failure mode that creates is a
+// variant of this package's founding defect — a confident answer about the wrong store, or
+// no answer about a store that is plainly there — so each one is pinned here.
+/**
+ * Seed a store under an explicitly chosen form of the pair.
+ *
+ * Deliberately NOT built from TRACKER_DIRS: these assertions are about the two names
+ * themselves, and a test that derives them from the constant proves only that the
+ * constant equals itself. (Same reason migrate.spec.js spells its paths out.)
+ *
+ * @param {string} dir
+ * @param {string} name
+ * @returns {string} dir
+ */
+function seedAs (dir, name) {
+  mkdirSync(join(dir, name, 'tasks'), { recursive: true });
+  writeFileSync(join(dir, name, 'tasks', 'tasks-a.yml'),
+    'tasks:\n  - id: T-1\n    title: work\n    status: pending\n    type: task\n');
+  return dir;
+}
+
+describe('the diarium pair: two forms, one store', () => {
+  it('resolves the VISIBLE form', (t) => {
+    const dir = seedAs(tmpDir(t, 'diarie-pair-vis-'), 'diarium');
+    const { code, out } = run(READY, ['--json'], dir);
+    assert.equal(code, 0);
+    assert.equal(JSON.parse(out).ready.length, 1);
+  });
+
+  it('resolves the DOTTED form — the reader accepts both, so posture is free to change', (t) => {
+    const dir = seedAs(tmpDir(t, 'diarie-pair-dot-'), '.diarium');
+    const { code, out } = run(READY, ['--json'], dir);
+    assert.equal(code, 0);
+    assert.equal(JSON.parse(out).ready.length, 1);
+  });
+
+  it('BOTH forms present: ETWOSTORES, naming both paths — never a silent precedence rule', (t) => {
+    // A precedence rule here would be the worst outcome available: the losing store becomes
+    // a file nobody reads and everybody keeps editing. Refuse and say where both are.
+    const dir = seedAs(seedAs(tmpDir(t, 'diarie-pair-both-'), 'diarium'), '.diarium');
+    const { code, out } = run(READY, ['--json'], dir);
+    const parsed = JSON.parse(out);
+    assert.equal(code, 1);
+    assert.equal(parsed.code, 'ETWOSTORES');
+    assert.match(parsed.error, /diarium/);
+    assert.match(parsed.error, /\.diarium/);
+  });
+
+  it('a LEGACY store is named, with the migration command — not reported as "no store"', (t) => {
+    // The project plainly HAS a backlog. Saying ENOSTORE and stopping would be technically
+    // true and practically a lie.
+    const dir = seedAs(tmpDir(t, 'diarie-pair-legacy-'), '.diarie');
+    const { code, out } = run(READY, ['--json'], dir);
+    const parsed = JSON.parse(out);
+    assert.equal(code, 1);
+    assert.equal(parsed.code, 'ENOSTORE');
+    assert.match(parsed.error, /git mv/);
+    assert.match(parsed.error, /\.diarie/);
+  });
+
+  it('a FILE named like a store is not a store — ENOSTORE, never a confident empty backlog', (t) => {
+    // `existsSync` answers "is there anything here"; a store is not anything, it is a
+    // DIRECTORY. A plain file named `diarium` (a stray note, a shell redirect that lost its
+    // argument) made the store "resolve", `tasks/` then read as absent-and-therefore-empty,
+    // and the reader printed `{"ready":[]}` exit 0. The founding defect reached through a
+    // filesystem detail — and the visible form of the pair collides with an ordinary filename
+    // far more readily than `.diarie` ever did.
+    const dir = tmpDir(t, 'diarie-pair-file-');
+    writeFileSync(join(dir, 'diarium'), 'not a store\n');
+
+    const { code, out } = run(READY, ['--json'], dir);
+    const parsed = JSON.parse(out);
+    assert.equal(code, 1, 'a file passed as a store and produced an answer');
+    assert.equal(parsed.code, 'ENOSTORE');
+  });
+
+  it('a legacy store HALTS the walk — it never resolves an ancestor store instead', (t) => {
+    // The sharp one. Without the halt, a project holding `.diarie/` nested under some
+    // parent that holds a `diarium/` would silently read the PARENT's backlog: a real
+    // store, successfully parsed, belonging to someone else. Exit 0, no warning.
+    const parent = seedAs(tmpDir(t, 'diarie-pair-nested-'), 'diarium');
+    const child = join(parent, 'child');
+    seedAs(child, '.diarie');
+
+    const { code, out } = run(READY, ['--json'], '', { cwd: child });
+    const parsed = JSON.parse(out);
+    assert.equal(code, 1, 'resolved SOMETHING — almost certainly the ancestor store');
+    assert.equal(parsed.code, 'ENOSTORE');
+    assert.match(parsed.error, /git mv/);
+  });
+});
+
+describe('DIARIUM_ROOT (renamed from TASKS_ROOT)', () => {
+  it('a stale TASKS_ROOT is a hard error, never a silent ignore', (t) => {
+    // Ignoring it would DROP the caller's explicit root and fall through to the upward
+    // walk — which can succeed, on a different store. The rename must not become a way to
+    // resolve the wrong backlog quietly.
+    const dir = seedStore(tmpDir(t, 'diarie-envrename-'), 'a',
+      'tasks:\n  - id: T-1\n    title: work\n    status: pending\n    type: task\n');
+    const { code, out } = run(READY, ['--json'], '', { extraEnv: { TASKS_ROOT: dir } });
+    const parsed = JSON.parse(out);
+    assert.equal(code, 1);
+    assert.equal(parsed.code, 'EUSAGE');
+    assert.match(parsed.error, /DIARIUM_ROOT/);
+  });
+
+  it('a stale TASKS_ROOT pointing SOMEWHERE ELSE is caught even when DIARIUM_ROOT is set', (t) => {
+    // The case the first version of this guard missed. It returned as soon as DIARIUM_ROOT was
+    // present, so a shell exporting both — aimed at two different projects — got no complaint
+    // and read the wrong one. Whoever set TASKS_ROOT believes it is aiming this command; it is
+    // not, and "it is being ignored" is precisely what they need told.
+    const mine = seedStore(tmpDir(t, 'diarie-envboth-mine-'), 'a',
+      'tasks:\n  - id: T-1\n    title: work\n    status: pending\n    type: task\n');
+    const theirs = seedStore(tmpDir(t, 'diarie-envboth-theirs-'), 'a',
+      'tasks:\n  - id: T-9\n    title: someone else\n    status: pending\n    type: task\n');
+
+    const { code, out } = run(READY, ['--json'], mine, { extraEnv: { TASKS_ROOT: theirs } });
+    const parsed = JSON.parse(out);
+    assert.equal(code, 1, 'read one of the two roots and said nothing about the other');
+    assert.equal(parsed.code, 'EUSAGE');
+    assert.match(parsed.error, /TASKS_ROOT/);
+  });
+
+  it('the two names AGREEING is not a conflict — this is a migration aid, not a ban', (t) => {
+    const dir = seedStore(tmpDir(t, 'diarie-envboth-same-'), 'a',
+      'tasks:\n  - id: T-1\n    title: work\n    status: pending\n    type: task\n');
+    const { code, out } = run(READY, ['--json'], dir, { extraEnv: { TASKS_ROOT: dir } });
+    assert.equal(code, 0);
+    assert.equal(JSON.parse(out).ready.length, 1);
+  });
+});
+
+// THE ERROR-CODE CONTRACT, checked at the only place it exists: a spawned `cli.js`.
+//
+// `lib/utils/errors.js` states the invariant — anything reaching cli.js must be an InputError
+// or a ResultError, or it lands in the "genuinely unexpected" branch and answers with a stack
+// trace on stderr and NOTHING on stdout. A `--json` caller reads that as "no data": this
+// package's founding defect, served by its own error handler.
+//
+// It shipped exactly that way. `init` did not resolve its store through `requireRoot`, which
+// was where the conversion lived, so `diarie init --json` in a two-store directory emitted 0
+// bytes of stdout and 1111 bytes of stack trace. The in-process `doTheWork` test passed
+// throughout, because the contract is not produced in `doTheWork`.
+//
+// So this table drives the REAL binary, and its last case asserts the table is COMPLETE
+// against `VALID_ERROR_CODES` — a code nobody proves reachable fails the suite.
+describe('every error code, through the real CLI boundary', () => {
+  /** @type {{ code: string, why: string, run: (t: TestContext) => ReturnType<typeof run> }[]} */
+  const CASES = [
+    {
+      code: 'ENOSTORE',
+      why: 'no store here — the one this package exists for',
+      run: () => run(READY, ['--json'], join(tmpdir(), 'diarie-nonexistent-xyz')),
+    },
+    {
+      code: 'EUSAGE',
+      why: 'you typed it wrong',
+      run: () => run(READY, ['--filter', 'bogus', '--json'], FIXTURES),
+    },
+    {
+      code: 'EEXIST',
+      why: 'init refusing a store that is already there',
+      run: (t) => run(['init'], ['--json'], seedStore(tmpDir(t, 'diarie-code-eexist-'), 'a', 'tasks: []\n')),
+    },
+    {
+      code: 'ETWOSTORES',
+      why: 'both forms of the pair — refusing to guess',
+      run: (t) => run(READY, ['--json'], seedAs(seedAs(tmpDir(t, 'diarie-code-two-'), 'diarium'), '.diarium')),
+    },
+    {
+      code: 'ELEGACY',
+      why: 'init refusing to start a second store beside a retired one',
+      run: (t) => run(['init'], ['--json'], seedAs(tmpDir(t, 'diarie-code-legacy-'), '.diarie')),
+    },
+    {
+      code: 'ELOSSY',
+      why: 'migrate refusing to discard what it cannot carry',
+      run: (t) => {
+        const dir = tmpDir(t, 'diarie-code-lossy-');
+        const file = join(dir, 'export.jsonl');
+        writeFileSync(file, JSON.stringify({
+          _type: 'issue',
+          id: 'x-1',
+          title: 'T',
+          status: 'open',
+          issue_type: 'task',
+          priority: 2,
+          some_future_field: 'authored content',
+        }) + '\n');
+        // `--root` EXPLICITLY, and cwd moved: `migrate` reads no environment at all (so the
+        // harness's env seam does nothing for it) and defaults to the CURRENT DIRECTORY — which
+        // in this suite is the diarie repo, whose own store would answer EEXIST instead.
+        return run(['migrate'], [file, '--root', dir, '--json'], '', { cwd: dir });
+      },
+    },
+    {
+      code: 'EPLUGINSTORE',
+      why: 'the walk-up landed inside an installed plugin\'s own store',
+      run: (t) => {
+        // The whole scenario has to be REAL, because the defect is a property of the walk-up:
+        // a store must exist inside the plugin root, and cwd must be BELOW it, so that
+        // resolving upward genuinely succeeds on the wrong store. Asserting the guard any
+        // other way tests the guard's code rather than the situation it guards.
+        const plugin = tmpDir(t, 'diarie-code-plugin-');
+        const inner = join(plugin, 'inner');
+        seedStore(inner, 'a', 'tasks:\n  - id: P-1\n    title: the plugin author\'s task\n    status: pending\n    type: task\n');
+        const below = join(inner, 'sub');
+        mkdirSync(below, { recursive: true });
+
+        // `tasksRoot` is '' ON PURPOSE: passing one sets DIARIUM_ROOT, and an explicit root is
+        // exactly what this guard honours — the seam would make the walk-up never happen and
+        // the case would pass without ever reaching the code it claims to prove.
+        return run(READY, ['--json'], '', {
+          cwd: below,
+          extraEnv: { CLAUDE_PLUGIN_ROOT: plugin },
+        });
+      },
+    },
+  ];
+
+  for (const { code, run: trigger, why } of CASES) {
+    it(`${code} (${why}): JSON on STDOUT, exit 1, no stack trace`, (t) => {
+      const { code: exit, err, out } = trigger(t);
+
+      assert.equal(exit, 1, `expected exit 1, got ${exit}`);
+
+      let parsed;
+      try { parsed = JSON.parse(out); } catch { /* stays undefined */ }
+      assert.ok(parsed, `stdout was not parseable JSON — a --json caller gets nothing:\n${out}`);
+      assert.equal(parsed.code, code);
+
+      // The tell for the founding defect: a stack trace means it fell through to the
+      // "unexpected" branch, whatever else happened to land on stdout.
+      assert.ok(!err.includes('    at '), `leaked a stack trace to stderr:\n${err}`);
+    });
+  }
+
+  it('the table covers EVERY code in the vocabulary', () => {
+    // Without this, adding a code to VALID_ERROR_CODES and forgetting to prove it reachable
+    // leaves the contract documented and unchecked — which is the state that let `init` ship
+    // a stack trace while the docs promised JSON.
+    const covered = new Set(CASES.map(c => c.code));
+    const missing = VALID_ERROR_CODES.filter(c => !covered.has(c));
+    assert.deepEqual(missing, [], `error codes with no CLI-boundary case: ${missing.join(', ')}`);
+  });
+});
+
+describe('A POSITIONAL IS NEVER DISCARDED IN SILENCE', () => {
+  // `diarie ready pending` printed the full unfiltered backlog and exited 0. That is the
+  // natural wrong guess for `--filter pending` — and the shape bd's CLI genuinely accepted —
+  // so it is a mistake a user arrives at by knowing the neighbouring tool, not by fumbling.
+  // No subset, no complaint, exit 0: a confident, plausible, wrong answer, which is this
+  // package's founding defect reached without a store being involved at all.
+  //
+  // QUANTIFIED OVER THE COMMAND VOCABULARY, not written per command, for the reason the
+  // error-code table above gives: a rule needs a test that quantifies over inputs. `migrate`
+  // is the one legitimate positional-taker (its positional is the export file), so it is
+  // covered by its own case below rather than exempted silently — an exemption nobody can
+  // see is how the next command inherits the bug.
+
+  const POSITIONAL_REFUSERS = COMMAND_NAMES.filter(name => name !== 'migrate');
+
+  for (const sub of POSITIONAL_REFUSERS) {
+    it(`\`${sub} bogus\` is refused, not silently accepted`, () => {
+      // NO `--json` HERE, and that is not an oversight — it is what keeps the case honest.
+      // The first cut passed `--json` in order to read `code` off the payload, and it passed
+      // for a command that accepts positionals freely: the fake declared no `--json` flag, so
+      // the UNKNOWN FLAG produced the EUSAGE and the positional was never the reason. A test
+      // that can be satisfied by the wrong cause is the "narrower question" trap this repo
+      // keeps a table about, reached from inside the suite instead of from a tool.
+      //
+      // Matching node's own wording ties the assertion to the positional specifically. It also
+      // pins the house rule that a refusal QUOTES BACK what it rejected — `bogus` appears in
+      // the message, so a caller can tell a typo from a shell glob that expanded.
+      const { code, both } = run([sub], ['bogus'], FIXTURES);
+
+      assert.equal(code, 1, `${sub} accepted a positional and exited ${code}`);
+      assert.match(both, /Unexpected argument 'bogus'/);
+    });
+  }
+
+  it('the refusal reaches a --json consumer as EUSAGE on STDOUT', () => {
+    // The machine half, asserted once rather than per command: the loop above proves the
+    // refusal happens, this proves it is legible to the caller that cannot read prose.
+    const { code, out } = run(['ready'], ['bogus', '--json'], FIXTURES);
+
+    assert.equal(code, 1);
+    assert.equal(JSON.parse(out).code, 'EUSAGE');
+  });
+
+  it('every command is either a refuser or the one documented positional-taker', () => {
+    // The point of the split. A command added later joins POSITIONAL_REFUSERS automatically
+    // and fails until it passes `allowPositionals: false` — which is what stops the flag from
+    // being a convention four call sites happen to follow today.
+    assert.deepEqual(
+      [...POSITIONAL_REFUSERS, 'migrate'].sort(),
+      [...COMMAND_NAMES].sort(),
+      'a command is neither refusing positionals nor declared as taking one'
+    );
+  });
+
+  it('`migrate` takes ONE file and REFUSES a second rather than dropping it', () => {
+    // Its own form of the same bug: `const [inputPath] = positionals` consumed the first and
+    // dropped the rest without a word, on the one command that WRITES A STORE. A caller who
+    // believed both were consumed got a migration missing half its input, at exit 0.
+    const { code, both } = run(['migrate'], ['first.json', 'second.json'], FIXTURES);
+
+    assert.equal(code, 1);
+    // The dropped token must be QUOTED BACK — a refusal that does not name what it rejected
+    // cannot tell a shell glob from a typo.
+    assert.match(both, /second\.json/);
+  });
+
+  it('`migrate` still accepts its single positional (the guard did not over-reject)', () => {
+    // Falsification for the case above: if the new guard fired on ONE path, every real
+    // migration would refuse and the test above would still pass.
+    const { both } = run(['migrate'], ['first.json'], FIXTURES);
+
+    assert.doesNotMatch(both, /takes ONE bd export file/);
   });
 });

@@ -7,57 +7,63 @@
 <meta name="description" content="The diarie token layer as a specimen sheet: palette, the two type voices, the exit-code accent contract, and the paper-context flip.">
 <link rel="icon" href="diarie-favicon.svg" type="image/svg+xml">
 
-<!-- Repo-only reference page (not in dist-copy.js's deploy allowlist, like
-     brand-book.html). A compact rendering of the token layer as a specimen
-     sheet — the same artifact synced to claude.ai/design. Canonical values
-     live in tokens.css; when this page and that file disagree, the file wins. -->
+<!-- The token layer as a specimen sheet. Repo-only: NOT in dist-copy.js's
+     deploy allowlist and not in check-brand-assets.js's PAGES, so nothing on
+     diarie.dev serves or verifies it. Open it with `npm run serve`.
+
+     It is not decoration. This page is the durable source of the one preview
+     card in diarie's Claude Design project (claude.ai/design), which is where
+     the design agent learns what diarie looks like. `.design-sync/build.mjs`
+     adapts this file into `components/foundations/Foundations/Foundations.html`
+     — see that script for the exact transform. Edit the page, re-run
+     /design-sync, and the card follows; there is no second copy to update.
+
+     It links `foundations.css` — the SAME base the bundle ships as its
+     `styles.css` — so what renders here is what the design agent renders.
+     A preview styled by different CSS than the thing it previews verifies
+     nothing, which is why the base is not inlined below.
+
+     Canonical values live in tokens.css; when this page and that file
+     disagree, the file wins. -->
 <link rel="preload" href="fonts/Fraunces-VF.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/FragmentMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="foundations.css">
 <style>
-  @font-face{font-family:"Fraunces";font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/Fraunces-VF.woff2) format("woff2")}
-  @font-face{font-family:"Fraunces";font-style:italic;font-weight:100 900;font-display:swap;src:url(fonts/Fraunces-Italic-static.woff2) format("woff2")}
-  @font-face{font-family:"Fragment Mono";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/FragmentMono-Regular.woff2) format("woff2")}
-
-  /* Foundational base — the on-brand defaults (mirrors index.html / styles.css). */
-  *{box-sizing:border-box;margin:0}
-  body{
-    background:var(--grund);color:var(--text);
-    font-family:var(--stil-arkiv);font-variation-settings:var(--snitt-brodtext);
-    font-size:1.0625rem;line-height:1.65;
-    -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
-  }
-  code{font-family:var(--stil-lasare);background:var(--yta-2);border-radius:2px;padding:.08em .32em;font-size:.86em;box-shadow:inset 0 0 0 .5px var(--kant)}
-  ::selection{background:var(--lysning-4);color:var(--papper)}
+  /* Page-specific only. The reset, `body`, `code`, `::selection`, the four
+     @font-face blocks and the heading defaults all arrive via the stylesheet
+     linked above, which @imports the tokens — duplicating them here would let
+     this page drift from that base silently. (Phrased without naming the file
+     because this block is copied verbatim into the design-system card, where
+     the same base is linked under a different name.) */
 
   .sheet-pad{padding:2.4rem 2rem;max-width:60rem;margin:0 auto}
   .head{display:flex;align-items:baseline;gap:1rem;flex-wrap:wrap;margin-bottom:.4rem}
-  .ordm{font-variation-settings:var(--snitt-ordmarke);font-size:clamp(2.6rem,7vw,4rem);line-height:1;letter-spacing:-.01em}
+  .ordm{font-variation-settings:var(--snitt-ordmarke);font-size:clamp(3rem,7vw,4.6rem);line-height:1;letter-spacing:-.01em}
   .sub{font-family:var(--stil-lasare);font-size:.82rem;letter-spacing:.12em;text-transform:uppercase;color:var(--hektograf-ljus)}
-  .lead{color:var(--text-2);max-width:46rem;margin-bottom:2.8rem}
+  .lead{color:var(--text-2);margin-bottom:2.8rem}
 
-  h2.rub{font-variation-settings:var(--snitt-rubrik);font-size:1.35rem;line-height:1.2;margin:2.6rem 0 1.1rem}
+  h2.rub{font-variation-settings:var(--snitt-rubrik);font-size:1.3rem;line-height:1.2;margin:2.6rem 0 1.1rem}
   .note{font-family:var(--stil-lasare);font-size:.8rem;color:var(--text-3);margin-top:.5rem}
 
   /* Swatches */
   .swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(11rem,1fr));gap:.7rem}
   .sw{border:var(--hallinje) solid var(--kant);border-radius:var(--radie);overflow:hidden;background:var(--yta)}
   .sw .chip{height:3.4rem}
-  .sw .meta{padding:.55rem .7rem;font-family:var(--stil-lasare);font-size:.72rem;line-height:1.45}
+  .sw .meta{padding:.55rem .7rem;font-family:var(--stil-lasare);font-size:.75rem;line-height:1.45}
   .sw .tok{color:var(--text);display:block}
   .sw .hex{color:var(--text-3)}
-  .sw .role{color:var(--text-2);display:block;margin-top:.2rem;font-size:.68rem}
+  .sw .role{color:var(--text-2);display:block;margin-top:.2rem}
 
   /* Type specimen */
   .type-row{border-top:var(--hallinje) solid var(--kant);padding:1.1rem 0}
   .type-row:last-child{border-bottom:var(--hallinje) solid var(--kant)}
-  .type-tag{font-family:var(--stil-lasare);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:.35rem}
+  .type-tag{font-family:var(--stil-lasare);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:.35rem}
   .spec-ordm{font-variation-settings:var(--snitt-ordmarke);font-size:3rem;line-height:1}
   .spec-rub{font-variation-settings:var(--snitt-rubrik);font-size:1.6rem;line-height:1.15}
   .spec-brod{font-variation-settings:var(--snitt-brodtext);font-size:1.0625rem;line-height:1.6;color:var(--text)}
 
   /* Terminal — the reader voice */
-  .term{background:var(--yta-2);border-radius:var(--radie);padding:1.1rem 1.2rem;font-family:var(--stil-lasare);font-size:.85rem;line-height:1.75;box-shadow:inset 0 0 0 .5px var(--kant)}
+  .term{background:var(--yta-2);border-radius:var(--radie);padding:1.1rem 1.2rem;font-family:var(--stil-lasare);font-size:.85rem;line-height:1.75;box-shadow:inset 0 0 0 .5px var(--kant);overflow-x:auto}
   .term .p0{color:var(--fosfor)}
   .term .p1{color:var(--barnsten)}
   .term .p2{color:var(--stampel-ljus)}
@@ -67,29 +73,29 @@
   /* Exit-code legend */
   .exits{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:.7rem;margin-top:.4rem}
   .exit{background:var(--yta);border:var(--hallinje) solid var(--kant);border-radius:var(--radie);padding:1rem 1.1rem}
-  .exit .num{font-variation-settings:var(--snitt-ordmarke);font-size:2.4rem;line-height:1}
+  .exit .num{font-variation-settings:var(--snitt-ordmarke);font-size:2rem;line-height:1}
   .exit.e0 .num{color:var(--exit-0)}
   .exit.e1 .num{color:var(--exit-1)}
   .exit.e2 .num{color:var(--exit-2)}
-  .exit .lbl{font-family:var(--stil-lasare);font-size:.74rem;color:var(--text-2);margin-top:.4rem;line-height:1.4}
+  .exit .lbl{font-family:var(--stil-lasare);font-size:.75rem;color:var(--text-2);margin-top:.4rem;line-height:1.4}
   .exit .lbl b{color:var(--text);font-weight:400}
 
   /* Paper specimen — the .pa-papper flip */
-  .sheet{border-radius:var(--radie);padding:1.6rem 1.7rem;box-shadow:0 0 0 6px var(--lysning-2);transform:rotate(-0.8deg);max-width:30rem}
+  .sheet{border-radius:var(--radie);padding:1.6rem 1.7rem;box-shadow:0 0 0 6px var(--lysning-2);transform:rotate(-0.8deg);max-width:30rem;min-width:0}
   .sheet .k{color:var(--hektograf)}
-  .sheet .tag{font-family:var(--stil-lasare);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3)}
-  .sheet pre{font-family:var(--stil-lasare);font-size:.82rem;line-height:1.7;margin-top:.5rem}
+  .sheet .tag{font-family:var(--stil-lasare);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3)}
+  .sheet pre{font-family:var(--stil-lasare);font-size:.82rem;line-height:1.7;margin-top:.5rem;overflow-x:auto}
   .flip-wrap{display:flex;justify-content:center;padding:1.4rem 0 .4rem}
 </style>
 </head>
 <body>
-<div class="sheet-pad">
+<main class="sheet-pad">
 
-  <div class="head">
-    <span class="ordm">diarie</span>
+  <header class="head">
+    <h1 class="ordm">diarie</h1>
     <span class="sub">foundations</span>
-  </div>
-  <p class="lead">The token layer as a specimen sheet — pressed flat, backlit, honest.
+  </header>
+  <p class="lead measure">The token layer as a specimen sheet — pressed flat, backlit, honest.
     Every color, type cut and accent below is a live <code>var(--token)</code> from
     <code>tokens.css</code> — the brand as CSS.</p>
 
@@ -135,12 +141,16 @@
   </div>
   <div class="type-row">
     <div class="type-tag">Fragment Mono · reader voice — what the CLI reports</div>
-    <div class="term">
-<span class="muted">$</span> diarie ready<br>
-<span class="p0">●</span> diarie-7   <span class="struct">write the foundations card</span>   <span class="muted">ready</span><br>
-<span class="p1">●</span> diarie-4   <span class="struct">re-verify contrast table</span>   <span class="p1">stale</span><br>
-<span class="p2">✗</span> diarie-9   <span class="struct">store not found</span>   <span class="p2">ENOSTORE</span>
-    </div>
+    <!-- Matches the `term` component in .impeccable/design.json: a <pre> inside a
+         role="img" wrapper with a summarising label. Without it a screen reader
+         reads the rows as run-on prose and announces ● and ✗ as bare glyphs.
+         tabindex="0" is required, not decorative — the block scrolls on narrow
+         viewports, and a scrollable region must be reachable by keyboard. -->
+    <div class="term" role="img" tabindex="0"
+         aria-label="Terminal specimen showing the reader voice: a ready row in fosfor green, a stale row in amber, and a store-not-found row in stamp red carrying the code ENOSTORE."><pre><span class="muted">$</span> diarie ready
+<span class="p0">●</span> diarie-7   <span class="struct">write the foundations card</span>   <span class="muted">ready</span>
+<span class="p1">●</span> diarie-4   <span class="struct">re-verify contrast table</span>   <span class="p1">stale</span>
+<span class="p2">✗</span> diarie-9   <span class="struct">store not found</span>   <span class="p2">ENOSTORE</span></pre></div>
   </div>
 
   <h2 class="rub">Paper context — the <code>.pa-papper</code> flip</h2>
@@ -155,6 +165,6 @@
     </div>
   </div>
 
-</div>
+</main>
 </body>
 </html>

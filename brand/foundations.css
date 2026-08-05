@@ -1,0 +1,107 @@
+/* foundations.css — the design-system BASE: tokens, the two voices, and the
+ * on-brand defaults any diarie surface renders on.
+ *
+ * ── What this file is for ────────────────────────────────────────────────
+ * Two consumers, and the second one is easy to forget:
+ *
+ * 1. `foundations.html` links it. That page is the local specimen sheet.
+ * 2. `/design-sync` uploads it to the diarie Claude Design project, where it
+ *    becomes the stylesheet EVERY design that agent builds is rendered with.
+ *
+ * Because (1) and (2) share this one file, the specimen page is a true preview
+ * of what the design agent receives — not merely a page that resembles it. Any
+ * base rule you add here shows up in both. That is the point: a preview that
+ * renders against different CSS than the thing it previews verifies nothing.
+ *
+ * ── It is renamed and path-rewritten on upload ───────────────────────────
+ * `.design-sync/build.mjs` copies this file to the bundle as `styles.css` and
+ * rewrites the @import below. Both changes are forced, not stylistic:
+ *
+ *   this file (brand/)          the bundle
+ *   ------------------------    -------------------------
+ *   foundations.css             styles.css
+ *   @import "tokens.css"        @import "tokens/tokens.css"
+ *
+ * The name is fixed by the app: a rendered design receives ONLY the transitive
+ * @import closure of a file literally called `styles.css`. (Observed 2026-07-29,
+ * the live project's generated `_ds_manifest.json` pins `globalCssPaths` to
+ * `tokens/tokens.css` and `styles.css` — remote state, so nothing here can
+ * check it.) The path differs because the bundle nests tokens in `tokens/`
+ * while brand/ keeps them as siblings. No FILE named styles.css exists in this
+ * repo — the build owns that name, not the source.
+ *
+ * Anything reachable from here travels to the design agent. Anything NOT
+ * reachable from here does not exist as far as a rendered design is concerned.
+ */
+
+@import "tokens.css";
+
+/* The two voices, self-hosted (both OFL). Archive voice = Fraunces (what the
+   human wrote); reader voice = Fragment Mono (what the CLI reports).
+   `fonts/` is the same relative path in brand/ and in the bundle, so these
+   need no rewrite — unlike the @import above. */
+@font-face{font-family:"Fraunces";font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/Fraunces-VF.woff2) format("woff2")}
+@font-face{font-family:"Fraunces";font-style:italic;font-weight:100 900;font-display:swap;src:url(fonts/Fraunces-Italic-static.woff2) format("woff2")}
+@font-face{font-family:"Fragment Mono";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/FragmentMono-Regular.woff2) format("woff2")}
+
+/* Not a third typeface — a metric-adjusted alias for the system serif already
+   in the stack, so `font-display:swap` reflows prose ~0.4% instead of ~5% when
+   Fraunces lands. --stil-arkiv NAMES this family, so omitting this block does
+   not degrade gracefully: it falls through to an unadjusted Georgia and the fix
+   silently does nothing. In the bundle this file is the ENTRY of the whole
+   @import closure a design receives (it plus tokens/tokens.css), so the miss
+   would reach EVERY design, not one page. src is local()-only; a machine with
+   neither face gets no adjustment either way. */
+@font-face{font-family:"Fraunces Fallback";src:local("Georgia"),local("Times New Roman");
+  size-adjust:105.7%;ascent-override:92%;descent-override:24%;line-gap-override:0%}
+
+/* ---- Foundational base — universal, on-brand defaults ------------------- */
+
+*{box-sizing:border-box;margin:0}
+:root{color-scheme:dark}
+
+body{
+  background:var(--grund);
+  color:var(--text);
+  font-family:var(--stil-arkiv);
+  font-variation-settings:var(--snitt-brodtext);
+  font-size:1.0625rem;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* Headings use the archive voice; the rubrik cut turns wonk on for section
+   heads. The ordmarke cut (--snitt-ordmarke) is wordmark/hero only, ≥40px —
+   applied per-surface, never blanket, so it is left to the design. */
+h1,h2,h3,h4{font-family:var(--stil-arkiv)}
+h2{font-variation-settings:var(--snitt-rubrik);line-height:1.15}
+h1,h2,h3{text-wrap:balance}
+p{text-wrap:pretty}
+p+p{margin-top:.9rem}
+
+/* The measure, as one class rather than a per-paragraph max-width. DESIGN.md
+   states the rule ("never author a per-paragraph `max-width`") but the class
+   itself lived only inside index.html's private styles, so every other surface
+   — this page, and every design the bundle renders — had the rule with nothing
+   to obey it with. 34rem, not the 44rem it replaced: that was recorded as
+   "64ch" and the ch unit is the advance of `0`, ~11px in Fraunces against a
+   ~7.5px mean character, which put the real measure far above the 65-75 guide. */
+.measure{max-width:34rem}
+.measure-c{max-width:34rem;margin-inline:auto}
+
+a{color:var(--lank);text-decoration-thickness:.06em;text-underline-offset:.18em}
+a:hover{color:var(--text)}
+:focus-visible{outline:2px solid var(--fosfor);outline-offset:3px;border-radius:2px}
+::selection{background:var(--lysning-4);color:var(--papper)}
+
+/* Machine-facing content is always the reader voice. */
+code,pre,kbd,samp{font-family:var(--stil-lasare);font-synthesis:none}
+code{
+  background:var(--yta-2);
+  border-radius:2px;
+  padding:.08em .32em;
+  font-size:.86em;
+  box-shadow:inset 0 0 0 .5px var(--kant);
+}
+pre code{background:none;border-radius:0;padding:0;font-size:inherit;box-shadow:none}

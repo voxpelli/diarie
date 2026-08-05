@@ -13,14 +13,23 @@ colors:
   lysning-3: "#3C2D6E"
   lysning-4: "#4B3A87"
   papper: "#EFE6D2"
+  papper-2: "#F6EFDE"
   lavendel: "#B7ABDD"
+  lavendel-ljus: "#DCCEF0"
   hektograf-ljus: "#9C90C4"
   hektograf: "#6B4FC8"
+  hektograf-mork: "#5F40B9"
   fosfor: "#5CE49A"
   barnsten: "#E8A13C"
   stampel: "#D8453E"
   stampel-ljus: "#E8756B"
   stampel-mork: "#A83732"
+  stampel-blek: "#F3DBD6"
+  stampel-dov: "#D8988F"
+  blad-blek: "#E4EFDC"
+  blad-ljus: "#9CBF87"
+  blad: "#5D8A49"
+  blad-mork: "#2E5A1F"
   kant: "rgba(239, 230, 210, 0.16)"
   markering: "rgba(107, 79, 200, 0.42)"
   fosfor-p3: "oklch(82.5% 0.207 156.3)"
@@ -42,14 +51,15 @@ typography:
     lineHeight: 1.15
     fontVariation: '"opsz" 72, "wght" 480, "SOFT" 40, "WONK" 1'
   brodtext:
-    fontFamily: Fraunces
+    fontFamily: 'Fraunces, "Fraunces Fallback", Georgia, serif'
     fontSize: 17px
     fontWeight: 415
     lineHeight: 1.65
+    letterSpacing: 0.005em
     fontVariation: '"opsz" 15, "wght" 415, "SOFT" 0, "WONK" 0'
   lasare:
     fontFamily: Fragment Mono
-    fontSize: 15px
+    fontSize: 14px
     fontWeight: 400
     lineHeight: 1.7
   lasare-detalj:
@@ -58,17 +68,85 @@ typography:
     fontWeight: 400
     lineHeight: 1.5
     letterSpacing: 0.1em
+  hero:
+    fontFamily: Fraunces
+    fontSize: 5.6rem
+    fontWeight: 520
+    lineHeight: 1
+    letterSpacing: -0.012em
+    fontVariation: '"opsz" 144, "wght" 520, "SOFT" 60, "WONK" 1'
+  rubrik-fluid:
+    fontFamily: Fraunces
+    fontSize: 2.3rem
+    fontWeight: 480
+    lineHeight: 1.15
+    letterSpacing: -0.006em
+    fontVariation: '"opsz" 72, "wght" 480, "SOFT" 40, "WONK" 1'
+  ingress:
+    fontFamily: Fraunces
+    fontSize: 1.6rem
+    fontWeight: 440
+    lineHeight: 1.35
+    letterSpacing: -0.004em
+    fontVariation: '"opsz" 40, "wght" 440, "SOFT" 40, "WONK" 0'
+  mellanrubrik:
+    fontFamily: Fraunces
+    fontSize: 1.3rem
+    fontWeight: 500
+    lineHeight: 1.25
+    fontVariation: '"opsz" 40, "wght" 500, "SOFT" 40, "WONK" 0'
+  brodtext-liten:
+    fontFamily: Fraunces
+    fontSize: 0.95rem
+    fontWeight: 415
+    lineHeight: 1.65
+  lasare-liten:
+    fontFamily: Fragment Mono
+    fontSize: 0.8rem
+    fontWeight: 400
+    lineHeight: 1.7
+  ordmarke-liten:
+    fontFamily: Fraunces
+    fontSize: 1.15rem
+    fontWeight: 500
+    lineHeight: 1
+    fontVariation: '"opsz" 40, "wght" 500, "SOFT" 60, "WONK" 1'
+  scale:
+    hero-min: 3.4rem
+    rubrik-fluid-min: 1.7rem
+    ingress-min: 1.25rem
+    exit-numeral: 4.2rem
+    bok-omslag-min: 3rem
+    bok-omslag-max: 4.6rem
+    bok-rubrik-max: 2.2rem
+    bok-exit-numeral: 2rem
+    bok-prov-arkiv: 1.9rem
+    bok-prov-lasare: 1.4rem
+    bok-prov-min: 2.6rem
 rounded:
   xs: 3px
   sm: 4px
   md: 6px
 spacing:
+  '3xs': 0.5rem
+  '2xs': 0.7rem
+  xs: 0.9rem
   sm: 1rem
+  'sm-plus': 1.1rem
+  compact: 1.2rem
   md: 1.4rem
+  'md-plus': 2rem
   lg: 2.4rem
+  'lg-plus': 2.6rem
   xl: 4.5rem
 components:
   term:
+    backgroundColor: "{colors.yta-2}"
+    textColor: "{colors.papper}"
+    rounded: "{rounded.md}"
+    typography: "{typography.lasare}"
+    padding: 1.1rem
+  term-wrapped:
     backgroundColor: "{colors.yta-2}"
     textColor: "{colors.papper}"
     rounded: "{rounded.md}"
@@ -101,21 +179,35 @@ components:
     textColor: "{colors.lavendel}"
     rounded: "{rounded.md}"
     padding: 1.3rem
+  refusal-do:
+    backgroundColor: "{colors.blad-blek}"
+    textColor: "{colors.arkiv}"
+    rounded: "{rounded.md}"
+    padding: 1.1rem 1.2rem
+  refusal-dont:
+    backgroundColor: "{colors.stampel-blek}"
+    textColor: "{colors.arkiv}"
+    rounded: "{rounded.md}"
+    padding: 1.1rem 1.2rem
 ---
 
 # diarie — DESIGN.md
 
-*Agent-facing projection of the diarie identity. Canonical sources are
+_Agent-facing projection of the diarie identity. Canonical sources are
 [`tokens.css`](./tokens.css) (values), [`BRAND.md`](../BRAND.md) (rationale),
 and the SVG files (geometry); when this file and those disagree, those win.
 Implementation contract for the built pages: [`HANDOFF.md`](./HANDOFF.md). Border colors are outside
 the component schema: hairlines are always `kant` at 0.5px, stamp borders
 always `stampel` (dark ground) or `stampel-mork` (paper) at 1.5px.
 Lint: `npx @google/design.md lint DESIGN.md` — current status: 0 errors,
-16 accepted warnings (palette members referenced by the page ground, halo,
-borders, and terminal states rather than by schema components — including
-the five `*-p3` tokens, which are consumed by a media gate, not a
-component).*
+20 accepted warnings, all `orphaned-tokens` (palette members referenced by
+the page ground, halo, borders, and terminal states rather than by schema
+components — including the five `*-p3` tokens, consumed by a media gate
+rather than a component — plus the four `typography.scale` steps, which are
+an enumerated ramp by definition and so reference no component). The two
+linters want different things and both are satisfied: this one rejects a
+`clamp()` in `fontSize`, while Impeccable's detector reads a fluid role's
+endpoints, so the fluid minima live in `scale` and the maxima in the roles._
 
 ## Overview
 
@@ -134,11 +226,11 @@ a motif, or an invariant in VISION.md does not belong in the system.
 
 ## Colors
 
-Names are Swedish, ASCII-folded: *arkiv* archive (page ground), *yta*
-surface, *lysning* the stepped backlight (four flat steps, outer → inner,
-never a gradient), *papper* herbarium paper, *hektograf* the violet
-copy-ink of the analog office, *fosfor* terminal phosphor, *bärnsten*
-amber, *stämpel* stamp red.
+Names are Swedish, ASCII-folded: _arkiv_ archive (page ground), _yta_
+surface, _lysning_ the stepped backlight (four flat steps, outer → inner,
+never a gradient), _papper_ herbarium paper, _hektograf_ the violet
+copy-ink of the analog office, _fosfor_ terminal phosphor, _bärnsten_
+amber, _stämpel_ stamp red, _blad_ the pressed leaf.
 
 **The highlights have jobs — this is the load-bearing rule.** The accents
 are the CLI's exit-code contract: `fosfor` is exit 0 and `ready`, and
@@ -147,8 +239,41 @@ mistaken for "workable". `barnsten` is exit 1 (asked wrong; stale claims).
 `stampel` is exit 2 — the rejection stamp belongs to `validate`. Blocked
 is `lavendel`: waiting, not wrong.
 
-Contrast is verified in both models (WCAG 2.x and APCA-W3); the full table
-lives in BRAND.md. Follow APCA where they disagree: `hektograf` on arkiv
+**There are two greens, and they are not a ramp.** `fosfor` is emitted —
+terminal phosphor on the dark ground, and 1.30:1 on papper, which makes it
+unusable as ink on the sheet. `blad` is reflected — a pressed specimen, for
+paper contexts, running `blad-blek` → `blad-ljus` → `blad` → `blad-mork`
+palest to darkest. Never substitute one for the other: `fosfor` carries the
+exit-code contract and must not appear where a reader could mistake it for
+"ready".
+
+What separates them is **chroma, not hue** — and this is worth stating
+because the obvious measurement gets it wrong. Against the sixteen greens
+of Werner's _Nomenclature of Colours_ (Syme, 1821 — the second edition, the
+copy Darwin carried on the _Beagle_, now Cambridge University Library
+DAR LIB T.620), which run OKLCH chroma 0.005–0.111: `blad-ljus` is Syme's
+"Emerald Green" (`#93B778`) to within ΔE00 2.88 — close enough to read as
+the same green, though not a colour match — while `fosfor` is ΔE00 14.81
+from that same swatch and, at chroma 0.159 in sRGB (0.207 on P3), more
+chromatic than every green on the chart. In OKLCH _hue_ the two families
+sit only \~20° apart, so hue will not separate them. Measured in HSL the gap
+reads \~50°, because HSL hands the greens roughly four times more of the hue
+circle than they perceptually occupy — the reading is inflated, not
+meaningful, so do not reach for HSL to tell these two apart.
+
+Those hexes are from **Nicholas Rougeux's digitisation of the 1821 chart**
+([c82.net/werner](https://www.c82.net/werner)), which photographs
+hand-painted swatches and averages them flat. They are one reading of a
+200-year-old book, not canonical values — another digitisation will differ,
+so re-derive from the same source or the numbers above will not reproduce.
+Note also that Syme gives animal/vegetable/mineral exemplars per colour and
+_Emerald Green has no vegetable one_; "botanical" would be the wrong word
+for this set.
+
+WCAG 2.x ratios are recorded next to every token in `tokens.css`. The
+APCA-W3 table in BRAND.md covers the dark-ground palette and does **not**
+yet include the paper-context additions (`papper-2`, `lavendel-ljus`, the
+`stampel-blek`/`-dov` pair, or the four `blad` steps). Follow APCA where they disagree: `hektograf` on arkiv
 (Lc −22) is borders and decoration only, even at display sizes;
 `stampel-ljus` (Lc −46) carries short status labels, not paragraphs; on
 papper use `stampel-mork`. Body text on arkiv is `papper` (primary),
@@ -169,24 +294,102 @@ machine-facing content (commands, output, codes, the agents card) is mono.
 Fraunces is variable; the cuts are tokens. `ordmarke` (opsz 144, WONK 1)
 is the identity cut — wordmark and hero only, at 40px and above. `rubrik`
 keeps the wonk for headings. `brodtext` turns wonk and softness off:
-character belongs at display sizes, never in running text. Sizes in the
-front matter are reference points; the pages scale them with `clamp()`.
+character belongs at display sizes, never in running text.
+
+**The named cuts are axis settings, not the whole ramp.** They fix the
+variable-font coordinates at a reference size; the built page then resolves
+them into three fluid display roles — `hero`, `rubrik-fluid`, `ingress` —
+plus `mellanrubrik` (1.3rem, the one card-heading cut, replacing three
+near-identical one-offs that separated by weight alone), `ordmarke-liten`
+(1.15rem, the header wordmark — the one place `WONK 1` is legitimate below
+25.6px, because a wordmark is not running text), and two reused reading
+steps, `brodtext-liten` (0.95rem, the single small-prose size on the page)
+and `lasare-liten` (0.8rem, terminal and footer fine print). Those twelve
+entries are the ramp. Anything else on a built page is a one-off and should
+be justified or folded into a role.
+
+**Emphasis lifts weight, nothing else.** Inline emphasis inside running text
+moves `wght` and, where the stroke needs warming, `SOFT` — never `opsz`,
+which belongs to the size the type is set at. A `<strong>` is not a new cut.
+
+**Tracking is tuned for light-on-dark.** Light type on a dark ground blooms,
+so display sizes carry negative tracking (`hero` −0.012em, `rubrik-fluid`
+−0.006em, `ingress` −0.004em) and text size carries a touch of positive
+(`brodtext` +0.005em). Mono is always zero — `code`, `pre`, `kbd` and `term`
+reset it so no column can drift. The floor is −0.04em.
+
+**The front matter cannot hold a `clamp()`** — the spec's `fontSize` takes a
+single dimension, and a range is a lint error. So each fluid role records
+its **maximum** there, and the real fluid range lives in the sidecar's
+`typographyMeta`, next to the token it belongs to:
+
+| Role           | Fluid range as shipped          |
+| -------------- | ------------------------------- |
+| `hero`         | `clamp(3.4rem, 9vw, 5.6rem)`    |
+| `rubrik-fluid` | `clamp(1.7rem, 3.4vw, 2.3rem)`  |
+| `ingress`      | `clamp(1.25rem, 2.6vw, 1.6rem)` |
+
+**The Reference-Size Rule.** A token's `fontSize` is where its axis settings
+were chosen or where the role tops out — not a size you must ship literally.
+Read a cut as "these axes at about this size"; ship the fluid role when the
+type has to survive a viewport.
 
 Fonts are always self-hosted (both OFL, no Reserved Font Names — subsetting
 needs attribution only). On the site they are subset and served from `fonts/` beside the page —
 the same files the release tooling reads — preloaded, with
 `font-display: swap`.
 
+The serif stack carries a metric-adjusted alias, `"Fraunces Fallback"`
+(`local("Georgia")`, `size-adjust: 105.7%`). It is **not a third typeface** —
+it is the system serif already at the end of the stack, corrected so
+`font-display: swap` no longer reflows prose by 5.4% when Fraunces arrives.
+Measured residual after the override: 0.6%.
+
 ## Layout
 
 One centered column, `max-width: 66rem`, `1.4rem` side padding. Vertical
-rhythm in rem: `1rem` grid gaps, `1.4rem` component padding, `2.4rem`
-column gaps, `4.5rem` section padding (spacing tokens sm–xl). Breakpoints:
+rhythm in rem: `1rem` grid gaps, `1.4rem` component padding, `2.4rem`–`2.6rem`
+column gaps, `4.5rem` section padding. Breakpoints:
 below **840px** multi-column grids collapse to one or two columns; below
 **540px** everything is single-column and sections tighten to `3.2rem`.
 The scene recurs between chapters via the leaf rule; the light table
 appears at full strength only in the hero and faintly behind the footer
 stamp — the lamp left on.
+
+**Four role tokens, seven component steps.** `sm` / `md` / `lg` / `xl` name
+the four structural roles above and are normative for them. Component
+interiors legitimately need the steps between, and the front matter now
+carries the ones the page actually reuses — `3xs` 0.5, `2xs` 0.7, `xs` 0.9,
+`sm-plus` 1.1, `compact` 1.2, `md-plus` 2, `lg-plus` 2.6. Measured on the
+built page, `1.1rem` is the single most-used interior value after `1rem`;
+`lg` (2.4rem) is the least-used token in the set. Values outside these
+eleven are one-offs, and a new one should earn its place or snap to a step.
+
+**The Measure Rule.** Running prose is capped by one class, not by inline
+widths: `.measure` (34rem) and its
+centred twin `.measure-c`. Never author a per-paragraph `max-width` — a page
+that does drifts, and this one had eleven inline widths across three
+different values before they were consolidated.
+
+**Do not measure a measure with `ch`.** 44rem was recorded here as "64ch"; it was
+never that — `ch` is the advance of `0`, and counting real glyphs put the same
+measure far above the 65–75 guide, which is why it is now 34rem.
+`ch` is the advance of `0`, which is 11.05px in Fraunces at `opsz 15 / wght 415`
+while a mean prose character is \~7.5px — it under-reports by \~45%. Fraunces
+compounds it: an x-height of 0.436em makes 17px read optically like \~15.4px
+Georgia, so a long line arrives at a small apparent size on a dark ground.
+The measure is now **34rem** (544px), down from 44rem (704px). A cap that does
+not follow its font size is a broken cap, so `.lineage p` (15.2px) takes its own
+30rem and `footer .fine` (12.8px mono) takes 36rem — the latter sized so the
+footer's two-up composition survives, with 251px between the fine print and the
+184px dnr stamp at 1440px.
+
+**Record the width, not the character count.** Characters-per-line is a derived
+figure and its value depends on a choice nobody writes down: counting the _top_
+line of these paragraphs gives 59–69, counting the _longest_ gives 66–87, and
+the CSS `ch` unit gives 64 — three different answers for one measure, none of
+them wrong. Widths in rem are unambiguous and re-checkable; treat 65–75
+characters as the guide that set the width, never as a figure to assert.
 
 ## Elevation & Depth
 
@@ -197,10 +400,19 @@ stepped light (concentric flat circles in the lysning ramp, at any scale)
 and surface steps (arkiv → yta → yta-2). A static risograph grain covers
 the dark ground at 4% opacity (`--korn`) — texture, never animated.
 
+Because depth is light rather than shadow, the only true stacking order is
+the atmosphere, and it is named rather than guessed: `--z-bakom` (−1, the lit
+scene and the stamp's discs, behind the page), `--z-korn` (60, the grain,
+above all content), `--z-ledger` (70, the reading-progress rule, above the
+grain). Three values, one direction. A bare integer in a `z-index` is a bug.
+
 ## Shapes
 
 Corners are `6px` on cards and terminals, `3px` on the marker wash;
-borders are `0.5px` hairlines in `kant`. Stamps are the sharp exception:
+borders are `0.5px` hairlines in `kant`, and that width is the `hallinje`
+token rather than a repeated literal — 23 call sites across the two pages
+reference it, so a change to the hairline is one edit and not a sweep.
+Stamps are the sharp exception:
 `1.5px` borders, rotated a few degrees off true (−4° to −7°), dashed for
 `granskad`, solid with an inner rule for the `INKOM` date stamp. On the
 built pages both are outlined SVG — rotation baked into geometry, immune
@@ -225,11 +437,61 @@ distinct from the bordered, square-cornered code chip); **stamp-dnr** (`INKOM <d
 with the mark's opposite leaf-pair). Full states, motion timings, and edge
 cases: HANDOFF.md.
 
+**Terminal ink is five classes, and shipping four is a silent loss.** `.c`
+prompt and comment (`hektograf-ljus`), `.g` phosphor (`fosfor`), `.k`
+structure (`lavendel`), `.a` staleness (`barnsten`), `.r` error
+(`stampel-ljus`). The set is not decorative — it is the exit-code contract
+rendered — so an incomplete set costs a semantic role rather than a colour.
+The built page once carried only four, and the missing `.a` left amber with
+a single appearance on the whole surface.
+
+**The reader voice has no italic.** Fragment Mono ships a single `normal` face
+and `code,pre,kbd` set `font-synthesis: none`, so a synthetic oblique is never
+drawn. `font-style: italic` inside a mono run is a silent no-op — the specimen
+sheet carried one on `.y-c` for weeks and rendered upright throughout. Colour
+alone marks a comment there. Do not re-add it.
+
+**term-wrapped** is `term` with `white-space: pre-wrap`. Use it when the
+block's content is prose-shaped — a long error string — rather than
+column-aligned. `diarie` pads no columns (fields are single-space
+separated), so a wrap costs no alignment, and wrapping beats hiding the
+half of a message that names the fix behind a horizontal scroll.
+
+**The refusal cards** are the paper-context pair in the brand book's voice
+chapter: `refusal-do` on a `blad-blek` ground with a `blad-ljus` hairline,
+`refusal-dont` on `stampel-blek` with a `stampel-dov` one. The two are
+deliberately asymmetric. The don't-tag carries the stamp gesture — `1.5px`
+dashed, rotated −2° — while the do-tag is a plain `1px` dashed mark: a
+refusal is stamped, an endorsement is not.
+
+**The Tint-Is-Not-Meaning Rule.** A card's tint may never be the only thing
+saying which card it is. Both borders measure below the 3:1 non-text floor
+(`blad-ljus` 1.66:1, `stampel-dov` 1.92:1 on papper), so the state lives in
+the label — `blad-mork` at 6.80:1, `stampel-mork` at 4.89:1 on their own
+grounds. Read in greyscale, or by a reader who cannot separate the two
+hues, the cards must still be unambiguous.
+
+**The second surface.** This system has two targets, not one. Beyond the
+pages, the CLI's own terminal output is a first-class surface of the same
+tokens — ready rows in `fosfor`, stale claims in `barnsten`, `validate`
+findings in `stampel`, structure in `lavendel`, with `NO_COLOR` and non-TTY
+output losing no information. It is specified in [`BRAND.md`](../BRAND.md)
+and not yet built. Until it is, a coloured terminal block on a page is an
+illustration of the token contract, not a screenshot of the tool.
+
 ## Do's and Don'ts
 
 Do: stepped light at any scale; static grain up to 5%; name the
 consequence, not the adjective; lowercase `diarie` always; consequences
-with revival triggers; mono for anything a machine said.
+with revival triggers; mono for anything a machine said; cap running prose
+with `.measure`; name every `z-index` from the three-value scale.
+
+**Do paste CLI output verbatim.** Every terminal block on a brand surface is
+a claim about the tool's contract, and no gate checks it. Generate the text
+by running the binary against a throwaway store, paste the bytes, and never
+truncate with an ellipsis. This page has shipped a paraphrased error twice —
+once wording a `--root` failure as though the store had been searched for,
+which is the exact imprecision `lib/store/errors.js` refuses in a comment.
 
 Don't — these are identity, not preference: no gradient glow (the halo is
 stepped or it is not the halo); no mascot (the twinflower is a specimen —

@@ -4,14 +4,14 @@ Development happens on [Tangled](https://tangled.org/voxpelli.com/diarie). The
 [GitHub repository](https://github.com/voxpelli/diarie) is a mirror — issues are disabled and only
 collaborators can open pull requests there — so there is one place to look, not two that drift apart.
 
-- **Report a bug or request a feature:**
+* **Report a bug or request a feature:**
   [file an issue on Tangled](https://tangled.org/voxpelli.com/diarie/issues).
-- **Propose a change:** open a pull request against the
+* **Propose a change:** open a pull request against the
   [Tangled repository](https://tangled.org/voxpelli.com/diarie).
 
 ## Before you start
 
-`diarie` is intentionally small — a *reader* over YAML files you own, with no daemon, no database, and
+`diarie` is intentionally small — a _reader_ over YAML files you own, with no daemon, no database, and
 no git hooks. Changes that add an opinion about your workflow (a board, a wizard, a write API, an MCP
 server) are out of scope by design. If in doubt, open an issue on Tangled to discuss before writing
 code.

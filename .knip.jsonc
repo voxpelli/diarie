@@ -8,13 +8,31 @@
   // these as redundant patterns; this is that cleanup.
   "project": ["lib/**/*.js", "brand/*.js"],
 
-  // `@voxpelli/generate-favicon` is CLI-only (no exports) and is invoked as a bare binary via
-  // execFileSync in brand/generate-favicons.js, so knip cannot trace it structurally and would
-  // otherwise report it as an unused devDependency. Ignored deliberately, with WHY.
-  "ignoreDependencies": ["@voxpelli/generate-favicon"],
+  // Three deps knip cannot trace, each for a DIFFERENT reason — and the reasons decide whether the
+  // entry is permanent or has a removal trigger. An ignore with no stated expiry is how a
+  // suppression outlives the thing it suppressed.
+  //
+  // - `@voxpelli/generate-favicon` — CLI-only (no exports), invoked as a bare binary via
+  //   execFileSync in brand/generate-favicons.js. Not structurally traceable. PERMANENT.
+  // - `@voxpelli/ast-grep-rules` — referenced as a FILESYSTEM PATH in sgconfig.yml's `ruleDirs`
+  //   (`node_modules/@voxpelli/ast-grep-rules/rules`). knip has no ast-grep plugin, so nothing
+  //   parses that file. Permanent unless knip gains one.
+  // - `@voxpelli/remark-preset` — knip's remark plugin cannot yet resolve a SCOPED preset name;
+  //   it looks for `remark-@voxpelli/remark-preset`, hence the ignoreUnresolved entry below.
+  //   **TEMPORARY**: fixed upstream in webpro-nl/knip#1911, merged 2026-07-27 but unreleased as of
+  //   knip 6.29.0 (published 2026-07-22). REMOVE BOTH ENTRIES once a knip release contains it —
+  //   verified by deleting them and re-running `npm run check:knip`.
+  "ignoreDependencies": [
+    "@voxpelli/generate-favicon",
+    "@voxpelli/ast-grep-rules",
+    "@voxpelli/remark-preset"
+  ],
+  "ignoreUnresolved": ["remark-@voxpelli/remark-preset"],
 
-  // `@planned` marks an export that is deliberately kept without a caller. It must SAY WHY in the
-  // JSDoc — a silenced knip warning that implies somebody still needs the export is worse than no
-  // warning at all. See `projectRecords` in lib/migrate/bd-map.js.
+  // `@planned` marks an export that is deliberately kept without a caller. It must SAY WHY in
+  // the JSDoc — a silenced knip warning that implies somebody still needs the export is worse
+  // than no warning at all. Kept for any future such export: the mechanism's only example so
+  // far (`projectRecords` in lib/migrate/bd-map.js) gained a test-suite consumer and no longer
+  // needs the tag.
   "tags": ["-planned"]
 }

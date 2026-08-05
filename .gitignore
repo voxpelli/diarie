@@ -25,8 +25,37 @@
 node_modules/
 
 # Local tool caches.
-.impeccable/
+#
+# Note the `/*`: `.impeccable/` would exclude the DIRECTORY, and git cannot re-include a file whose
+# parent directory is excluded — the negation below would silently do nothing. Excluding the
+# CONTENTS is what makes an exception possible at all.
+#
+# The exception is impeccable's own design, not a preference: its docs split a SHARED
+# `.impeccable/config.json` from a per-developer `.impeccable/config.local.json` they describe as
+# gitignored, and `/impeccable hooks ignore-value` writes the shared one by default. Ignoring the
+# whole directory defeated that — every suppression decision, each carrying a hand-written `reason`,
+# landed somewhere git could not see, so a fresh clone silently re-surfaced settled findings.
+# design.json is committed for a different reason: it is NOT derived from brand/DESIGN.md. Per
+# impeccable's own docs it carries "what Stitch's schema can't hold" — tonal ramps, motion tokens,
+# component HTML/CSS snippets and narrative rules — and "extends the frontmatter, it doesn't
+# duplicate it". Nothing tracked can reconstruct it: regenerating would mean an agent re-deriving
+# the refusal-card snippets and the Tint-Is-Not-Meaning rule from scratch, which is a new artifact
+# rather than the same one rebuilt. The live panel reads it to render this project's real
+# primitives instead of generic approximations.
+#
+# What stays ignored is genuinely transient: hook.cache.json is a cache, live/ is session scratch,
+# and config.local.json is per-developer by contract.
+.impeccable/*
+!.impeccable/config.json
+!.impeccable/design.json
 .cache/
+
+# The Litho agent-tooling bundle: `.litho/` is tool state (caches), `litho.docs/` its generated
+# docs. DELIBERATE lint-scope exclusion per the warning above — both are generated, so linting the
+# copies would be noise; but that means a lint rule cannot see them, by design. Same shape as
+# brand-dist/ below. Recorded in CLAUDE.md's lint-scope bullet.
+.litho/
+litho.docs/
 
 # impeccable's DESIGN.md discovery symlink → brand/DESIGN.md (the canonical, tracked, linted copy).
 # Local-only glue so `/impeccable` resolves the design system. Committing it would double-lint the
@@ -35,11 +64,20 @@ node_modules/
 # by `/impeccable init`.
 /DESIGN.md
 
-# The brand deploy build output. `brand:build` regenerates it (copy of the deployable source +
+# The brand deploy build output. `brand` regenerates it (copy of the deployable source +
 # freshly generated stamp + favicons); CI builds it and deploys it to diarie.dev via pages.yml.
 # A DELIBERATE lint-scope exclusion per the warning above: it is generated, so linting the copies
 # would be noise — but that means a lint rule cannot see it, by design.
 brand-dist/
+
+# The Claude Design bundle. `.design-sync/build.mjs` regenerates it from brand/ + the hand-authored
+# parts under .design-sync/bundle/, and /design-sync uploads it. Same shape as brand-dist/ above: a
+# DELIBERATE lint-scope exclusion, because every file in it is a copy or a derivation of something
+# already linted at its source. Note what is NOT excluded — `.design-sync/` itself is tracked and
+# stays in scope: config.json is the project pin, build.mjs is the converter, and bundle/*.md is
+# hand-authored prose uploaded verbatim, so `check:md` linting it is the point (decision diarie-tbl,
+# "no unlinted island"). Ignoring the source alongside the output is the mistake this line avoids.
+ds-bundle/
 
 # Local upstream-friction notes against the templates diarie was scaffolded from
 # (contribute-back opportunities). Personal working notes — never committed.

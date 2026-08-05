@@ -1,0 +1,588 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-29T02:51:38.625249Z",
+  "title": "Design System: diarie",
+  "extensions": {
+    "colorMeta": {
+      "arkiv": {
+        "role": "neutral",
+        "displayName": "Archive Night",
+        "canonical": "oklch(19.7% 0.042 295.5)",
+        "tonalRamp": [
+          "#0d071b",
+          "#262036",
+          "#413b54",
+          "#5f5973",
+          "#7f7994",
+          "#a09ab6",
+          "#c9c2e0",
+          "#f0e9ff"
+        ]
+      },
+      "yta": {
+        "role": "neutral",
+        "displayName": "Raised Surface",
+        "canonical": "oklch(23.0% 0.053 295.0)",
+        "tonalRamp": [
+          "#0d051f",
+          "#261e3b",
+          "#423a59",
+          "#605879",
+          "#7f779a",
+          "#a098bd",
+          "#c9c1e7",
+          "#f0e8ff"
+        ]
+      },
+      "yta-2": {
+        "role": "neutral",
+        "displayName": "Terminal Surface",
+        "canonical": "oklch(27.3% 0.069 294.8)",
+        "tonalRamp": [
+          "#0e0324",
+          "#271c41",
+          "#423860",
+          "#605681",
+          "#8075a2",
+          "#a196c5",
+          "#cabff0",
+          "#f1e6ff"
+        ]
+      },
+      "papper": {
+        "role": "neutral",
+        "displayName": "Herbarium Paper",
+        "canonical": "oklch(92.7% 0.028 86.6)",
+        "tonalRamp": [
+          "#100a01",
+          "#2a2314",
+          "#463f2f",
+          "#655d4c",
+          "#857c6a",
+          "#a69e8b",
+          "#cfc7b3",
+          "#f7eeda"
+        ]
+      },
+      "lavendel": {
+        "role": "neutral",
+        "displayName": "Waiting Lavender",
+        "canonical": "oklch(76.8% 0.072 295.7)",
+        "tonalRamp": [
+          "#0f0225",
+          "#271b42",
+          "#433761",
+          "#615582",
+          "#8175a4",
+          "#a296c7",
+          "#cbbff1",
+          "#f2e6ff"
+        ]
+      },
+      "hektograf-ljus": {
+        "role": "neutral",
+        "displayName": "Muted Copy-Ink",
+        "canonical": "oklch(68.3% 0.077 294.9)",
+        "tonalRamp": [
+          "#0f0127",
+          "#271a45",
+          "#433764",
+          "#615584",
+          "#8074a6",
+          "#a195ca",
+          "#cabef5",
+          "#f1e5ff"
+        ]
+      },
+      "hektograf": {
+        "role": "secondary",
+        "displayName": "Hectograph Violet",
+        "canonical": "oklch(52.3% 0.180 289.3)",
+        "tonalRamp": [
+          "#180050",
+          "#2c0072",
+          "#441c95",
+          "#6042ba",
+          "#7e64df",
+          "#9e87ff",
+          "#c6b1ff",
+          "#ecd8ff"
+        ]
+      },
+      "fosfor": {
+        "role": "primary",
+        "displayName": "Terminal Phosphor",
+        "canonical": "oklch(82.5% 0.159 156.3)",
+        "tonalRamp": [
+          "#001800",
+          "#003600",
+          "#005514",
+          "#007634",
+          "#009853",
+          "#25bb74",
+          "#5ee69b",
+          "#89ffc2"
+        ]
+      },
+      "barnsten": {
+        "role": "tertiary",
+        "displayName": "Amber Warning",
+        "canonical": "oklch(76.1% 0.140 71.8)",
+        "tonalRamp": [
+          "#290000",
+          "#490900",
+          "#6a2c00",
+          "#8c4b00",
+          "#af6c00",
+          "#d48e22",
+          "#ffb755",
+          "#ffde7e"
+        ]
+      },
+      "stampel": {
+        "role": "tertiary",
+        "displayName": "Stamp-Pad Red",
+        "canonical": "oklch(59.9% 0.185 27.0)",
+        "tonalRamp": [
+          "#3c0000",
+          "#620000",
+          "#880000",
+          "#ae1419",
+          "#d5423b",
+          "#fc675c",
+          "#ff9284",
+          "#ffb9aa"
+        ]
+      },
+      "lysning-4": {
+        "role": "secondary",
+        "displayName": "Inner Light",
+        "canonical": "oklch(40.9% 0.124 290.0)",
+        "tonalRamp": [
+          "#11003a",
+          "#270e5a",
+          "#412f7b",
+          "#5e4e9d",
+          "#7d6fc1",
+          "#9e90e6",
+          "#c6b9ff",
+          "#ede1ff"
+        ]
+      },
+      "papper-2": {
+        "role": "neutral",
+        "displayName": "Lifted Sheet",
+        "canonical": "oklch(95.3% 0.024 88.2)",
+        "tonalRamp": [
+          "#0f0b02",
+          "#2a2518",
+          "#474134",
+          "#676152",
+          "#888273",
+          "#aba595",
+          "#cfc9b8",
+          "#f5eedd"
+        ]
+      },
+      "lavendel-ljus": {
+        "role": "neutral",
+        "displayName": "Selection Lavender",
+        "canonical": "oklch(87.3% 0.049 304.1)",
+        "tonalRamp": [
+          "#10051b",
+          "#2a1f38",
+          "#483c57",
+          "#675b78",
+          "#887b9b",
+          "#ab9ebe",
+          "#d0c2e4",
+          "#f3eaff"
+        ]
+      },
+      "stampel-ljus": {
+        "role": "tertiary",
+        "displayName": "Stamp Red, Lit",
+        "canonical": "oklch(69.3% 0.144 26.6)",
+        "tonalRamp": [
+          "#1f0001",
+          "#4d0004",
+          "#7d0d11",
+          "#a33732",
+          "#ca5a52",
+          "#f27e73",
+          "#ffb3aa",
+          "#ffe9e6"
+        ]
+      },
+      "stampel-mork": {
+        "role": "tertiary",
+        "displayName": "Stamp Red, Ink",
+        "canonical": "oklch(50.1% 0.149 26.5)",
+        "tonalRamp": [
+          "#1f0001",
+          "#4d0004",
+          "#7f070e",
+          "#a53430",
+          "#cc5850",
+          "#f47c72",
+          "#ffb3aa",
+          "#ffe9e6"
+        ]
+      },
+      "stampel-blek": {
+        "role": "tertiary",
+        "displayName": "Refusal Wash",
+        "canonical": "oklch(91.0% 0.028 31.7)",
+        "tonalRamp": [
+          "#150705",
+          "#31201d",
+          "#503d39",
+          "#705c58",
+          "#927d78",
+          "#b69f9a",
+          "#dbc3be",
+          "#ffe9e4"
+        ]
+      },
+      "stampel-dov": {
+        "role": "tertiary",
+        "displayName": "Refusal Edge",
+        "canonical": "oklch(74.0% 0.079 28.0)",
+        "tonalRamp": [
+          "#1f0000",
+          "#44110d",
+          "#65302a",
+          "#884f48",
+          "#ad7068",
+          "#d2928a",
+          "#f8b6ad",
+          "#ffe9e5"
+        ]
+      },
+      "blad-blek": {
+        "role": "secondary",
+        "displayName": "Pressed Leaf, Palest",
+        "canonical": "oklch(93.9% 0.028 131.8)",
+        "tonalRamp": [
+          "#070e03",
+          "#20281a",
+          "#3d4536",
+          "#5b6554",
+          "#7c8675",
+          "#9fa997",
+          "#c3cdbb",
+          "#e8f3e0"
+        ]
+      },
+      "blad-ljus": {
+        "role": "secondary",
+        "displayName": "Pressed Leaf",
+        "canonical": "oklch(76.5% 0.086 134.1)",
+        "tonalRamp": [
+          "#040f00",
+          "#142c00",
+          "#2e4c18",
+          "#4c6c38",
+          "#6d8e58",
+          "#8fb17a",
+          "#b2d69d",
+          "#d7fcc1"
+        ]
+      },
+      "blad": {
+        "role": "secondary",
+        "displayName": "Specimen Mark",
+        "canonical": "oklch(58.5% 0.106 136.7)",
+        "tonalRamp": [
+          "#030f00",
+          "#0f2d00",
+          "#244e0a",
+          "#436f2e",
+          "#649150",
+          "#86b572",
+          "#a9da95",
+          "#cfffbb"
+        ]
+      },
+      "blad-mork": {
+        "role": "secondary",
+        "displayName": "Herbarium Ink",
+        "canonical": "oklch(42.1% 0.101 138.6)",
+        "tonalRamp": [
+          "#021000",
+          "#0b2e00",
+          "#224e12",
+          "#426f33",
+          "#629154",
+          "#85b476",
+          "#a8d999",
+          "#ceffbf"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "ordmarke": {
+        "displayName": "Ordmärke",
+        "purpose": "The identity cut. Wordmark and hero only, 40px and above."
+      },
+      "hero": {
+        "displayName": "Hero",
+        "purpose": "Page-leading display type.",
+        "fluid": "clamp(3.4rem, 9vw, 5.6rem)"
+      },
+      "rubrik": {
+        "displayName": "Rubrik",
+        "purpose": "Heading cut; keeps the wonk."
+      },
+      "rubrik-fluid": {
+        "displayName": "Rubrik (fluid)",
+        "purpose": "Section headings as shipped.",
+        "fluid": "clamp(1.7rem, 3.4vw, 2.3rem)"
+      },
+      "ingress": {
+        "displayName": "Ingress",
+        "purpose": "Tagline / lede under the hero.",
+        "fluid": "clamp(1.25rem, 2.6vw, 1.6rem)"
+      },
+      "brodtext": {
+        "displayName": "Brödtext",
+        "purpose": "Running prose. Wonk and softness off."
+      },
+      "brodtext-liten": {
+        "displayName": "Brödtext liten",
+        "purpose": "Dense secondary prose inside cards."
+      },
+      "lasare": {
+        "displayName": "Läsare",
+        "purpose": "The reader voice — anything a machine said."
+      },
+      "lasare-liten": {
+        "displayName": "Läsare liten",
+        "purpose": "Terminal body and footer fine print."
+      },
+      "lasare-detalj": {
+        "displayName": "Läsare detalj",
+        "purpose": "Stamp lines and tracked micro-labels."
+      },
+      "mellanrubrik": {
+        "displayName": "Mellanrubrik",
+        "purpose": "Card and subsection headings. One cut for all of them; weight alone is not a hierarchy."
+      },
+      "ordmarke-liten": {
+        "displayName": "Ordmärke, liten",
+        "purpose": "The identity cut below hero scale, where the wordmark appears inside running layout."
+      }
+    },
+    "shadows": [
+      {
+        "name": "mounting-ring",
+        "value": "0 0 0 6px var(--lysning-2, #2E2257)",
+        "purpose": "The only permitted shadow: paper pressed onto the light table. Specimen sheet only."
+      },
+      {
+        "name": "chip-hairline",
+        "value": "inset 0 0 0 .5px var(--kant, rgba(239,230,210,.16))",
+        "purpose": "Inset hairline that separates an inline code chip from its surface. Not elevation."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-lysning",
+        "value": "cubic-bezier(0.22, 0, 0.18, 1)",
+        "purpose": "The only easing in the system — slow start, fast middle, very slow stop: the light coming up on the table."
+      },
+      {
+        "name": "dur-mikro",
+        "value": "180ms",
+        "purpose": "State feedback."
+      },
+      {
+        "name": "dur-beat",
+        "value": "700ms",
+        "purpose": "One authored beat."
+      },
+      {
+        "name": "dur-reveal",
+        "value": "1100ms",
+        "purpose": "The longest permitted reveal. At most three beats per page."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "kompakt",
+        "value": "540px"
+      },
+      {
+        "name": "kollaps",
+        "value": "840px"
+      },
+      {
+        "name": "vid",
+        "value": "1800px"
+      }
+    ],
+    "typeScaleMeta": {
+      "note": "TWO display ramps ship: diarie.dev's, and the brand book's (the bok-* steps in DESIGN.md typography.scale), the latter larger because it is a specimen document. brand/foundations.html briefly carried a third and was converged onto documented steps on 2026-07-29 — bok-omslag for the wordmark, bok-exit-numeral for the exit numerals, and the mellanrubrik / lasare-detalj roles for headings and micro-labels. It adds no steps of its own. Store row diarie-rmp asked whether the remaining two should converge as well; that is still open, and is a narrower question than it was, since diarie.dev and the brand book are genuinely different surfaces.",
+      "diarie.dev": [
+        "hero-min 3.4rem",
+        "rubrik-fluid-min 1.7rem",
+        "ingress-min 1.25rem",
+        "exit-numeral 4.2rem"
+      ],
+      "brand-book": [
+        "bok-omslag 3rem→4.6rem",
+        "bok-rubrik-max 2.2rem",
+        "bok-exit-numeral 2rem",
+        "bok-prov 2.6rem→4.2rem, samples 1.9rem / 1.4rem"
+      ],
+      "brand/foundations.html (converged)": [
+        "wordmark → bok-omslag-min/max (3rem → 4.6rem)",
+        "section headings → mellanrubrik (1.3rem)",
+        "exit numerals → bok-exit-numeral (2rem)",
+        "micro-labels → lasare-detalj (12px / .75rem)"
+      ]
+    }
+  },
+  "components": [
+    {
+      "name": "Install Button",
+      "kind": "button",
+      "refersTo": "install-button",
+      "description": "The page's only solid-fosfor element, and it never animates.",
+      "html": "<button class=\"ds-install-button\" type=\"button\">copy</button>",
+      "css": ".ds-install-button{font-family:\"Fragment Mono\",ui-monospace,monospace;font-size:.92rem;color:var(--arkiv, #171126);background:var(--fosfor, #5CE49A);border:0;border-radius:4px;padding:.45rem .85rem;cursor:pointer;min-width:calc(6ch + 1.7rem);text-align:center}.ds-install-button:hover{background:var(--papper, #EFE6D2)}.ds-install-button:focus-visible{outline:2px solid var(--fosfor, #5CE49A);outline-offset:3px}"
+    },
+    {
+      "name": "Terminal Block",
+      "kind": "custom",
+      "refersTo": "term",
+      "description": "Machine voice. Five ink classes carry the exit-code contract; role=img with a summarising label.",
+      "html": "<div class=\"ds-term\" role=\"img\" tabindex=\"0\" aria-label=\"Terminal: two ready tasks, then totals with one stale claim\"><pre><span class=\"c\">$</span> <span class=\"g\">diarie stats</span>\n<span class=\"c\">total 7</span>  <span class=\"g\">ready 2</span>  <span class=\"k\">blocked 3</span>  <span class=\"a\">stale 1</span></pre></div>",
+      "css": ".ds-term{background:var(--yta-2, #2A1F45);border:.5px solid var(--kant, rgba(239,230,210,.16));border-radius:6px;padding:1.1rem 1.25rem;font-size:.88rem;line-height:1.7;overflow-x:auto;color:var(--papper, #EFE6D2)}.ds-term pre{margin:0;font-family:\"Fragment Mono\",ui-monospace,monospace}.ds-term .c{color:var(--hektograf-ljus, #9C90C4)}.ds-term .g{color:var(--fosfor, #5CE49A)}.ds-term .k{color:var(--lavendel, #B7ABDD)}.ds-term .a{color:var(--barnsten, #E8A13C)}.ds-term .r{color:var(--stampel-ljus, #E8756B)}.ds-term:focus-visible{outline:2px solid var(--fosfor, #5CE49A);outline-offset:3px}"
+    },
+    {
+      "name": "Specimen Sheet",
+      "kind": "card",
+      "refersTo": "specimen-sheet",
+      "description": "Herbarium paper card, tilted off true, tape at the corners. The only light surface and the only shadow.",
+      "html": "<div class=\"ds-sheet\"><pre>tasks:\n  - id: proj-auth\n    status: in_progress</pre><div class=\"ds-sheet-label\">specimen · tasks-backlog.yml</div></div>",
+      "css": ".ds-sheet{position:relative;background:var(--papper, #EFE6D2);color:var(--arkiv, #171126);border-radius:6px;padding:1.4rem 1.5rem;box-shadow:0 0 0 6px var(--lysning-2, #2E2257);transform:rotate(-.8deg);font-family:\"Fragment Mono\",ui-monospace,monospace;font-size:.85rem}.ds-sheet pre{margin:0}.ds-sheet::before,.ds-sheet::after{content:\"\";position:absolute;top:-9px;width:70px;height:20px;background:rgba(246,240,224,.85);border:.5px solid rgba(23,17,38,.15)}.ds-sheet::before{left:26px;transform:rotate(-5deg)}.ds-sheet::after{right:26px;transform:rotate(4deg)}.ds-sheet-label{margin-top:1.1rem;padding-top:.8rem;border-top:.5px dashed rgba(23,17,38,.3);font-size:.74rem;color:#4A3B6B}"
+    },
+    {
+      "name": "Exit Card",
+      "kind": "card",
+      "refersTo": "exit-card",
+      "description": "An oversized ordmärke numeral coloured by exit code. Not a metric tile — a contract.",
+      "html": "<div class=\"ds-exit\"><span class=\"ds-exit-n\">1</span><h3>You asked wrong</h3><p>A machine-readable code says how.</p></div>",
+      "css": ".ds-exit{background:var(--yta, #1F1733);border:.5px solid var(--kant, rgba(239,230,210,.16));border-radius:6px;padding:1.3rem;color:var(--lavendel, #B7ABDD);font-family:Fraunces,Georgia,serif}.ds-exit-n{display:block;font-size:4.2rem;line-height:.9;margin-bottom:.7rem;color:var(--barnsten, #E8A13C);font-variation-settings:\"opsz\" 144,\"wght\" 500,\"SOFT\" 60,\"WONK\" 1}.ds-exit h3{margin:0 0 .35rem;font-size:1.08rem;color:var(--papper, #EFE6D2);font-weight:480}.ds-exit p{margin:0;font-size:.94rem}"
+    },
+    {
+      "name": "Refusal Stamp",
+      "kind": "chip",
+      "refersTo": "stamp-dnr",
+      "description": "A dashed registrar stamp rotated off true. Names a non-goal as identity.",
+      "html": "<span class=\"ds-stamp\">no daemon</span>",
+      "css": ".ds-stamp{display:inline-block;font-family:\"Fragment Mono\",ui-monospace,monospace;font-size:.9rem;letter-spacing:.06em;color:var(--stampel-ljus, #E8756B);border:1.5px dashed var(--stampel, #D8453E);border-radius:6px;padding:.6rem 1rem;transform:rotate(-2deg);text-rendering:geometricPrecision}"
+    },
+    {
+      "name": "Marker Wash",
+      "kind": "custom",
+      "refersTo": "marker-wash",
+      "description": "Highlighter emphasis with hand-uneven corners. At most three per page; never the bordered code chip.",
+      "html": "<p style=\"font-family:Fraunces,Georgia,serif\">The store is <span class=\"ds-wash\">ordinary committed files</span>.</p>",
+      "css": ".ds-wash{background:var(--markering, rgba(107,79,200,.42));color:var(--papper, #EFE6D2);padding:.06em .3em .1em;border-radius:.5em .25em .55em .2em;box-decoration-break:clone;-webkit-box-decoration-break:clone}"
+    },
+    {
+      "name": "Install Pill",
+      "kind": "input",
+      "refersTo": "install",
+      "description": "Mono pill pairing the command with its copy affordance.",
+      "html": "<div class=\"ds-install\"><span class=\"ds-install-p\">$</span><code>npm install --save-dev diarie</code><button class=\"ds-install-btn\" type=\"button\">copy</button></div>",
+      "css": ".ds-install{display:inline-flex;align-items:center;gap:.9rem;background:var(--yta-2, #2A1F45);border:.5px solid var(--kant, rgba(239,230,210,.16));border-radius:6px;padding:.75rem 1rem .75rem 1.15rem;font-family:\"Fragment Mono\",ui-monospace,monospace;font-size:.92rem;color:var(--papper, #EFE6D2)}.ds-install-p{color:var(--hektograf-ljus, #9C90C4);user-select:none}.ds-install-btn{font:inherit;color:var(--arkiv, #171126);background:var(--fosfor, #5CE49A);border:0;border-radius:4px;padding:.45rem .85rem;cursor:pointer}.ds-install-btn:hover{background:var(--papper, #EFE6D2)}"
+    },
+    {
+      "name": "Leaf Rule",
+      "kind": "custom",
+      "refersTo": "leaf-rule",
+      "description": "Chapter divider carrying the mark's opposite leaf-pair. The scene recurring between sections.",
+      "html": "<div class=\"ds-leafrule\"><svg width=\"42\" height=\"18\" viewBox=\"0 0 42 18\" aria-hidden=\"true\"><ellipse cx=\"14\" cy=\"9\" rx=\"9\" ry=\"4.5\" transform=\"rotate(-24 14 9)\" fill=\"#9C90C4\"/><ellipse cx=\"28\" cy=\"9\" rx=\"9\" ry=\"4.5\" transform=\"rotate(24 28 9)\" fill=\"#9C90C4\"/></svg></div>",
+      "css": ".ds-leafrule{position:relative;height:26px}.ds-leafrule::before{content:\"\";position:absolute;left:0;right:0;top:50%;border-top:.5px solid var(--kant, rgba(239,230,210,.16))}.ds-leafrule svg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--arkiv, #171126);padding:0 14px;box-sizing:content-box}"
+    },
+    {
+      "name": "Refusal Card — Do",
+      "kind": "card",
+      "refersTo": "refusal-do",
+      "description": "The endorsement half of the brand book's voice pair. A pressed-leaf tint; the label, not the tint, carries the state.",
+      "html": "<div class=\"ds-refusal-do\"><span class=\"ds-refusal-do-tag\">gör</span><p>Name the consequence. “no diarium/ in /tmp/x — run `diarie init` there.”</p></div>",
+      "css": ".ds-refusal-do { background: var(--blad-blek, #E4EFDC); border: var(--hallinje, .5px) solid var(--blad-ljus, #9CBF87); border-radius: var(--radie, 6px); padding: 1.1rem 1.2rem; color: var(--arkiv, #171126); font-size: .95rem; } .ds-refusal-do-tag { display: inline-block; margin-bottom: .5rem; padding: .15rem .5rem; border: 1px dashed var(--blad, #5D8A49); border-radius: 3px; color: var(--blad-mork, #2E5A1F); font-family: \"Fragment Mono\", ui-monospace, monospace; font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; }"
+    },
+    {
+      "name": "Refusal Card — Don't",
+      "kind": "card",
+      "refersTo": "refusal-dont",
+      "description": "The refusal half. Its tag is stamped — 1.5px dashed and rotated −2° — because a refusal is stamped and an endorsement is not.",
+      "html": "<div class=\"ds-refusal-dont\"><span class=\"ds-refusal-dont-tag\">gör inte</span><p>Don't whisper the fault to stderr and print an empty list to stdout.</p></div>",
+      "css": ".ds-refusal-dont { background: var(--stampel-blek, #F3DBD6); border: var(--hallinje, .5px) solid var(--stampel-dov, #D8988F); border-radius: var(--radie, 6px); padding: 1.1rem 1.2rem; color: var(--arkiv, #171126); font-size: .95rem; } .ds-refusal-dont-tag { display: inline-block; margin-bottom: .5rem; padding: .15rem .5rem; border: 1.5px dashed var(--stampel-mork, #A83732); border-radius: 3px; color: var(--stampel-mork, #A83732); font-family: \"Fragment Mono\", ui-monospace, monospace; font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; transform: rotate(-2deg); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Diarium",
+    "overview": "diarie is a task tracker that is just files — no daemon, no database, the CLI a reader over YAML the user's editor writes. The identity holds one anchor and two motifs. Anchor: the diarium, the Swedish public registry — every record numbered, findable, never hidden. Motifs: the herbarium (Linné's specimen sheets: 280-year-old plain files; the pressed twinflower mark) and genomlysning (the archivist's light table; in Swedish also the word for scrutiny — the halo is backlighting, not aura). The register is honest, so the design is honest: consequences are named, contrast ratios are computed and published, costs are stated with their revival triggers.",
+    "keyCharacteristics": [
+      "One anchor, two motifs — anything untraceable to them does not belong",
+      "Depth is light, never shadow: four flat stepped rings, one permitted box-shadow",
+      "Two typefaces mapped to two audiences: serif is the human, mono is the machine",
+      "Every accent is the exit-code contract rendered — no decorative colour",
+      "Contrast computed and published, not asserted",
+      "One easing curve; at most three motion beats per page"
+    ],
+    "rules": [
+      {
+        "name": "The Reference-Size Rule",
+        "body": "A token fontSize is where its axis settings were chosen or where the role tops out — not a size you must ship literally. Ship the fluid role when type has to survive a viewport.",
+        "section": "typography"
+      },
+      {
+        "name": "The Measure Rule",
+        "body": "Running prose is capped by one class — .measure (44rem, 64ch) and its centred twin .measure-c. Never author a per-paragraph max-width.",
+        "section": "layout"
+      },
+      {
+        "name": "The Five-Ink Rule",
+        "body": "Terminal ink is five classes: .c prompt, .g phosphor, .k structure, .a staleness, .r error. The set is the exit-code contract rendered, so shipping four costs a semantic role rather than a colour.",
+        "section": "components"
+      },
+      {
+        "name": "The Verbatim Rule",
+        "body": "Every terminal block on a brand surface is a claim about the tool's contract and no gate checks it. Generate the text by running the binary, paste the bytes, never truncate with an ellipsis.",
+        "section": "components"
+      },
+      {
+        "name": "The Tint-Is-Not-Meaning Rule",
+        "body": "A card's tint may never be the only thing saying which card it is. Both borders measure below the 3:1 non-text floor (blad-ljus 1.66:1, stampel-dov 1.92:1 on papper), so the state lives in the label — blad-mork at 6.80:1, stampel-mork at 4.89:1 on their own grounds. Read in greyscale, or by a reader who cannot separate the two hues, the cards must still be unambiguous.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do use stepped light at any scale",
+      "Do keep static grain at or below 5%",
+      "Do name the consequence, not the adjective",
+      "Do write diarie lowercase, always",
+      "Do state a cost with its revival trigger",
+      "Do set mono for anything a machine said",
+      "Do cap running prose with .measure",
+      "Do name every z-index from the three-value scale",
+      "Do paste CLI output verbatim"
+    ],
+    "donts": [
+      "Don't use a gradient glow — the halo is stepped or it is not the halo",
+      "Don't make a mascot of the twinflower; it is a specimen",
+      "Don't animate on or near a call to action",
+      "Don't add tracking, ever",
+      "Don't introduce a third typeface",
+      "Don't introduce a second easing curve",
+      "Don't use fosfor as decoration",
+      "Don't put a brand asset behind a login"
+    ]
+  }
+}

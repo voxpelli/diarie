@@ -24,7 +24,7 @@
   "license": "MIT",
   "type": "module",
   "engines": {
-    "node": "^22.13.0 || >=24.0.0"
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
   },
   "bin": {
     "diarie": "cli.js"
@@ -46,25 +46,32 @@
     "lib/**/*.d.ts.map"
   ],
   "scripts": {
-    "brand:build": "run-s brand:copy brand:stamp brand:favicon",
-    "brand:check": "node scripts/check-brand-assets.js",
-    "brand:copy": "node brand/dist-copy.js",
-    "brand:favicon": "node brand/generate-favicons.js",
-    "brand:stamp": "node brand/update-stamp.js",
-    "build": "npm run clean && tsc -p declaration.tsconfig.json",
+    "brand": "run-s brand:*",
+    "brand:1-copy": "node brand/dist-copy.js",
+    "brand:2-stamp": "node brand/update-stamp.js",
+    "brand:3-favicon": "node brand/generate-favicons.js",
+    "brand:4-size": "node brand/stamp-size.js",
+    "brand-check": "node scripts/check-brand-assets.js",
+    "build": "run-s build:*",
+    "build:0": "run-s clean",
+    "build:1-declaration": "tsc -p declaration.tsconfig.json",
     "check": "run-p check:*",
-    "check:ast-grep": "ast-grep scan",
+    "check:ast-grep": "ast-grep scan --globs '!.design-sync/**' --globs '!.impeccable/**'",
     "check:ast-grep-test": "ast-grep test",
-    "check:installed-check": "installed-check",
+    "check:installed-check": "installed-check -i @voxpelli/remark-preset -i npm-run-all2",
     "check:knip": "knip",
     "check:lint": "eslint",
     "check:md": "remark . --quiet --frail --ignore-path .gitignore",
     "check:tasks": "node cli.js validate",
     "check:tsc": "tsc",
-    "check:type-coverage": "type-coverage --detail --strict --at-least 98 --ignore-files 'test/*'",
+    "check:type-coverage": "type-coverage --detail --strict --at-least 99 --ignore-files 'test/*'",
     "clean": "find lib -type f \\( -name '*.d.ts' -o -name '*.d.ts.map' \\) ! -name '*-types.d.ts' -delete",
+    "dev": "run-s brand serve",
+    "fix": "run-s fix:*",
+    "fix:ast-grep": "run-s check:ast-grep -- --update-all",
+    "fix:lint": "eslint --fix",
     "fix:md": "remark . -o --quiet --ignore-path .gitignore",
-    "prepack": "npm run build",
+    "prepack": "run-s build",
     "serve": "domstack-sync --server brand --watch --port ${PORT:-3334}",
     "test": "run-s check test:*",
     "test:node": "node --test",
@@ -73,8 +80,8 @@
   "dependencies": {
     "@voxpelli/typed-utils": "^5.0.0",
     "js-yaml": "^4.1.0",
-    "peowly": "^1.3.3",
-    "peowly-commands": "^1.1.0",
+    "peowly": "^2.0.1",
+    "peowly-commands": "^2.0.0",
     "pony-cause": "^2.1.11"
   },
   "devDependencies": {
@@ -83,41 +90,24 @@
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.20.1",
     "@types/opentype.js": "^1.3.10",
+    "@voxpelli/ast-grep-rules": "^0.1.0",
     "@voxpelli/eslint-config": "^25.1.0",
     "@voxpelli/generate-favicon": "^1.1.1",
+    "@voxpelli/remark-preset": "^0.1.1",
     "@voxpelli/tsconfig": "^16.2.1",
     "eslint": "^9.39.4",
-    "installed-check": "^10.0.1",
-    "knip": "^5.88.1",
-    "npm-run-all2": "^7.0.2",
+    "hast-util-from-html": "^2.0.3",
+    "installed-check": "^11.0.0",
+    "knip": "^6.29.0",
+    "npm-run-all2": "^9.0.3",
     "opentype.js": "^2.0.0",
     "remark-cli": "^12.0.0",
-    "remark-frontmatter": "^5.0.0",
-    "remark-gfm": "^4.0.1",
-    "remark-lint-unordered-list-marker-style": "^4.0.1",
-    "remark-preset-lint-consistent": "^6.0.0",
-    "remark-preset-lint-recommended": "^7.0.0",
-    "remark-validate-links": "^13.1.0",
-    "type-coverage": "^2.29.7",
-    "typescript": "~5.9.3"
+    "type-coverage": "^2.30.1",
+    "typescript": "^6.0.3"
   },
   "remarkConfig": {
-    "settings": {
-      "bullet": "-",
-      "emphasis": "*",
-      "strong": "*",
-      "rule": "-",
-      "fence": "`",
-      "fences": true,
-      "listItemIndent": "one"
-    },
     "plugins": [
-      "remark-frontmatter",
-      "remark-gfm",
-      "remark-preset-lint-consistent",
-      "remark-preset-lint-recommended",
-      "remark-validate-links",
-      "remark-lint-unordered-list-marker-style"
+      "@voxpelli/remark-preset"
     ]
   }
 }

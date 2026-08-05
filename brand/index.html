@@ -37,39 +37,28 @@
 <link rel="preload" href="fonts/Fraunces-VF.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/FragmentMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/Fraunces-Italic-static.woff2" as="font" type="font/woff2" crossorigin>
+<!-- The palette, loaded not copied. This page used to inline its own subset of
+     tokens.css, which drifted silently: the subset was missing the --print-*
+     tokens this page's @media print block references, so printing lost its
+     paper ground and hairline rules with nothing reporting it. tokens.css is
+     one same-origin request and is on the brand:1-copy allowlist. -->
+<link rel="stylesheet" href="tokens.css">
 <style>
 @font-face{font-family:"Fraunces";font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/Fraunces-VF.woff2) format("woff2")}
 @font-face{font-family:"Fraunces";font-style:italic;font-weight:100 900;font-display:swap;src:url(fonts/Fraunces-Italic-static.woff2) format("woff2")}
 @font-face{font-family:"Fragment Mono";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/FragmentMono-Regular.woff2) format("woff2")}
+/* Not a third typeface: a metric-adjusted alias for the system serif already in
+   the stack, so `font-display:swap` reflows prose well under 1% instead of
+   roughly 5% when Fraunces
+   lands. 105.7% = Fraunces advance / Georgia advance at body settings. */
+@font-face{font-family:"Fraunces Fallback";src:local("Georgia"),local("Times New Roman");
+  size-adjust:105.7%;ascent-override:92%;descent-override:24%;line-gap-override:0%}
 
-:root{
-  color-scheme:dark;
-  --arkiv:#171126;--yta:#1F1733;--yta-2:#2A1F45;
-  --lysning-1:#221940;--lysning-2:#2E2257;--lysning-3:#3C2D6E;--lysning-4:#4B3A87;
-  --papper:#EFE6D2;--hektograf:#6B4FC8;--hektograf-ljus:#9C90C4;--lavendel:#B7ABDD;
-  --fosfor:#5CE49A;--barnsten:#E8A13C;--stampel:#D8453E;--stampel-ljus:#E8756B;--stampel-mork:#A83732;
-  --kant:rgba(239,230,210,.16);
-  --stil-arkiv:"Fraunces",Georgia,"Times New Roman",serif;
-  --stil-lasare:"Fragment Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-  --korn:.04;--markering:rgba(107,79,200,.42);
-  --ease-lysning:cubic-bezier(.22,0,.18,1);
-  --dur-beat:700ms;--dur-reveal:1100ms;
-}
+/* The palette, the type stacks, the stepped-light halo, the wide-gamut
+   upgrade and the print sub-palette all arrive from tokens.css above. What
+   stays here is what is not a token: this page's posture. */
+:root{color-scheme:dark}
 
-/* Wide-gamut enhancement: on P3 screens the intense highlights are served
-   in OKLCH at higher chroma — same lightness and hue, so contrast holds.
-   Double-guarded; sRGB screens keep the canonical hex values. */
-@media (color-gamut:p3){
-  @supports (color: oklch(50% 0.1 180)){
-    :root{
-      --fosfor:oklch(82.5% 0.207 156.3);
-      --barnsten:oklch(76.1% 0.171 71.8);
-      --stampel:oklch(59.9% 0.218 27);
-      --stampel-ljus:oklch(69.3% 0.17 26.6);
-      --lysning-4:oklch(40.9% 0.154 290);
-    }
-  }
-}
 *{box-sizing:border-box;margin:0}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-size-adjust:100%;scrollbar-color:var(--lysning-4) var(--arkiv);overflow-x:clip}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
@@ -77,7 +66,7 @@ body{
   background:var(--arkiv);color:var(--papper);
   font-family:var(--stil-arkiv);
   font-variation-settings:"opsz" 15,"wght" 415,"SOFT" 0,"WONK" 0;
-  font-size:1.0625rem;line-height:1.65;
+  font-size:1.0625rem;line-height:1.65;letter-spacing:.005em;
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
   padding-left:env(safe-area-inset-left);
@@ -86,45 +75,56 @@ body{
 }
 h1,h2,h3{text-wrap:balance}
 p{text-wrap:pretty}
+/* A variable font takes its weight from font-variation-settings, so a bare
+   <strong> inheriting body's "wght" 415 renders at body weight no matter what
+   font-weight says. Emphasis lifts wght (and SOFT, to warm the stroke) and
+   never opsz. `.facts strong` overrides this with its own 490. */
+strong,b{font-variation-settings:"opsz" 15,"wght" 560,"SOFT" 20,"WONK" 0;font-weight:560}
 @supports (text-box-trim: trim-both){
   h1,h2{text-box-trim:trim-both;text-box-edge:cap alphabetic}
 }
-body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:60;opacity:var(--korn);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E")}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:var(--z-korn);opacity:var(--korn);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E")}
 ::selection{background:var(--lysning-4);color:var(--papper)}
 a{color:var(--fosfor);text-decoration-thickness:.06em;text-underline-offset:.18em}
 a:hover{color:var(--papper)}
 :focus-visible{outline:2px solid var(--fosfor);outline-offset:3px;border-radius:2px}
-code,pre,kbd{font-family:var(--stil-lasare);font-synthesis:none}
+code,pre,kbd{font-family:var(--stil-lasare);font-synthesis:none;letter-spacing:0}
 code{background:var(--yta-2);border-radius:2px;padding:.08em .32em;font-size:.86em;box-shadow:inset 0 0 0 .5px var(--kant)}
 pre code,.install code{background:none;border-radius:0;padding:0;font-size:inherit;box-shadow:none}
 h2{
   font-variation-settings:"opsz" 72,"wght" 480,"SOFT" 40,"WONK" 1;
   font-size:clamp(1.7rem,3.4vw,2.3rem);line-height:1.15;font-weight:480;
-  margin-bottom:1.1rem;letter-spacing:.005em;
+  margin-bottom:1.1rem;letter-spacing:-.006em;
 }
 p+p{margin-top:.9rem}
 .wrap{max-width:66rem;margin:0 auto;padding:0 1.4rem}
-.eyebrow{
-  font-family:var(--stil-lasare);font-size:.78rem;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--hektograf-ljus);display:block;margin-bottom:.9rem;
-}
 section{padding:4.5rem 0}
+/* One measure for running prose, replacing eleven inline max-widths that had
+   drifted across 42 / 44 / 52rem. It was 44rem, which ran too wide against a
+   65-75 character guide; it is now 34rem (544px).
+   Record the WIDTH, not the character count. That count is derived and its value
+   depends on a choice nobody writes down: for this same measure, counting the top
+   line gives 59-69, the longest line 66-87, and the CSS `ch` unit 64. `ch` is the
+   advance of "0" (11.05px in Fraunces vs a ~7.5px mean character), so it is the
+   least trustworthy of the three. */
+.measure{max-width:34rem}
+.measure-c{max-width:34rem;margin-inline:auto}
 .muted{color:var(--lavendel)}
 .dim{color:var(--hektograf-ljus)}
 .vh{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
 
 /* ---- header ---- */
 header{padding:1.1rem 0}
-header .wrap{display:flex;align-items:center;justify-content:space-between;gap:1rem}
-.brand{display:flex;align-items:center;gap:.6rem;color:var(--papper);text-decoration:none;font-variation-settings:"opsz" 40,"wght" 500,"SOFT" 60,"WONK" 1;font-size:1.15rem}
+header .wrap{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:.6rem;color:var(--papper);text-decoration:none;font-variation-settings:"opsz" 40,"wght" 500,"SOFT" 60,"WONK" 1;font-size:1.15rem;line-height:1}
 .brand svg{width:30px;height:30px}
-nav{display:flex;gap:1.4rem;font-family:var(--stil-lasare);font-size:.86rem}
+nav{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:1.4rem;font-family:var(--stil-lasare);font-size:.875rem}
 nav a{color:var(--lavendel);text-decoration:none;padding:.5rem .15rem;margin:-.5rem 0}
 nav a:hover{color:var(--fosfor)}
 
 /* ---- hero: the light table ---- */
 .hero{padding:3.2rem 0 4.5rem;text-align:center;position:relative}
-.env{position:absolute;inset:0;overflow:hidden;z-index:-1}
+.env{position:absolute;inset:0;overflow:hidden;z-index:var(--z-bakom)}
 .env svg{width:100%;height:100%}
 .env circle{transform-box:fill-box;transform-origin:center}
 .mark{width:clamp(190px,30vw,260px);height:auto;display:block;margin:0 auto;view-transition-name:diarie-mark}
@@ -132,18 +132,18 @@ nav a:hover{color:var(--fosfor)}
 h1{
   font-variation-settings:"opsz" 144,"wght" 520,"SOFT" 60,"WONK" 1;
   font-weight:520;font-size:clamp(3.4rem,9vw,5.6rem);line-height:1;
-  margin:1.4rem 0 1.1rem;letter-spacing:.002em;
+  margin:1.4rem 0 1.1rem;letter-spacing:-.012em;
 }
 .tagline{
   font-variation-settings:"opsz" 40,"wght" 440,"SOFT" 40,"WONK" 0;
-  font-size:clamp(1.25rem,2.6vw,1.6rem);line-height:1.35;
+  font-size:clamp(1.25rem,2.6vw,1.6rem);line-height:1.35;letter-spacing:-.004em;
 }
 .tagline em{font-style:italic}
 .sub{max-width:38rem;margin:1rem auto 0;color:var(--lavendel)}
 .install{
   margin:2.2rem auto 0;display:inline-flex;align-items:center;gap:.9rem;
-  background:var(--yta-2);border:.5px solid var(--kant);border-radius:6px;
-  padding:.75rem 1rem .75rem 1.15rem;font-family:var(--stil-lasare);font-size:.92rem;
+  background:var(--yta-2);border:var(--hallinje) solid var(--kant);border-radius:6px;
+  padding:.75rem 1rem .75rem 1.15rem;font-family:var(--stil-lasare);font-size:.875rem;
 }
 .install .p{color:var(--hektograf-ljus);user-select:none}
 .install button{
@@ -152,29 +152,32 @@ h1{
   min-width:calc(6ch + 1.7rem);text-align:center;
 }
 .install button:hover{background:var(--papper)}
-.hero-links{margin-top:1.1rem;font-family:var(--stil-lasare);font-size:.86rem}
+.hero-links{margin-top:1.1rem;font-family:var(--stil-lasare);font-size:.875rem}
 .hero-links a{margin:0 .7rem}
 .hl{background:var(--markering);padding:.06em .3em .1em;border-radius:.5em .25em .55em .2em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
 
 /* ---- audiences: the type system is the split ---- */
 .aud{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:2rem}
-.aud>div{border:.5px solid var(--kant);border-radius:6px;padding:1.3rem 1.4rem}
+.aud>div{border:var(--hallinje) solid var(--kant);border-radius:6px;padding:1.3rem 1.4rem}
 .aud .hum{background:var(--yta)}
 .aud .agt{background:var(--yta-2)}
-.aud h3{font-variation-settings:"opsz" 40,"wght" 490,"SOFT" 40,"WONK" 0;font-weight:490;font-size:1.1rem;margin-bottom:.55rem}
-.aud .agt h3{font-family:var(--stil-lasare);font-weight:400;font-size:.95rem;letter-spacing:.05em;color:var(--fosfor)}
+/* One card-heading cut, shared. Three near-identical one-offs (490/490/480 at
+   17.28px) read as bolded lead sentences against 17px body, ratio 1.016. */
+.aud h3,.qa h3,.code h3{font-variation-settings:"opsz" 40,"wght" 500,"SOFT" 40,"WONK" 0;font-weight:500;font-size:1.3rem;line-height:1.25}
+.aud h3{margin-bottom:.55rem}
+.aud .agt h3{font-family:var(--stil-lasare);font-weight:400;font-size:1.08rem;letter-spacing:.05em;color:var(--fosfor)}
 .aud p{font-size:.95rem;color:var(--lavendel)}
-.aud .agt p{font-family:var(--stil-lasare);font-size:.85rem;line-height:1.75}
+.aud .agt p{font-family:var(--stil-lasare);font-size:.875rem;line-height:1.75}
 .qa{display:grid;grid-template-columns:1fr 1fr;gap:2.4rem;margin-top:2.6rem}
-.qa h3{font-variation-settings:"opsz" 40,"wght" 490,"SOFT" 40,"WONK" 0;font-weight:490;font-size:1.08rem;margin-bottom:.45rem}
+.qa h3{margin-bottom:.45rem}
 .qa p{font-size:.95rem;color:var(--lavendel)}
-.leafrule{max-width:66rem;margin:0 auto;padding:0 1.4rem;position:relative;height:26px}
-.leafrule::before{content:"";position:absolute;left:1.4rem;right:1.4rem;top:50%;border-top:.5px solid var(--kant)}
+.leafrule{max-width:66rem;margin:1.4rem auto;padding:0 1.4rem;position:relative;height:26px}
+.leafrule::before{content:"";position:absolute;left:1.4rem;right:1.4rem;top:50%;border-top:var(--hallinje) solid var(--kant)}
 .leafrule svg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--arkiv);padding:0 14px;box-sizing:content-box}
 .closer{padding:3rem 0 4.5rem;text-align:center}
 .closer .install{margin-top:1.8rem}
 .dnr-scene{position:relative;flex:none;display:flex;align-items:center;justify-content:center;width:184px;height:170px}
-.dnr-scene::before,.dnr-scene::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;z-index:-1}
+.dnr-scene::before,.dnr-scene::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;z-index:var(--z-bakom)}
 .dnr-scene::before{width:156px;height:156px;background:#1C1536}
 .dnr-scene::after{width:104px;height:104px;background:#221940}
 
@@ -200,27 +203,41 @@ h1{
 
 /* ---- exit codes ---- */
 .codes{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:2rem 0}
-.code{background:var(--yta);border:.5px solid var(--kant);border-radius:6px;padding:1.3rem 1.3rem 1.2rem}
-.code .n{font-family:var(--stil-arkiv);font-variation-settings:"opsz" 144,"wght" 500,"SOFT" 60,"WONK" 1;font-size:4.2rem;line-height:.9;display:block;margin-bottom:.7rem}
+.code{background:var(--yta);border:var(--hallinje) solid var(--kant);border-radius:6px;padding:1.3rem 1.3rem 1.2rem}
+.code .n{font-family:var(--stil-arkiv);font-variation-settings:"opsz" 144,"wght" 520,"SOFT" 60,"WONK" 1;font-size:4.2rem;line-height:.9;display:block;margin-bottom:.7rem}
 .code.e0 .n{color:var(--fosfor)}.code.e1 .n{color:var(--barnsten)}.code.e2 .n{color:var(--stampel-ljus)}
-.code h3{font-variation-settings:"opsz" 40,"wght" 480,"SOFT" 40,"WONK" 0;font-weight:480;font-size:1.08rem;margin-bottom:.35rem}
-.code p{font-size:.94rem;color:var(--lavendel)}
+.code h3{margin-bottom:.35rem}
+.code p{font-size:.95rem;color:var(--lavendel)}
 .term{
-  background:var(--yta-2);border:.5px solid var(--kant);border-radius:6px;
-  padding:1.1rem 1.25rem;font-size:.88rem;line-height:1.7;overflow-x:auto;
+  background:var(--yta-2);border:var(--hallinje) solid var(--kant);border-radius:6px;
+  padding:1.1rem 1.25rem;font-size:.875rem;line-height:1.7;overflow-x:auto;letter-spacing:0;
 }
 p+.term,p+.codes{margin-top:1.5rem}
+/* the inverse relationship, previously three inline margins */
+.term+p,.codes+p{margin-top:1.2rem}
+/* Terminals whose output is prose-shaped rather than column-aligned wrap the way
+   a narrow terminal does. `diarie` pads no columns (fields are single-space
+   separated), so a wrap costs no alignment. Without it, 66 % of the ENOSTORE
+   message sat behind a horizontal scroll on a phone — and the half that scrolled
+   out of view was the half that names the fix. `pre-wrap` only breaks when it
+   must, so both blocks render unwrapped wherever the column is wide enough. */
+.term.wrapped pre{white-space:pre-wrap}
 .facts{margin-top:1.2rem}
-.facts p{color:var(--lavendel);font-size:.97rem}
+.facts p{color:var(--lavendel);font-size:.95rem}
 .facts p+p{margin-top:.9rem}
-.facts strong{color:var(--papper);font-weight:490;font-variation-settings:"opsz" 20,"wght" 490,"SOFT" 20,"WONK" 0}
+.facts strong{color:var(--papper);font-weight:490;font-variation-settings:"opsz" 15,"wght" 490,"SOFT" 20,"WONK" 0}
 .term .c{color:var(--hektograf-ljus)}
 .term .g{color:var(--fosfor)}
 .term .k{color:var(--lavendel)}
+.term .a{color:var(--barnsten)}
 .term .r{color:var(--stampel-ljus)}
 
 /* ---- the write side: the specimen sheet ---- */
-.sheet-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:2.6rem;align-items:start}
+/* The artifact column takes the wider side (the ratio mirrored, not a new
+   number): verbatim `diarie ready` output is 49 mono chars and overflowed the
+   narrower column by 15px — clipping "reader" mid-word while still looking
+   complete, which is the one failure this page must never model. */
+.sheet-grid{display:grid;grid-template-columns:.95fr 1.05fr;gap:2.6rem;align-items:start}
 .sheet-grid>*,.codes>*,.types>*,.aud>*,.qa>*{min-width:0}
 .sheet{
   /* paper-context inks, named locally (the standalone page inlines only the
@@ -235,35 +252,40 @@ p+.term,p+.codes{margin-top:1.5rem}
 }
 .sheet::before,.sheet::after{
   content:"";position:absolute;top:-9px;width:70px;height:20px;
-  background:rgba(246,240,224,.85);border:.5px solid rgba(23,17,38,.15);
+  background:rgba(246,240,224,.85);border:var(--hallinje) solid rgba(23,17,38,.15);
 }
 .sheet::before{left:26px;transform:rotate(-5deg)}
 .sheet::after{right:26px;transform:rotate(4deg)}
 .sheet-label .cat{display:flex;flex-direction:column;gap:.35rem}
 .granskad{flex:none;align-self:center;display:block;--st-line:var(--stampel-mork);--st-text:var(--stampel-mork)}
-.sheet pre{font-size:.85rem;line-height:1.65;overflow-x:auto;text-rendering:geometricPrecision}
-.sheet .y-k{color:var(--hektograf)}
-.sheet .y-c{color:var(--papper-ink-3);font-style:italic}
+.sheet pre{font-size:.875rem;line-height:1.65;overflow-x:auto;text-rendering:geometricPrecision}
+.sheet .y-k{color:var(--hektograf-mork)}
+.sheet .y-c{color:var(--papper-ink-3)}
 .sheet .y-hl{background:var(--papper-hl);border-radius:3px;padding:0 .2em}
 .sheet-label{
-  margin-top:1.1rem;padding-top:.8rem;border-top:.5px dashed rgba(23,17,38,.3);
+  margin-top:1.1rem;padding-top:.8rem;border-top:var(--hallinje) dashed rgba(23,17,38,.3);
   font-family:var(--stil-lasare);font-size:.74rem;color:var(--papper-ink-2);
   display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;
 }
 
 /* ---- types ---- */
 .types{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-top:2rem}
-.type{background:var(--yta);border:.5px solid var(--kant);border-radius:6px;padding:1.15rem 1.2rem}
-.type code{font-size:.95rem;color:var(--fosfor)}
+.type{background:var(--yta);border:var(--hallinje) solid var(--kant);border-radius:6px;padding:1.15rem 1.2rem}
+/* The card title is a label, the chip inside the body stays a chip. Both were
+   15.2px fosfor on the same chip ground — the `.type code` descendant selector
+   captured them equally. `>` scopes the label; the nested chip falls back to the
+   page-wide `code` rule and is finally proportional to its host prose. */
+.type code{color:var(--fosfor)}
+.type>code{font-size:1.15rem;background:none;box-shadow:none;padding:0}
 .type.quiet code{color:var(--lavendel)}
-.type p{font-size:.9rem;color:var(--lavendel);margin-top:.5rem}
+.type p{font-size:.95rem;color:var(--lavendel);margin-top:.5rem}
 .type .where{display:block;font-family:var(--stil-lasare);font-size:.72rem;color:var(--hektograf-ljus);margin-top:.7rem}
 
 /* ---- refusals: beat 2 ---- */
 .refusals{text-align:center}
 .stamps{display:flex;flex-wrap:wrap;gap:1.1rem;justify-content:center;margin:2.4rem 0 2rem}
 .stamp{
-  font-family:var(--stil-lasare);font-size:.9rem;letter-spacing:.06em;
+  font-family:var(--stil-lasare);font-size:.875rem;letter-spacing:.06em;
   color:var(--stampel-ljus);border:1.5px dashed var(--stampel);border-radius:6px;
   padding:.6rem 1rem;transform:rotate(var(--rr,var(--r,0deg)));
   text-rendering:geometricPrecision;
@@ -285,11 +307,13 @@ p+.term,p+.codes{margin-top:1.5rem}
 }
 
 /* ---- lineage + footer ---- */
-.lineage{border-top:.5px solid var(--kant);padding:2.6rem 0}
-.lineage p{font-size:.95rem;color:var(--lavendel);max-width:52rem}
-footer{border-top:.5px solid var(--kant);padding:2.8rem 0 3.4rem;position:relative;overflow:hidden}
+.lineage{border-top:var(--hallinje) solid var(--kant);padding:2.6rem 0}
+.lineage p{font-size:.95rem;color:var(--lavendel);max-width:30rem}
+footer{border-top:var(--hallinje) solid var(--kant);padding:2.8rem 0 3.4rem;position:relative;overflow:hidden}
 footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:2rem;flex-wrap:wrap}
-footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektograf-ljus);line-height:2}
+footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektograf-ljus);line-height:2;max-width:36rem}
+/* A5 — hit area only: vertical padding on an inline link does not alter its line box */
+footer .fine a{padding:.45rem .1rem}
 .dnr{flex:none;display:block;--st-line:var(--stampel);--st-text:var(--stampel-ljus)}
 
 /* ---- the latest glass: guarded bleeding-edge layers ------------------- */
@@ -301,7 +325,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
     .ledger{
       position:fixed;top:env(safe-area-inset-top,0px);
       left:env(safe-area-inset-left,0px);right:env(safe-area-inset-right,0px);
-      height:2px;z-index:70;
+      height:2px;z-index:var(--z-ledger);
       background:var(--hektograf);opacity:.75;transform-origin:0 50%;
       transform:scaleX(0);animation:bokfora linear forwards;
       animation-timeline:scroll(root);
@@ -351,9 +375,9 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
   .hero,section{padding:1.2rem 0}
   h1,h2,.tagline{color:#171126}
   .muted,.dim,.facts p,.qa p,.aud p,.code p,.type p{color:#3a3060}
-  .term{background:#f2ecdd;color:#171126;border:.5px solid var(--print-rule)}
+  .term{background:#f2ecdd;color:#171126;border:var(--hallinje) solid var(--print-rule)}
   .term .c,.term .g,.term .k,.term .r{color:#171126}
-  .code,.type,.aud>div{border:.5px solid var(--print-rule);background:var(--print-ground)}
+  .code,.type,.aud>div{border:var(--hallinje) solid var(--print-rule);background:var(--print-ground)}
   a{color:#171126}
   .lineage a::after,footer a::after{content:" (" attr(href) ")";font-size:.75em;color:var(--print-muted)}
   .dnr{--st-line:#A83732;--st-text:#A83732}
@@ -363,17 +387,18 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
 
 @media (max-width:840px){
   .dnr-scene{margin:1.2rem auto 0}
-  .codes,.types{grid-template-columns:1fr 1fr}
+  .types{grid-template-columns:1fr 1fr}
+  .codes{grid-template-columns:1fr}
   .aud,.qa{grid-template-columns:1fr}
   .sheet-grid{grid-template-columns:1fr}
 }
 @media (max-width:540px){
-  .codes,.types{grid-template-columns:1fr}
+  .types{grid-template-columns:1fr}
   section{padding:3.2rem 0}
   nav{gap:1rem}
   .install{flex-wrap:wrap;justify-content:center;gap:.55rem;row-gap:.6rem;max-width:100%;padding:.8rem .7rem}
   .install code{font-size:.8rem}
-  .install button{padding:.4rem .7rem;font-size:.84rem;min-width:calc(6ch + 1.4rem)}
+  .install button{padding:.4rem .7rem;font-size:.875rem;min-width:calc(6ch + 1.4rem)}
   .term{font-size:.8rem}
 }
 @media (min-width:1800px){
@@ -418,7 +443,6 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
     </a>
     <nav aria-label="Site">
       <a href="https://tangled.org/voxpelli.com/diarie">tangled</a>
-      <a href="https://tangled.org/voxpelli.com/diarie">readme</a>
       <a href="https://www.npmjs.com/package/diarie">npm</a>
     </nav>
   </div>
@@ -490,13 +514,16 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
             become the thing you cannot leave.</p>
           </div>
         </div>
-        <div class="term" role="img" aria-label="Terminal: diarie ready lists two workable tasks; diarie stats shows totals">
+        <div class="term wrapped" role="img" tabindex="0" aria-label="Terminal: diarie ready lists two workable tasks, each with its file, id and priority; diarie stats reports 7 tasks — 2 ready, 3 blocked, 1 stale claim — then breaks the store down by status, priority and type">
 <pre><span class="c">$</span> <span class="g">diarie ready</span>
-<span class="g">●</span> proj-auth      <span class="k">Add session auth</span>       <span class="c">high</span>
-<span class="g">●</span> proj-parser    <span class="k">Harden YAML reader</span>     <span class="c">medium</span>
+  <span class="g">backlog/proj-auth</span>  <span class="c">[high]</span> <span class="k">Add session auth</span>
+  <span class="g">backlog/proj-parser</span>  <span class="c">[medium]</span> <span class="k">Harden YAML reader</span>
 
 <span class="c">$</span> <span class="g">diarie stats</span>
-<span class="k">14 tasks · 2 ready · 3 blocked · 1 stale claim</span></pre>
+<span class="c">total 7</span>  <span class="g">ready 2</span>  <span class="k">blocked 3</span>  <span class="a">stale 1</span>
+<span class="c">status: pending=5 in_progress=1 completed=1</span>
+<span class="c">priority: high=3 medium=2 low=2</span>
+<span class="c">type: task=7</span></pre>
         </div>
       </div>
     </div>
@@ -505,7 +532,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
   <section>
     <div class="wrap">
       <h2>Two readers, two voices</h2>
-      <p style="max-width:44rem">A backlog shared by people and agents has two kinds of
+      <p class="measure">A backlog shared by people and agents has two kinds of
       reader — which is why this page has two typefaces.</p>
       <div class="aud">
         <div class="hum">
@@ -518,15 +545,17 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
           <h3>$ for agents</h3>
           <p>claim → close → validate → ready. --json on every command,
           errors as machine-readable codes on stdout, and exit codes worth
-          reading: 0, 1, 2 — with ENOSTORE when there is no store at all.</p>
+          reading: 0, 1, 2 — ENOSTORE when there is no store at all,
+          ETWOSTORES when it would have to guess which one you meant.</p>
         </div>
       </div>
       <div class="qa">
         <div>
           <h3>New to plain-file tracking?</h3>
           <p>Don't panic — there is less here than you think. The store is
-          YAML you can read, <code>diarie init</code> writes the first file,
-          and your editor and git do the rest.</p>
+          YAML you can read, <code>diarie init</code> writes the first file
+          (into <code>diarium/</code>, or <code>.diarium/</code> with
+          <code>--dotted</code>), and your editor and git do the rest.</p>
         </div>
         <div>
           <h3>Why not a classical issue tracker?</h3>
@@ -581,24 +610,51 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
 
   <section>
     <div class="wrap">
+      <h2>diarie tends the diarium</h2>
+      <p class="measure">The store is a <em>diarium</em> — the register every
+      Swedish public body keeps. It sits at <code>diarium/</code> if you want it findable
+      on a bare <code>ls</code>, or <code>.diarium/</code> if you want the reading-room
+      posture. <span class="hl">Which one exists on disk <em>is</em> the choice</span>:
+      no config key, no environment variable, nothing to resolve before the store can be
+      found.</p>
+      <div class="term wrapped" role="img" tabindex="0" aria-label="Terminal: diarie init writes a visible store, --dotted writes the quiet one, and git mv flips between them at any time">
+<pre><span class="c">$</span> <span class="g">diarie init</span>              <span class="c"># diarium/   — on the shelf</span>
+<span class="c">$</span> <span class="g">diarie init --dotted</span>     <span class="c"># .diarium/  — in the reading room</span>
+
+<span class="c">$</span> <span class="g">git mv diarium .diarium</span>  <span class="c"># change your mind, any day</span></pre>
+      </div>
+      <p class="muted measure">Exactly two forms, ever. Both at once is
+      a hard error (<code>ETWOSTORES</code>) rather than a precedence rule — pick a winner
+      silently and the loser becomes a file nobody reads and everybody keeps editing. A
+      store still at the older <code>.diarie/</code> name is recognised too, and answered
+      with the <code>git mv</code> that fixes it rather than with <em>“no store
+      here”</em>: it is plainly your backlog, and saying otherwise would be technically
+      true and practically a lie.</p>
+    </div>
+  </section>
+
+  <div class="leafrule" aria-hidden="true"><svg width="42" height="18" viewBox="0 0 42 18"><ellipse cx="14" cy="9" rx="9" ry="4.5" transform="rotate(-24 14 9)" fill="#9C90C4"/><ellipse cx="28" cy="9" rx="9" ry="4.5" transform="rotate(24 28 9)" fill="#9C90C4"/></svg></div>
+
+  <section>
+    <div class="wrap">
       <h2>Four types. Framings are labels.</h2>
-      <p style="max-width:44rem"><em>“What kind of thing is this”</em> admits one answer;
+      <p class="measure"><em>“What kind of thing is this”</em> admits one answer;
       <em>“how should I think about it”</em> admits several. So <code>bug</code>,
       <code>feature</code>, <code>chore</code>, <code>spike</code> are labels on a task —
       and an epic is a task with children, not a special type.</p>
       <div class="types">
         <div class="type"><code>task</code>
           <p>A unit of work. The only type <code>ready</code> ever surfaces.</p>
-          <span class="where">.diarie/tasks/*.yml</span></div>
+          <span class="where">diarium/tasks/*.yml</span></div>
         <div class="type quiet"><code>milestone</code>
           <p>A structural marker. No effort, no assignment.</p>
-          <span class="where">.diarie/tasks/*.yml</span></div>
+          <span class="where">diarium/tasks/*.yml</span></div>
         <div class="type quiet"><code>decision</code>
           <p>An architectural choice and its reasoning. Open while in force.</p>
-          <span class="where">.diarie/decisions/*.md</span></div>
+          <span class="where">diarium/decisions/*.md</span></div>
         <div class="type quiet"><code>doc</code>
           <p>Reference prose, schema in frontmatter.</p>
-          <span class="where">.diarie/docs/*.md</span></div>
+          <span class="where">diarium/docs/*.md</span></div>
       </div>
     </div>
   </section>
@@ -606,15 +662,15 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
   <section>
     <div class="wrap">
       <h2>A library with a bin</h2>
-      <p style="max-width:44rem">The pure functions are exported and fully typed — the same
+      <p class="measure">The pure functions are exported and fully typed — the same
       reader the CLI uses, importable wherever an agent or a script needs it.</p>
-      <div class="term" role="img" aria-label="JavaScript: importing computeReady and loadTasks from diarie">
+      <div class="term" role="img" tabindex="0" aria-label="JavaScript: importing computeReady and loadTasks from diarie">
 <pre><span class="k">import</span> { computeReady, loadTasks } <span class="k">from</span> <span class="g">'diarie'</span>
 
 <span class="k">const</span> tasks = <span class="k">await</span> loadTasks(<span class="g">'/path/to/project'</span>)
 <span class="k">const</span> { ready, blocked, needsAttention } = computeReady(tasks)</pre>
       </div>
-      <p class="muted" style="margin-top:1.1rem"><code>needsAttention</code> is the third
+      <p class="muted measure"><code>needsAttention</code> is the third
       partition, and it matters: a row whose required fields are malformed is
       broken, not merely non-workable — so it is surfaced, not skipped.</p>
     </div>
@@ -625,7 +681,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
   <section>
     <div class="wrap">
       <h2>The exit codes are worth reading</h2>
-      <p style="max-width:44rem">Point most tools at a project that tracks its work elsewhere
+      <p class="measure">Point most tools at a project that tracks its work elsewhere
       and they print nothing and exit 0 — indistinguishable from <em>“you have
       no work left.”</em> Those are opposite situations, and conflating them is
       how a broken tracker gets reported as a clean sprint. So:</p>
@@ -635,23 +691,25 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
           <p>An empty but present store is a legitimate answer.</p></div>
         <div class="code e1"><span class="n">1</span>
           <h3>You asked wrong</h3>
-          <p>A machine-readable code says how: <code>ENOSTORE</code>,
-          <code>EUSAGE</code>, <code>EEXIST</code>.</p></div>
+          <p>A machine-readable code says how: <code>ENOSTORE</code> (no store
+          here), <code>EUSAGE</code>, <code>EEXIST</code>,
+          <code>ETWOSTORES</code>, <code>ELEGACY</code>,
+          <code>ELOSSY</code>, <code>EPLUGINSTORE</code>.</p></div>
         <div class="code e2"><span class="n">2</span>
           <h3>It ran, and the answer is no</h3>
           <p>The store is unsound: <code>validate</code> found errors, or
           <code>ready --strict</code> met a dropped row.</p></div>
       </div>
-      <div class="term" role="img" aria-label="Terminal: a missing store returns an ENOSTORE JSON error with exit code 1">
+      <div class="term wrapped" role="img" tabindex="0" aria-label="Terminal: a missing store returns an ENOSTORE JSON error naming the fix, and exit code 1">
 <pre><span class="c">$</span> <span class="g">diarie ready --json --root /tmp/not-a-project</span>
 {
-  <span class="k">"error"</span>: <span class="r">"no .diarie/ store found"</span>,
+  <span class="k">"error"</span>: <span class="r">"no diarium/ (dotted or not) in /tmp/not-a-project — run `diarie init` there, or point --root somewhere else"</span>,
   <span class="k">"code"</span>: <span class="r">"ENOSTORE"</span>
 }
 <span class="c">$</span> <span class="g">echo $?</span>
 <span class="r">1</span></pre>
       </div>
-      <p class="muted" style="margin-top:1.2rem">A missing store is an
+      <p class="muted measure">A missing store is an
       <strong>error</strong>, not an empty backlog — so a script can tell
       <em>“tracks its work elsewhere”</em> from <em>“has no work left.”</em>
       That distinction is the entire point.</p>
@@ -663,7 +721,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
   <section class="refusals">
     <div class="wrap">
       <h2>The refusals</h2>
-      <p style="max-width:42rem;margin:0 auto">The non-goals are identity, not backlog.
+      <p class="measure-c">The non-goals are identity, not backlog.
       Each is firm — and carries a named revival trigger rather than being
       permanent by temperament.</p>
       <div class="stamps" id="stamps">
@@ -674,7 +732,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
         <span class="stamp" style="--r:-1.5deg;--d:320ms">no CRUD write layer</span>
         <span class="stamp" style="--r:1deg;--d:400ms">no web dashboard</span>
       </div>
-      <p class="muted" style="max-width:42rem;margin:0 auto">Leaving must always be free —
+      <p class="muted measure-c">Leaving must always be free —
       every refusal above exists to keep it that way.</p>
     </div>
   </section>
@@ -684,7 +742,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
   <section class="closer">
     <div class="wrap">
       <h2 style="margin-bottom:.7rem">Try it on a repo you already have</h2>
-      <p class="muted" style="max-width:44rem;margin:0 auto"><span class="hl">Leaving is
+      <p class="muted measure-c"><span class="hl">Leaving is
       free:</span> uninstall diarie and your backlog is still there, in
       files you own.</p>
       <div class="install">
@@ -696,8 +754,7 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
   </section>
   <section class="lineage">
     <div class="wrap">
-      <span class="eyebrow">lineage</span>
-      <p>diarie invents none of this; it applies a canon.
+      <p class="measure">diarie invents none of this; it applies a canon.
       <a href="https://www.inkandswitch.com/local-first/">Local-first software</a> —
       you own your data, in spite of the cloud.
       <a href="https://en.wikipedia.org/wiki/Tools_for_Conviviality">Convivial tools</a> —
@@ -716,8 +773,9 @@ footer .fine{font-family:var(--stil-lasare);font-size:.8rem;color:var(--hektogra
   <div class="wrap">
     <div class="fine">
       MIT © <a href="https://kodfabrik.se/">Pelle Wessman</a> · human-directed, AI-built<br>
-      This page is one HTML file — ≈50 KiB — plus three self-hosted
-      fonts, cached once. No request leaves diarie.dev. View source.<br>
+      This page is one HTML file and one stylesheet — 68 KiB together — plus
+      three self-hosted fonts, cached once. No request leaves diarie.dev.
+      View source.<br>
       <a href="https://tangled.org/voxpelli.com/diarie">tangled</a> ·
       <a href="https://www.npmjs.com/package/diarie">npm</a> ·
       <a href="https://github.com/voxpelli/diarie">github mirror</a> ·

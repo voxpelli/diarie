@@ -1,7 +1,7 @@
 /**
  * generate-favicons.js — regenerate the deploy favicon(s) into `brand-dist/`.
  *
- * A BUILD step (`brand:favicon`), part of `brand:build`; runs after `brand:copy`
+ * A BUILD step (`brand:3-favicon`), part of `brand`; runs after `brand:1-copy`
  * so `brand-dist/` exists. index.html references exactly one favicon FILE —
  * `/apple-touch-icon.png` (the browser-tab icon is a self-contained inline SVG
  * data-URI, no file) — so that is all we emit.
@@ -29,7 +29,7 @@ import {
 } from 'node:fs/promises';
 
 // Invoked as the bare binary: npm puts node_modules/.bin on PATH for every
-// script, and this only ever runs via `brand:favicon`/`brand:build`. If it is
+// script, and this only ever runs via `brand:3-favicon`/`brand`. If it is
 // ever run outside npm, execFileSync throws ENOENT — loud, not silent.
 const BIN = 'generate-favicon';
 const SVG_SRC = new URL('diarie-mark.svg', import.meta.url);

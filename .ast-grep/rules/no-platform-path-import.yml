@@ -1,0 +1,35 @@
+id: no-platform-path-import
+language: javascript
+message: >-
+  Import from `node:path`, never from `node:path/posix` or `node:path/win32`. The platform
+  submodules pin path semantics to ONE operating system, and diarie resolves real filesystem
+  paths — `package.json` declares no `os` field, so Windows is nominally supported.
+
+  The concrete defect this rule exists for: `node:path/posix` does not treat a Windows drive
+  letter as absolute, so `resolve('C:\\Users\\me\\proj')` returns `<cwd>/C:\Users\me\proj`.
+  `init` would create the store at a fabricated path, and every reader — which resolves via
+  `node:path` — would then answer ENOSTORE for a store that demonstrably exists. That is the
+  founding defect reached through an import specifier: a store that is there, reported absent.
+
+  It shipped once. The store module used `node:path`; splitting it into `lib/store/` changed the
+  specifier on one line of `init.js` and nothing went red, because CI is `ubuntu-latest` only
+  and every test agrees with the bug on Linux. A rule is the right instrument precisely
+  BECAUSE no test can be: a suite that cannot run on the platform in question is not evidence.
+  Cheaper than a Windows CI leg, and it fires on the edit rather than after the release.
+
+  If a genuine POSIX-only need ever appears (parsing a URL pathname, say — where the input is
+  specified as POSIX regardless of host), import it under a name that says so
+  (`import { posix as urlPath } from 'node:path'`) and add the file here with the reason.
+severity: error
+# No `files:` — this config's `ast-grep scan` walks the whole package, so a glob could only
+# create a way for the rule to point at nothing.
+rule:
+  kind: string_fragment
+  regex: '^node:path/(posix|win32)$'
+  inside:
+    kind: string
+    inside:
+      any:
+        - kind: import_statement
+        - kind: call_expression
+      stopBy: end
