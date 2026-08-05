@@ -464,7 +464,7 @@ tasks:
       - "THE RUNTIME LEAK: lib/migrate/bd-map.js:307 hardcodes `slug: 'vp-beads'` into generated YAML. It sits behind a direct-execution guard, so it ships in the tarball but is NOT reachable via `diarie migrate` — fix it anyway; it ships"
       - "~39 `vp-beads-<id>` citations rewritten to KEEP THE REASONING and DROP THE DEAD POINTER (user's call, 2026-07-14) — `that was vp-beads-epc` becomes `that was the bug where an epic container, having no deps of its own, was offered as ready work`"
       - "17 dangling paths (CLAUDE.md, hooks/session-start.sh, scripts/ready-walker.mjs, SPIKE-*.md, agents/sprint-review.md) — same treatment"
-      - "lib/store.js's CLAUDE_PLUGIN_ROOT guard: KEEP it, generalize it, and EXPAND it beyond Claude Code (user's call). The hazard is `a tool that vendors diarie ships its own .diarie/`; Claude Code is one instance of that, not the definition"
+      - "lib/store/root.js's CLAUDE_PLUGIN_ROOT guard: KEEP it, generalize it, and EXPAND it beyond Claude Code (user's call). The hazard is `a tool that vendors diarie ships its own .diarie/`; Claude Code is one instance of that, not the definition"
     description: >-
       The dense why-comments are diarie's best feature and its biggest extraction liability: in a
       standalone repo every citation points at a tracker that is not there.
@@ -861,13 +861,13 @@ tasks:
     labels:
       - bug
     acceptance_criteria:
-      - "store.js narrows a non-string `title`/`agent`/`updated`/`description` to `undefined` with NO warning — unlike `priority`/`type`/`labels`, which call `reject()` and report. Every drop must REPORT and name the consequence, per CLAUDE.md `### Reader conventions`"
+      - "lib/store/load-tasks.js narrows a non-string `title`/`agent`/`updated`/`description` to `undefined` with NO warning — unlike `priority`/`type`/`labels`, which call `reject()` and report. Every drop must REPORT and name the consequence, per CLAUDE.md `### Reader conventions`"
       - "`title: 42` currently PASSES `diarie validate` (validate.js checks only nil/empty, not type) yet renders empty everywhere via the loader's silent drop — the two paths disagree and neither reports; a required-field TYPE check belongs in validate too"
       - "an unrecognized/mistyped key (`descrption`, `titel`) is silent data loss — decide whether the loader/validator warns on unknown keys (schema.js:36-38 already anticipates the allowlist, incl. the `description` exemption)"
       - "add fixtures with a non-string title/agent/updated and a typo'd key; prove each now warns (mutation-verified)"
     description: >-
       A guard that rejects a value must also report it (CLAUDE.md `### Reader conventions`).
-      store.js does this for priority/type/labels/acceptance_criteria (reject()+warn) but NOT
+      lib/store/load-tasks.js does this for priority/type/labels/acceptance_criteria (reject()+warn) but NOT
       for title/agent/updated/description — they drop to undefined silently. Worst case: a
       required `title` that is a number passes validate and renders empty, with no diagnostic.
       Surfaced by a 2026-07-18 coverage audit (explorer fan-out).
@@ -899,7 +899,7 @@ tasks:
     acceptance_criteria:
       - "`doc` type + `.diarie/docs/` is VESTIGIAL: init never creates docs/, nothing writes or reads it — decide PRUNE (drop `doc` from the model) or BUILD (init creates docs/, a reader validates it). vp-beads-etm already notes doc/milestone are fixture-only, never validated against real data"
       - "`milestone` has no type-specific validation — the model says 'no effort, no assignment' (schema.js) yet a milestone row can carry agent/priority/acceptance_criteria with no warning; decide whether to enforce"
-      - "the `meta:` block (slug/title) is WRITTEN by the migrator and READ by nothing (store.js/validate discard `doc['meta']`) — dead data that can silently diverge from the filename slug; validate it or drop writing it"
+      - "the `meta:` block (slug/title) is WRITTEN by the migrator and READ by nothing (the loader and validate discard `doc['meta']`) — dead data that can silently diverge from the filename slug; validate it or drop writing it"
       - "a `type: doc`/`type: decision` ROW placed directly in tasks-*.yml is not flagged as a model violation (schema.js:50 says they must not live as rows) — silently excluded from ready with no diagnostic; decide whether validate should reject it"
       - "🚨 DO NOT ACT ON THE PREVIOUS TWO CRITERIA BEFORE diarie-frm (added 2026-08-05). Flagging a `type: decision` row ENFORCES the type↔form coupling, and diarie-frm is deciding whether that coupling should exist at all — implementing the flag first would settle a live decision as a side effect of a chore. The `doc`-is-vestigial criterion is in the same position: diarie-frm's options (b) and (c) both make `docs/` moot. The `milestone` and `meta:` criteria are independent and can proceed"
     description: >-

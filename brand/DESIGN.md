@@ -491,7 +491,7 @@ a claim about the tool's contract, and no gate checks it. Generate the text
 by running the binary against a throwaway store, paste the bytes, and never
 truncate with an ellipsis. This page has shipped a paraphrased error twice —
 once wording a `--root` failure as though the store had been searched for,
-which is the exact imprecision `lib/store.js` refuses in a comment.
+which is the exact imprecision `lib/store/errors.js` refuses in a comment.
 
 Don't — these are identity, not preference: no gradient glow (the halo is
 stepped or it is not the halo); no mascot (the twinflower is a specimen —

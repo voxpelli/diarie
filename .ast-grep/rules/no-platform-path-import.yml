@@ -11,7 +11,7 @@ message: >-
   `node:path` — would then answer ENOSTORE for a store that demonstrably exists. That is the
   founding defect reached through an import specifier: a store that is there, reported absent.
 
-  It shipped once. `lib/store.js` used `node:path`; splitting it into `lib/store/` changed the
+  It shipped once. The store module used `node:path`; splitting it into `lib/store/` changed the
   specifier on one line of `init.js` and nothing went red, because CI is `ubuntu-latest` only
   and every test agrees with the bug on Linux. A rule is the right instrument precisely
   BECAUSE no test can be: a suite that cannot run on the platform in question is not evidence.

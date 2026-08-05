@@ -29,7 +29,7 @@ ignores:
   # The definition itself — `TRACKER_DIRS`, `LEGACY_TRACKER_DIRS` and the `TRACKER_LABEL` clause
   # built from them. This is the ONE file allowed to write the names, which is what makes
   # `TRACKER_LABEL` worth having: every error message elsewhere interpolates it instead of
-  # spelling the store out, so `store.js` and `init.js` stay guarded rather than exempted.
+  # spelling the store out, so `store/root.js` and `store/init.js` stay guarded rather than exempted.
   - "lib/schema.js"
   # A test that asserts the literal path is the POINT: migrate.spec.js asserts the migrator WROTE
   # `diarium/tasks/tasks-backlog.yml`, and an assertion that builds that path from the constant

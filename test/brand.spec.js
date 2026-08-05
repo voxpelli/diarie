@@ -6,7 +6,7 @@
  * prints*. Nothing verified them. CLAUDE.md names the hole outright — "no gate can
  * catch a false claim in `brand/`" — and the hole had already been paid for: the page
  * once carried a PARAPHRASED `ENOSTORE` sentence that contradicted the one
- * `lib/store.js` emits, on the single error this whole tool exists to make
+ * `lib/store/errors.js` emits, on the single error this whole tool exists to make
  * unmissable. A page that misquotes the founding defect's error message is worse than
  * a page that omits it.
  *

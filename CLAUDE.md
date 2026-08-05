@@ -45,7 +45,7 @@ verb:
 
 🚨 **Every CLI example on a brand surface must be VERBATIM output — it has been wrong twice.**
 diarie.dev's flagship `ENOSTORE` example printed the _searched-upward_ wording (`… found …`) for a
-command that passes `--root`, which is explicitly not a search; `lib/store.js` refuses that exact
+command that passes `--root`, which is explicitly not a search; `lib/store/errors.js` refuses that exact
 wording in a comment ("reporting 'searched upward' when we did not is its own small lie"), so the page
 told the lie the code declines to tell. `README.md` carried the same spurious "found". Generate
 examples by running the real binary against a throwaway store (`node cli.js ready --root <tmp>`), paste
@@ -65,13 +65,13 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
   first) live here; every reader/validator/migrator derives its vocabulary from it — never fork it.
   `TRACKER_LABEL` is the pair as one clause for error text. The store names live ONLY here; an
   ast-grep rule (`no-hardcoded-tracker-dir`) bans hardcoding them anywhere else — which is why
-  messages interpolate `TRACKER_LABEL` instead of spelling the store out, so `store.js` and
-  `init.js` stay guarded rather than exempted.
+  messages interpolate `TRACKER_LABEL` instead of spelling the store out, so `store/root.js` and
+  `store/init.js` stay guarded rather than exempted.
 * **A guard checks the RETIRED names too** — `isAnyStoreDir` when you are about to HARM a store,
   `isTrackerDir` only when you are about to USE one. `LEGACY_TRACKER_DIRS` (`.diarie`) is never
   read, but `init`, migrate's overwrite check and `bd-map.js` all check it.
 * **Which form is on disk is a FACT, not a constant** — and never index the pair.
-  `trackerDirIn(root)` (`lib/store.js`) for the store that EXISTS, throwing `ETWOSTORES` on both;
+  `trackerDirIn(root)` (`lib/store/root.js`) for the store that EXISTS, throwing `ETWOSTORES` on both;
   `defaultTrackerDir(dotted)` for the one to CREATE. Disk outranks the flag. There is no singular
   `TRACKER_DIR`, and `no-indexed-tracker-dir` enforces the rest.
 * **Commands are FOUR parts** (peowly-commands shape): `run()` holds no logic → `setupCommand` parses →
@@ -85,6 +85,15 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
   into the command. But **assert every exit code through a spawned `cli.js`** (`test/cli.spec.js`):
   the `{error, code}` contract is produced at the boundary, not in the work stage, so an in-process
   test cannot see it.
+* 🚨 **The published surface is an ALLOWLIST pinned by equality** (`test/api.spec.js`), over **both**
+  entry points — `diarie` and `diarie/schema`. Adding an export is a deliberate act that costs a line
+  in that list; it is not something a refactor may do in passing. The guard covers both doors because
+  `TASKS_DIR`/`RECORD_DIRS` went public by being written into `lib/schema.js` — which `lib/index.js`
+  re-exports with `export *` — so a guard on `lib/index.js` alone would have watched the wrong one.
+  knip cannot do this job: it finds DEAD exports, never NEW ones. **There is no `lib/store.js`**; the
+  `lib/store/` modules are named individually from `lib/index.js`, because a re-export barrel lets the
+  public API widen from a file that does not look like the entry point. `initStore` stays INTERNAL
+  (VISION.md: a CRUD layer would make diarie the owner of your data).
 * **Flags live in `lib/flags/`** groups (`output`, `store`, `filter`, `staleness` + a barrel). Note the
   load-bearing asymmetry: `ready` resolves the store BEFORE validating `--filter`; `stats` validates
   first — this keeps `{code: ENOSTORE}` winning a double fault. Don't "tidy" it.
