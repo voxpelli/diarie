@@ -233,7 +233,7 @@ async function checkStatedSize () {
   const page = await readFile(new URL('index.html', DIST), 'utf8');
   const claim = CLAIM.exec(page);
   if (!claim?.[1]) {
-    problems.push('index.html no longer states its own size in the form check:brand-assets ' +
+    problems.push('index.html no longer states its own size in the form brand-check ' +
       'verifies — reword the footer back, or update CLAIM here to match the new sentence');
     return;
   }
@@ -255,13 +255,13 @@ async function checkStatedSize () {
 await checkStatedSize();
 
 if (problems.length > 0) {
-  process.stderr.write('check:brand-assets — referenced deploy assets missing or empty:\n');
+  process.stderr.write('brand-check — referenced deploy assets missing or empty:\n');
   for (const problem of problems) {
     process.stderr.write(`  ✗ ${problem}\n`);
   }
   process.exit(1);
 }
 process.stdout.write(
-  'check:brand-assets — all referenced local deploy assets present and non-empty ' +
+  'brand-check — all referenced local deploy assets present and non-empty ' +
   `(${PAGES.length} page(s), ${stylesheets.size} stylesheet(s))\n`
 );
