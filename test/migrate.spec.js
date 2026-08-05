@@ -686,6 +686,11 @@ describe('the vocabulary maps carry VALID values, not merely known keys', () => 
   // do. So these two assertions catch the bad edit at gate time, and the runtime guards catch
   // it for anyone who skips the gate — different readers, same invariant, and only the first
   // half is automated. The second half's repro is recorded in the commit that added it.
+  //
+  // AND THEY ARE NOT VACUOUS, which is the question to ask of any assertion whose subject tsc
+  // has already narrowed — a guard that cannot fail inside a gate is worse than none. Verified
+  // by mutation: `bug: { type: 'bugg' }` turns the second one RED. JSDoc has no runtime effect,
+  // so the predicate here runs against the real value whatever the annotations claim about it.
 
   it('every STATUS_MAP value is a real task status', () => {
     for (const [bd, mapped] of Object.entries(STATUS_MAP)) {
