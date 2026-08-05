@@ -36,8 +36,9 @@ import {
 import { load } from 'js-yaml';
 
 import {
-  CONSUMED_BD_FIELDS, parseBdExport, projectRecords, TYPE_MAP,
+  CONSUMED_BD_FIELDS, parseBdExport, projectRecords, STATUS_MAP, TYPE_MAP,
 } from '../lib/migrate/bd-map.js';
+import { isStatus, isTaskType } from '../lib/schema.js';
 import {
   groupTasks, MIGRATE_OPTIONS, normalizeBody, PLACED_BY, projectLive, splitBody, USAGE,
 } from '../lib/migrate/bootstrap.js';
@@ -664,6 +665,38 @@ describe('the field census (transparency: nothing is discarded quietly)', () => 
     assert.equal(code, 0);
     assert.match(out, /not carried over/);
     assert.match(out, /owner — 1 record\(s\)/);
+  });
+});
+
+describe('the vocabulary maps carry VALID values, not merely known keys', () => {
+  // `hasOwn` guards the KEY at every lookup — that is what survives a hostile `issue_type` out
+  // of a foreign JSONL. It says nothing about the VALUE it hands back, and the value's only
+  // other guard is the `@satisfies` cast on the map, which is compile-time and fails OPEN in
+  // the one way that matters: misspell the tag itself (`@satisifes`) and tsc ignores it
+  // silently, where a misspelled TYPE is a hard error.
+  //
+  // Measured with `bug: { type: 'bugg' }` hand-patched into TYPE_MAP: migrate wrote
+  // `type: bugg` into tasks-backlog.yml, printed "migrated 1 live issues" and its written-files
+  // list, and EXITED 0 — and `diarie validate` then reported the store invalid. A migrator
+  // whose success report is not evidence of a valid store is the founding defect at one remove.
+  //
+  // WHAT THIS SUITE CANNOT REACH, said plainly rather than left as implied coverage: the
+  // runtime guards in `projectLive` fire only when the MAP is wrong, and the map is a module
+  // const no input can reach. Exercising them means editing the source, which a test must not
+  // do. So these two assertions catch the bad edit at gate time, and the runtime guards catch
+  // it for anyone who skips the gate — different readers, same invariant, and only the first
+  // half is automated. The second half's repro is recorded in the commit that added it.
+
+  it('every STATUS_MAP value is a real task status', () => {
+    for (const [bd, mapped] of Object.entries(STATUS_MAP)) {
+      assert.ok(isStatus(mapped), `STATUS_MAP.${bd} → "${mapped}" is not a task status`);
+    }
+  });
+
+  it('every TYPE_MAP value is a real task type', () => {
+    for (const [bd, mapped] of Object.entries(TYPE_MAP)) {
+      assert.ok(isTaskType(mapped.type), `TYPE_MAP.${bd} → "${mapped.type}" is not a task type`);
+    }
   });
 });
 
