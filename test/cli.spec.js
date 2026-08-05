@@ -28,7 +28,18 @@ import {
 
 import { TRACKER_DIRS, VALID_ERROR_CODES } from 'diarie/schema';
 
+import * as commands from '../lib/commands.js';
+
 /** @import { TestContext } from 'node:test' */
+
+/**
+ * The command vocabulary, taken from the barrel rather than restated.
+ *
+ * A hand-written list is a second implementation of the command set, and the failure mode is
+ * silent in the direction that matters: add a command, forget the list, and every rule this
+ * file quantifies over simply stops covering it — green, and not asking about the new one.
+ */
+const COMMAND_NAMES = Object.keys(commands);
 
 /**
  * Which form of the store pair these tests seed. The reader accepts both; the fixtures on
@@ -1454,5 +1465,80 @@ describe('every error code, through the real CLI boundary', () => {
     const covered = new Set(CASES.map(c => c.code));
     const missing = VALID_ERROR_CODES.filter(c => !covered.has(c));
     assert.deepEqual(missing, [], `error codes with no CLI-boundary case: ${missing.join(', ')}`);
+  });
+});
+
+describe('A POSITIONAL IS NEVER DISCARDED IN SILENCE', () => {
+  // `diarie ready pending` printed the full unfiltered backlog and exited 0. That is the
+  // natural wrong guess for `--filter pending` — and the shape bd's CLI genuinely accepted —
+  // so it is a mistake a user arrives at by knowing the neighbouring tool, not by fumbling.
+  // No subset, no complaint, exit 0: a confident, plausible, wrong answer, which is this
+  // package's founding defect reached without a store being involved at all.
+  //
+  // QUANTIFIED OVER THE COMMAND VOCABULARY, not written per command, for the reason the
+  // error-code table above gives: a rule needs a test that quantifies over inputs. `migrate`
+  // is the one legitimate positional-taker (its positional is the export file), so it is
+  // covered by its own case below rather than exempted silently — an exemption nobody can
+  // see is how the next command inherits the bug.
+
+  const POSITIONAL_REFUSERS = COMMAND_NAMES.filter(name => name !== 'migrate');
+
+  for (const sub of POSITIONAL_REFUSERS) {
+    it(`\`${sub} bogus\` is refused, not silently accepted`, () => {
+      // NO `--json` HERE, and that is not an oversight — it is what keeps the case honest.
+      // The first cut passed `--json` in order to read `code` off the payload, and it passed
+      // for a command that accepts positionals freely: the fake declared no `--json` flag, so
+      // the UNKNOWN FLAG produced the EUSAGE and the positional was never the reason. A test
+      // that can be satisfied by the wrong cause is the "narrower question" trap this repo
+      // keeps a table about, reached from inside the suite instead of from a tool.
+      //
+      // Matching node's own wording ties the assertion to the positional specifically. It also
+      // pins the house rule that a refusal QUOTES BACK what it rejected — `bogus` appears in
+      // the message, so a caller can tell a typo from a shell glob that expanded.
+      const { code, both } = run([sub], ['bogus'], FIXTURES);
+
+      assert.equal(code, 1, `${sub} accepted a positional and exited ${code}`);
+      assert.match(both, /Unexpected argument 'bogus'/);
+    });
+  }
+
+  it('the refusal reaches a --json consumer as EUSAGE on STDOUT', () => {
+    // The machine half, asserted once rather than per command: the loop above proves the
+    // refusal happens, this proves it is legible to the caller that cannot read prose.
+    const { code, out } = run(['ready'], ['bogus', '--json'], FIXTURES);
+
+    assert.equal(code, 1);
+    assert.equal(JSON.parse(out).code, 'EUSAGE');
+  });
+
+  it('every command is either a refuser or the one documented positional-taker', () => {
+    // The point of the split. A command added later joins POSITIONAL_REFUSERS automatically
+    // and fails until it passes `allowPositionals: false` — which is what stops the flag from
+    // being a convention four call sites happen to follow today.
+    assert.deepEqual(
+      [...POSITIONAL_REFUSERS, 'migrate'].sort(),
+      [...COMMAND_NAMES].sort(),
+      'a command is neither refusing positionals nor declared as taking one'
+    );
+  });
+
+  it('`migrate` takes ONE file and REFUSES a second rather than dropping it', () => {
+    // Its own form of the same bug: `const [inputPath] = positionals` consumed the first and
+    // dropped the rest without a word, on the one command that WRITES A STORE. A caller who
+    // believed both were consumed got a migration missing half its input, at exit 0.
+    const { code, both } = run(['migrate'], ['first.json', 'second.json'], FIXTURES);
+
+    assert.equal(code, 1);
+    // The dropped token must be QUOTED BACK — a refusal that does not name what it rejected
+    // cannot tell a shell glob from a typo.
+    assert.match(both, /second\.json/);
+  });
+
+  it('`migrate` still accepts its single positional (the guard did not over-reject)', () => {
+    // Falsification for the case above: if the new guard fired on ONE path, every real
+    // migration would refuse and the test above would still pass.
+    const { both } = run(['migrate'], ['first.json'], FIXTURES);
+
+    assert.doesNotMatch(both, /takes ONE bd export file/);
   });
 });
