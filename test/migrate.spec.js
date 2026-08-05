@@ -809,6 +809,21 @@ describe('a numeric bd id (the parse boundary)', () => {
     assert.equal(JSON.stringify(r?.id), 'null');
   });
 
+  for (const [label, json, check] of /** @type {[string, string, (v: unknown) => boolean][]} */ ([
+    ['a boolean', '{"_type":"issue","id":true}', v => v === true],
+    ['an object', '{"_type":"issue","id":{"a":1}}', v => typeof v === 'object' && v !== null && !Array.isArray(v)],
+    ['an array', '{"_type":"issue","id":["x"]}', v => Array.isArray(v)],
+  ])) {
+    it(`passes ${label} id through UNCHANGED — refusing is the refusal's job, not the boundary's`, () => {
+      // Deliberate, and it stays correct after the refusal exists. The boundary's contract is
+      // "coerce numbers, launder nothing else"; turning `true` into `'true'` here would invent an
+      // id, which is the whole thing this function refuses to do. `projectLive` is what says no —
+      // see the refusal block below, which is where that job belongs.
+      const [r] = parseBdExport(json + '\n');
+      assert.ok(check(r?.id), `the boundary altered a non-numeric id (${label})`);
+    });
+  }
+
   it('does not ADD an `id` key to a record that had none', () => {
     // `censusFields` classifies by the keys a record carries, so it is the one consumer that
     // can tell absent from present-and-undefined. Normalising must not move that line.
@@ -853,6 +868,114 @@ describe('a numeric bd id (the parse boundary)', () => {
     assert.equal(code, 0, out);
     assert.doesNotMatch(out, /dropped \d+ edge/, 'an edge was dropped that should have survived');
     assert.deepEqual(rowsIn(dir).find(r => r.id === 'x-2')?.deps, ['12345']);
+  });
+});
+
+/**
+ * A bd record whose id is whatever you hand it — including shapes `BdIssue` forbids.
+ *
+ * The cast is the point: `BdIssue.id` is typed `string`, which is exactly the promise that was
+ * never checked at runtime, so the cases below cannot be written without stepping around it.
+ *
+ * @param {unknown} id
+ * @returns {BdIssue}
+ */
+const withId = (id) => /** @type {BdIssue} */ (
+  /** @type {unknown} */ ({ id, title: 't', status: 'open', issue_type: 'task', priority: 2 })
+);
+
+/**
+ * The same, as a `decision` — which routes to `decisions/<id>.md`, where the id becomes a
+ * FILENAME rather than a field.
+ *
+ * @param {unknown} id
+ * @returns {Record<string, unknown>}
+ */
+const decisionWithId = (id) => ({
+  id, title: 'd', status: 'open', issue_type: 'decision', priority: 2,
+});
+
+describe('a bd id that is not a usable id is REFUSED, not written', () => {
+  // The hole the numeric fix did not close, and the one it made look closed. Every downstream
+  // check was a FALSITY test (`!r.id`), so `null`/`''` were refused while `true`, `{}` and `[]`
+  // — all truthy — reached a written store. Measured before the guard:
+  //
+  //   id: {}    exit 0, `- id:\n      a: 1` written as a nested MAP
+  //   id: true  exit 0, `validate` "Task validation passed" exit 0, `ready` served `backlog/true`
+  //
+  // `id: true` is the one that matters: every gate in the product called that store fine.
+  const liveIds = new Set(['p-1']);
+
+  for (const [label, id] of /** @type {[string, unknown][]} */ ([
+    ['a boolean', true],
+    ['an object', { a: 1 }],
+    ['an array', ['x']],
+  ])) {
+    it(`${label} id is refused rather than reaching a task row`, () => {
+      assert.throws(() => projectLive(withId(id), liveIds, []), /unusable id/);
+    });
+  }
+
+  it('a traversal id is refused — an id is interpolated into a decisions/ path', () => {
+    // `decisions/${task.id}.md`. Before the guard this wrote to `<root>/pwned.md`, OUTSIDE the
+    // store; deeper traversal escapes `--root` entirely. `ID_RE` admits no `/`, so reusing the
+    // schema's own authority closes it without a bespoke path check.
+    assert.throws(() => projectLive(withId('../../pwned'), liveIds, []), /unusable id/);
+  });
+
+  it('an EMPTY-string id keeps the older, better message — it IS no id', () => {
+    // Two branches on purpose: "you gave me nothing" and "you gave me something I cannot use"
+    // are different mistakes with different remedies, and collapsing them would regress the
+    // message for the case that actually happens in the wild.
+    assert.throws(() => projectLive(withId(''), liveIds, []), /no id/);
+  });
+
+  it('a non-string `depends_on_id` is a MALFORMED edge, not a liveness claim', () => {
+    /** @type {string[]} */
+    const dropped = [];
+    const t = projectLive(
+      /** @type {BdIssue} */ (/** @type {unknown} */ ({
+        ...withId('p-1'), dependencies: [{ depends_on_id: { a: 1 }, type: 'blocks' }],
+      })),
+      liveIds,
+      dropped
+    );
+
+    assert.equal(t.deps, undefined);
+    assert.equal(dropped.length, 1);
+    // THE ASSERTION THAT EARNS ITS PLACE. Left as a falsity check, an object target fell through
+    // to the liveness branches and the report stated something FALSE about it — `(blocks;
+    // satisfied: blocker not live)`, a liveness claim about a value that was never an id. Pinning
+    // the drop alone would pass on the old behaviour too.
+    assert.doesNotMatch(dropped[0] ?? '', /blocker not live/, 'reported a liveness fact about a non-id');
+    assert.match(dropped[0] ?? '', /malformed edge/);
+  });
+
+  it('refuses identically whichever order the bad record appears in, and leaves NO trace', (t) => {
+    // The numeric pair below tests the SUCCESS path. This pair tests that the failure path no
+    // longer has two modes: the same value used to crash `dumpTasks` or write a corrupt store
+    // depending only on line order — and the crash landed AFTER `copyFileSync` wrote `_archive`,
+    // leaving a store that exists, is empty, and answers `ready` with a confident empty backlog
+    // at exit 0. `projectLive` is called before the archive write, so refusing here is what makes
+    // "a refusal leaves no trace" true rather than merely intended.
+    const bad = { id: true, title: 'b', status: 'open', issue_type: 'task', priority: 2 };
+    const good = { id: 'a-1', title: 'g', status: 'open', issue_type: 'task', priority: 2 };
+
+    for (const order of [[bad, good], [good, bad]]) {
+      const { code, dir } = migrateRecords(t, order);
+      assert.equal(code, 1);
+      assert.ok(!existsSync(join(dir, 'diarium')), 'refused, but a store was left behind');
+    }
+  });
+
+  it('two decisions with unusable ids can no longer collapse into one file', (t) => {
+    // Both used to write `decisions/[object Object].md` — the second overwriting the first while
+    // the report listed the path twice and claimed two decisions were written. The count is the
+    // non-prose assertion: it would have caught the overwrite directly.
+    const { code, dir } = migrateRecords(t, [decisionWithId({ a: 1 }), decisionWithId({ b: 2 })]);
+
+    assert.equal(code, 1);
+    assert.ok(!existsSync(join(dir, 'diarium')), 'refused, but a store was left behind');
   });
 });
 
