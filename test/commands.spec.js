@@ -1,9 +1,17 @@
 /**
- * Unit tests for the WORK stage of each command — `doTheWork`.
+ * Unit tests for the WORK stage of each command.
  *
  * This file is the point of the four-part command shape. `doTheWork` returns a typed
  * `WorkResult` and prints nothing, so every assertion below runs IN-PROCESS: no spawn,
  * no stdout capture, no env seam.
+ *
+ * `init` is the exception, and it is named rather than disguised: it has no `doTheWork`.
+ * Its work is `initStore`, which lives in `lib/store/init.js` because creating a store is
+ * the store layer's job. What the shape actually buys — work that is assertable without a
+ * spawn — is preserved, which is why this file can drive it beside the other three. It is
+ * imported under its real name below: aliasing it to `initWork` would have made the suite
+ * read as evidence for a convention `init` does not follow, and a test that misdescribes
+ * its subject is the cheapest possible false claim to ship.
  *
  * That matters concretely. The one test that previously tried to drive the CLI
  * in-process had to monkey-patch `process.stdout.write` — which, under `node --test`,
@@ -27,7 +35,7 @@ import {
 import { doTheWork as readyWork } from '../lib/commands/ready.js';
 import { doTheWork as statsWork } from '../lib/commands/stats.js';
 import { doTheWork as validateWork } from '../lib/commands/validate.js';
-import { initStore as initWork } from '../lib/store/init.js';
+import { initStore } from '../lib/store/init.js';
 
 const FIXTURES = fileURLToPath(new URL('fixtures', import.meta.url));
 
@@ -171,16 +179,16 @@ describe('validate — doTheWork', () => {
   });
 });
 
-describe('init — doTheWork', () => {
-  // The ONLY command whose work has a side effect, and the only one whose `doTheWork` was
+describe('init — initStore', () => {
+  // The ONLY command whose work has a side effect, and the only one whose work was
   // exported and never tested — knip found it the day diarie started running its own gates.
-  // A four-part command that nobody drives through the seam has the seam and none of the benefit.
+  // Exporting the work and then driving nothing through it has the seam and none of the benefit.
 
   it('creates the store and REPORTS what it created', async () => {
     const root = mkdtempSync(join(tmpdir(), 'diarie-init-'));
     scratch.push(root);
 
-    const { created, root: where } = await initWork({ dotted: false, root, slug: 'backlog' });
+    const { created, root: where } = await initStore({ dotted: false, root, slug: 'backlog' });
 
     assert.equal(where, root);
     assert.ok(created.length > 0);
@@ -192,7 +200,7 @@ describe('init — doTheWork', () => {
     const root = mkdtempSync(join(tmpdir(), 'diarie-init-slug-'));
     scratch.push(root);
 
-    await initWork({ dotted: false, root, slug: 'roadmap' });
+    await initStore({ dotted: false, root, slug: 'roadmap' });
 
     assert.ok(existsSync(join(root, 'diarium', 'tasks', 'tasks-roadmap.yml')));
   });
@@ -204,9 +212,9 @@ describe('init — doTheWork', () => {
     const root = mkdtempSync(join(tmpdir(), 'diarie-init-twice-'));
     scratch.push(root);
 
-    await initWork({ dotted: false, root, slug: 'backlog' });
+    await initStore({ dotted: false, root, slug: 'backlog' });
     await assert.rejects(
-      () => initWork({ dotted: false, root, slug: 'backlog' }),
+      () => initStore({ dotted: false, root, slug: 'backlog' }),
       (/** @type {Error & {code?: string}} */ err) => {
         assert.equal(err.name, 'InputError');
         assert.equal(err.code, 'EEXIST');
@@ -220,7 +228,7 @@ describe('init — doTheWork', () => {
     const root = mkdtempSync(join(tmpdir(), 'diarie-init-valid-'));
     scratch.push(root);
 
-    await initWork({ dotted: false, root, slug: 'backlog' });
+    await initStore({ dotted: false, root, slug: 'backlog' });
     const result = await validateWork({ root });
 
     assert.deepEqual(result.errors, []);
@@ -235,7 +243,7 @@ describe('init — the store pair', () => {
     const root = mkdtempSync(join(tmpdir(), 'diarie-init-dotted-'));
     scratch.push(root);
 
-    const { created } = await initWork({ dotted: true, root, slug: 'backlog' });
+    const { created } = await initStore({ dotted: true, root, slug: 'backlog' });
 
     assert.ok(existsSync(join(root, '.diarium', 'tasks', 'tasks-backlog.yml')));
     assert.ok(!existsSync(join(root, 'diarium')));
@@ -249,9 +257,9 @@ describe('init — the store pair', () => {
     const root = mkdtempSync(join(tmpdir(), 'diarie-init-other-'));
     scratch.push(root);
 
-    await initWork({ dotted: false, root, slug: 'backlog' });
+    await initStore({ dotted: false, root, slug: 'backlog' });
     await assert.rejects(
-      () => initWork({ dotted: true, root, slug: 'backlog' }),
+      () => initStore({ dotted: true, root, slug: 'backlog' }),
       (/** @type {Error & {code?: string}} */ err) => {
         assert.equal(err.code, 'EEXIST');
         assert.match(err.message, /^diarium\//, 'named the requested form, not the one on disk');
@@ -275,7 +283,7 @@ describe('init — the store pair', () => {
     mkdirSync(join(root, '.diarium'), { recursive: true });
 
     await assert.rejects(
-      () => initWork({ dotted: false, root, slug: 'backlog' }),
+      () => initStore({ dotted: false, root, slug: 'backlog' }),
       (/** @type {Error & {code?: string}} */ err) => {
         assert.equal(err.code, 'ETWOSTORES');
         return true;
@@ -292,7 +300,7 @@ describe('init — the store pair', () => {
     mkdirSync(join(root, '.diarie', 'tasks'), { recursive: true });
 
     await assert.rejects(
-      () => initWork({ dotted: false, root, slug: 'backlog' }),
+      () => initStore({ dotted: false, root, slug: 'backlog' }),
       (/** @type {Error & {code?: string}} */ err) => {
         assert.equal(err.code, 'ELEGACY');
         // ABSOLUTE on both sides. A relative pair is correct only when cwd happens to BE the
@@ -322,7 +330,7 @@ describe('init — the store pair', () => {
     writeFileSync(join(root, 'diarium'), 'not a store\n', 'utf8');
 
     await assert.rejects(
-      () => initWork({ dotted: false, root, slug: 'backlog' }),
+      () => initStore({ dotted: false, root, slug: 'backlog' }),
       (/** @type {Error & {code?: string}} */ err) => {
         assert.equal(err.name, 'InputError');
         assert.equal(err.code, 'EEXIST');

@@ -76,10 +76,15 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
   `TRACKER_DIR`, and `no-indexed-tracker-dir` enforces the rest.
 * **Commands are FOUR parts** (peowly-commands shape): `run()` holds no logic → `setupCommand` parses →
   **`doTheWork` RETURNS DATA and never prints** → **`formatWorkResult` is the only writer**. `doTheWork`
-  is exported so the work is assertable in-process (no spawn, no stdout capture). Subcommands: `init`,
-  `ready`, `stats`, `validate`, `migrate`. **`migrate` is deliberately NOT four-part** — don't convert it.
-  But **assert every exit code through a spawned `cli.js`** (`test/cli.spec.js`): the `{error, code}`
-  contract is produced at the boundary, not in `doTheWork`, so an in-process test cannot see it.
+  is exported so the work is assertable in-process (no spawn, no stdout capture). **`ready`, `stats`
+  and `validate` are the three that actually have all four.** **`migrate` is deliberately NOT
+  four-part** — don't convert it. **`init` is THREE parts and that is also deliberate**: it has no
+  `doTheWork`, because creating a store is the store layer's job — the work is `initStore` in
+  `lib/store/init.js`, exported from there and driven directly by `test/commands.spec.js`. What the
+  shape buys is preserved; only the location differs, so do not "finish" `init` by moving the work
+  into the command. But **assert every exit code through a spawned `cli.js`** (`test/cli.spec.js`):
+  the `{error, code}` contract is produced at the boundary, not in the work stage, so an in-process
+  test cannot see it.
 * **Flags live in `lib/flags/`** groups (`output`, `store`, `filter`, `staleness` + a barrel). Note the
   load-bearing asymmetry: `ready` resolves the store BEFORE validating `--filter`; `stats` validates
   first — this keeps `{code: ENOSTORE}` winning a double fault. Don't "tidy" it.
