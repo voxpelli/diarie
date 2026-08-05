@@ -902,6 +902,8 @@ describe('a bd id that is not a usable id is REFUSED, not written', () => {
   //
   //   id: {}    exit 0, `- id:\n      a: 1` written as a nested MAP
   //   id: true  exit 0, `validate` "Task validation passed" exit 0, `ready` served `backlog/true`
+  //             (that wording is what validate said THEN; it reads "Store validation passed" since
+  //             it started reading `decisions/` and `docs/` as well as `tasks/`)
   //
   // `id: true` is the one that matters: every gate in the product called that store fine.
   const liveIds = new Set(['p-1']);

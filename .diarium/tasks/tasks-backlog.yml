@@ -839,18 +839,20 @@ tasks:
     labels:
       - feature
     acceptance_criteria:
-      - "validate `.diarie/decisions/*.md` frontmatter against the schema (id/title/status/type/priority/updated; VALID_STATUSES/VALID_TYPES) — `diarie validate` currently reads ONLY `tasks-*.yml`, so a malformed decision file ships unchecked"
-      - "the check lives IN the CLI (extend `diarie validate` to read decisions, or a new `diarie lint`) so it TRAVELS with `git subtree split` — retiring the root `check:md-decisions` stopgap, a bolt-on remark run that does NOT travel (the vp-beads-asg extraction hazard)"
-      - "markdown-body linting is secondary; the load-bearing gap is decision FRONTMATTER validation, which nothing checks today (check:md ignores `.diarie/`; validate skips decisions)"
-      - "settle the decision-status vocabulary first (decision diarie-dsv — the local home for what was the cross-repo vp-beads-dlf thread) — a decision-lint that enforces a status enum must agree on what that enum is"
-      - "breadth: cover id-uniqueness ACROSS tasks+decisions (a decision `id` can silently collide with a task-row `id`) and dep/parent RESOLUTION in decision frontmatter — a hand-edited decision can carry a dangling `deps`/`parent` or invalid `status`/`type` that validate never opens the file to see, not just enum membership"
+      - "DONE 2026-08-05: `validate` parses every `<store>/decisions/*.md` and `docs/*.md` frontmatter and applies the schema to it (id shape, REQUIRED_FIELDS, VALID_STATUSES/VALID_TYPES/VALID_PRIORITIES, STRING_FIELDS, the unquoted-date trap) through `lintFields` — ONE implementation shared with task rows, so the two can never disagree about what valid means"
+      - "DONE 2026-08-05: the check lives IN the CLI (`lintRecords` in lib/validate.js, driven by `commands/validate.js`), so it travels. Two checks only a FILE can fail were added on top of the row rules: `type` must match the directory it lives in, and `id` must match the filename — the writer's own `decisions/<id>.md` invariant, previously enforced by nothing"
+      - "DONE 2026-08-05: markdown BODY linting stays out, deliberately rather than pending — the body is the part diarie has no opinion about, and `check:md` already lints every tracked `.md` including these"
+      - "STILL OPEN, and it is the gate: settle the decision-status vocabulary (decision diarie-dsv). All 16 records carry an inert `status: pending` that validate now checks against the TASK enum. That is honest but not right — a decision is not `in_progress`. This row cannot close until diarie-dsv answers"
+      - "STILL OPEN, gated on diarie-rel not on effort: id-uniqueness ACROSS tasks+records, and dep/parent RESOLUTION in record frontmatter. Records are deliberately kept OUT of validate's dep graph — admitting them would make a task's currently-dangling dep on a decision id start resolving, which is a semantic change diarie-rel owns. Cross-namespace uniqueness only becomes meaningful once records are referenceable at all. Duplicate ids BETWEEN records are already checked"
     description: >-
-      Decision files (`.diarie/decisions/*.md`) are validated by NOTHING today: `check:md`
-      ignores `.diarie/`, and `diarie validate` globs only `tasks-*.yml`. A root
-      `check:md-decisions` (remark over both stores' decision markdown) is the stopgap set up
-      2026-07-18; it lints the BODY but not the frontmatter schema, and being a root bolt-on it
-      does not survive extraction. Move the check into the CLI so it travels and covers frontmatter.
-    updated: '2026-07-18'
+      Filed 2026-07-18, when decision files were validated by NOTHING: `check:md` did not reach
+      them and `diarie validate` globbed only `tasks-*.yml`, with a root `check:md-decisions`
+      bolt-on as a stopgap that lints the BODY, not the frontmatter, and does not survive
+      extraction. The FRONTMATTER half landed 2026-08-05 — validate now reads the whole store,
+      in the CLI, so it travels. What is left is not implementation: the status vocabulary
+      (diarie-dsv) and whether records participate in the dep graph at all (diarie-rel). The row
+      stays open on those two answers, and on nothing else.
+    updated: '2026-08-05'
   - id: diarie-rdr
     title: The loader DROPS title/agent/updated/description silently — violates the reader-drops-must-report convention
     status: pending
@@ -1812,4 +1814,26 @@ tasks:
       a code-architect pass and an independent prior-art survey reached the same conclusion from
       different directions, so the row exists to STOP the idea being re-raised in its data-linting
       form — and to preserve the one form that would be legitimate.
+    updated: '2026-08-05'
+  - id: diarie-nar
+    title: 'A flag to narrow `validate` to a subset of entity types — decide FILTER-WHAT-IS-READ vs FILTER-WHAT-IS-REPORTED first'
+    status: pending
+    type: task
+    priority: low
+    labels:
+      - decision
+    acceptance_criteria:
+      - "THE HAZARD, and it is this project's founding defect wearing a flag: a narrowed run must never be indistinguishable from a full one. `validate --only decision` that prints `Store validation passed` is a tracker reporting a clean store it did not read. Whatever ships must state the narrowing in BOTH channels — the text line and the `--json` payload — not merely leave `fileCount` lower and hope someone notices"
+      - "THE DESIGN TENSION THAT DECIDES THE SHAPE: entity type does NOT map onto storage region. `milestone` rows live inside `tasks-<slug>.yml` beside `task` rows, so `--only task` cannot skip reading a single file — it can only suppress findings after reading everything. `--only decision` genuinely skips a directory. So `--only <type>` is a filter on FINDINGS, while a region filter (`tasks/` vs records) is a filter on IO. They are two different flags wearing one name; pick one deliberately or name them differently"
+      - "if it is a findings filter, the honest motivation is FOCUS, not speed — validate reads 17 files in this repo in milliseconds, so nobody is waiting. Say that plainly when deciding, because 'it will be faster' is the reason that will be assumed and it is not true"
+      - "`check:tasks` must never pass it. The gate's whole value is that it asks the widest question; a narrowing flag reachable from the gate script is how the gate quietly stops covering things (precedent: `check:test` being removable is exactly this failure, recorded in CLAUDE.md)"
+      - "vocabulary comes from `VALID_TYPES` in schema.js, never a bespoke list — and the flag must reject an unknown value with EUSAGE rather than silently matching nothing, which would be a narrowed run reporting clean for a typo"
+      - "sequencing: this rides on the structured `Diagnostic[]` payload (each finding already carrying its type) — filtering prose strings by type would mean re-deriving the type from a message, which is the parse-the-output anti-pattern the payload exists to delete"
+    description: >-
+      Raised 2026-08-05 by the user, immediately after `validate` was widened to read the whole store
+      (tasks, records, and stray entries). The widening is what creates the appetite: now that one
+      command covers four entity types, narrowing it becomes a sensible thing to want. Filed rather
+      than built because the narrowing direction is a real fork — see the second criterion — and
+      because a partial-coverage flag on the integrity gate is precisely the shape this tool exists
+      to refuse, so it earns a decision rather than an implementation.
     updated: '2026-08-05'

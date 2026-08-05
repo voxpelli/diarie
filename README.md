@@ -74,7 +74,7 @@ Then:
 ```bash
 diarie ready       # what can I start right now?
 diarie stats       # counts, plus stale in-progress claims
-diarie validate    # dangling deps, bad enums, dependency cycles
+diarie validate    # the whole store: dangling deps, bad enums, cycles, records, stray files
 ```
 
 `diarie ready` walks the dependency graph and shows only work whose blockers are done. `deps` blocks;
@@ -90,7 +90,7 @@ it cannot go stale, and you cannot forget to unset it when the blocker lands.
 | `diarie init`     | Create a `diarium/` store · `[--slug <name>] [--dotted]`                                     |
 | `diarie ready`    | List the work that is ready to start · `[--filter <status>] [--blocked] [--strict] [--json]` |
 | `diarie stats`    | Totals, ready, blocked, stale claims · `[--stale] [--days <n>] [--json]`                     |
-| `diarie validate` | Check for dangling deps, bad enums, and cycles · `[--json]`                                  |
+| `diarie validate` | Check the whole store — tasks, records, stray files · `[--json]`                             |
 | `diarie migrate`  | One-way import of a [beads](https://github.com/gastownhall/beads) export                     |
 
 `--root <dir>` points at a project explicitly; otherwise `diarie` searches upward from the cwd, like
@@ -195,6 +195,13 @@ admits several. An epic is a `task` with children, via `parent:`.
 `decision` and `doc` carry prose, so they are markdown files with the schema in frontmatter — and
 because the ready-walk only globs `tasks-*.yml`, a decision in force is _structurally_ incapable of
 being offered to you as workable.
+
+Being outside the ready-walk does not mean being unchecked. `diarie validate` reads the **whole**
+store: the task files, every record's frontmatter, and anything else it finds. A record is held to
+the same field rules a row is, plus two only a file can break — its `type` must match the directory
+it lives in, and its id must match its filename. A stray file or a misspelled directory is reported
+as a warning rather than passed over, because a region of the store nothing reads is not an empty
+one. Prefix a name with a dot to keep something there and have it ignored.
 
 ## Library
 

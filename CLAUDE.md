@@ -98,6 +98,19 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
 * `<store>/tasks/tasks-<slug>.yml` holds **`task` and `milestone`** rows. `<store>/decisions/<id>.md`
   and `<store>/docs/<id>.md` hold **`decision`/`doc`** as frontmatter + prose body (only the loader's
   `tasks-*.yml` glob feeds the ready computation, so records are naturally never surfaced as work).
+  The subdirectory names live in `lib/schema.js` (`TASKS_DIR`, `RECORD_DIRS` — keyed by the type
+  each is the home of); **`docs/` is declared there and created by nothing**, so its absence is
+  ordinary and never an error. No ast-grep rule guards these the way one guards the store's own
+  name — that convention is held by hand.
+* 🚨 **`validate` reads the WHOLE store, `ready`/`stats` read only `tasks/`.** That asymmetry is the
+  design, not a gap: records must never enter the ready computation, and they must never go
+  unchecked. `validate` therefore parses every record's frontmatter, applies the same field rules a
+  row gets (one implementation — `lintFields`), adds the two only a file can break (its `type` must
+  match its directory, its id must match its filename), and **warns about anything else it finds in
+  the store**. Records deliberately do NOT join the dep graph — admitting them would make a task's
+  currently-dangling dep on a decision id start resolving, which is `diarie-rel`'s question to
+  answer on purpose rather than a side effect. Before this, `check:tasks` validated **1 file and
+  ignored 16**, and a transposed `decisons/` was invisible to every command at exit 0.
 * **4 exclusive types**: `task` (work) / `doc` (reference) / `decision` (record) / `milestone` (marker).
   bd's other framings (`bug`/`feature`/`chore`/`story`/`spike`) ride in `labels:`; an epic is
   `task` + `parent:` (or an `epic` label). A type answers "what kind of thing", a label "how to think
