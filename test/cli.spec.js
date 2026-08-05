@@ -1051,12 +1051,12 @@ describe('THE FOUNDING DEFECT, for a MALFORMED ROW: a --json consumer must never
     assert.match(parsed.warnings[0] ?? '', /invalid status "open"/);
   });
 
-  it('`ready --strict` exits 2 for a DROPPED row, exactly as it does for a broken type', (t) => {
-    // The asymmetry this fixes: `computeReady` skips any row whose status is not `pending` BEFORE
-    // it reaches the type guard. So `type: bug` landed in needsAttention and tripped --strict,
-    // while `status: open` was silently discarded and --strict exited 0. Two malformed REQUIRED
-    // fields, opposite behaviour — and CLAUDE.md says a malformed required field makes the row
-    // BROKEN, not merely non-workable.
+  it('`ready --strict` exits 2 for a row with an invalid status, as it does for a broken type', (t) => {
+    // The asymmetry this pins: two malformed REQUIRED fields must behave the same way, because
+    // CLAUDE.md says a malformed required field makes the row BROKEN, not merely non-workable.
+    // Both now reach `needsAttention`, so --strict refuses on either — and it does so by TWO
+    // independent routes (the loader's warning and the attention entry), which is why this
+    // assertion cannot tell you which one is doing the work. `test/ready.spec.js` separates them.
     assert.equal(run(READY, ['--strict'], brokenRow(t)).code, 2);
   });
 
@@ -1089,9 +1089,11 @@ describe('THE TWO-FLAG CROSS: --strict was DEAD under --filter, and the suite co
   // carry a `warnings` key, so the exit code is the ONLY channel that path has — and
   // hooks/session-start.sh reads that path at every session start.
 
-  it('a DROPPED row makes `--filter --strict` exit 2 (it exited 0)', (t) => {
-    // `status: in-progress` (hyphen) is not in VALID_STATUSES, so the loader rejects the field and
-    // the row disappears from every partition AND from every filter. A live claim, gone.
+  it('a row with an invalid status makes `--filter --strict` exit 2 (it exited 0)', (t) => {
+    // `status: in-progress` (hyphen) is not in VALID_STATUSES, so the loader drops the field and
+    // the row matches no filter — a live claim, absent from the list that asked for exactly it.
+    // The row is not lost (it is in `needsAttention`), but `--filter` is a different question
+    // and still cannot answer it, so the verdict channel has to.
     const dir = seedStore(tmpDir(t, 'diarie-x-drop-'), 'a',
       'tasks:\n  - id: T-9\n    title: THE LIVE CLAIM\n    status: in-progress\n    type: task\n');
     assert.equal(run(READY, ['--filter', 'in_progress', '--strict'], dir).code, 2);
@@ -1222,7 +1224,7 @@ describe('ONE VERDICT, BOTH SHAPES: --filter --strict must agree with the partit
     { what: 'a dependency cycle', yaml: 'tasks:\n  - id: A\n    title: a\n    status: pending\n    type: task\n    deps: [B]\n  - id: B\n    title: b\n    status: pending\n    type: task\n    deps: [A]\n' },
     { what: 'an ABSENT required type', yaml: 'tasks:\n  - id: T-1\n    title: no type\n    status: pending\n' },
     { what: 'a dangling dep', yaml: 'tasks:\n  - id: T-1\n    title: x\n    status: pending\n    type: task\n    deps: [NOPE]\n' },
-    { what: 'a dropped row (bad status)', yaml: 'tasks:\n  - id: T-9\n    title: claim\n    status: in-progress\n    type: task\n' },
+    { what: 'a row with an invalid status', yaml: 'tasks:\n  - id: T-9\n    title: claim\n    status: in-progress\n    type: task\n' },
   ];
 
   for (const { what, yaml } of STORES) {

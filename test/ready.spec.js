@@ -354,3 +354,64 @@ describe('computeReady — cross-file & self-cycle', () => {
     assert.ok(r.blocked.some(t => t.id === 'a/T-1') && !r.ready.length);
   });
 });
+
+describe('a row with NO USABLE STATUS is surfaced, not dropped', () => {
+  // The loader omits `status` when the YAML said something the schema does not know, so
+  // `undefined` here is exactly what a real store produces for `status: totally-bogus`.
+  // These assert on `computeReady` DIRECTLY, which is what the CLI-level `--strict` cases
+  // cannot do: there the loader's warning and this attention entry both force exit 2, so a
+  // green exit code cannot tell you which route produced it.
+
+  it('lands in needsAttention rather than in no partition at all', () => {
+    const r = computeReady([bad({ id: 'backlog/T-1', title: 'no usable status', type: 'task', deps: [] })]);
+
+    assert.equal(r.ready.length, 0);
+    assert.equal(r.blocked.length, 0);
+    assert.equal(r.needsAttention.length, 1);
+    // The REASON must name the field and the consequence — a guard that drops must report.
+    assert.match(r.needsAttention[0]?.reason ?? '', /status/);
+  });
+
+  it('does NOT surface a non-task type, which is excluded silently and correctly', () => {
+    // The gate that keeps the type model intact: a decision is not work whatever its status
+    // says, so a broken one must not appear in a partition that only describes work. Without
+    // this, the fix above would have quietly widened needsAttention to every record type.
+    const r = computeReady([bad({ id: 'backlog/D-1', title: 'a decision', type: 'decision', deps: [] })]);
+
+    assert.equal(r.needsAttention.length, 0);
+    assert.equal(r.ready.length, 0);
+  });
+
+  it('an UNKNOWN type with no status is still surfaced — we cannot tell it is not work', () => {
+    const r = computeReady([bad({ id: 'backlog/T-2', title: 'neither field usable', deps: [] })]);
+
+    assert.equal(r.needsAttention.length, 1);
+  });
+
+  it('a valid row beside it is unaffected', () => {
+    // Falsification for the three above: if the new branch swallowed the loop, this goes red.
+    const r = computeReady([
+      bad({ id: 'backlog/T-1', title: 'no usable status', type: 'task', deps: [] }),
+      task({ id: 'T-2', status: 'pending', type: 'task' }),
+    ]);
+
+    assert.equal(r.ready.length, 1);
+    // `gid()` is identity in this suite, so the id is bare — the namespacing happens in the
+    // loader, which these unit tests deliberately do not go through.
+    assert.equal(r.ready[0]?.id, 'T-2');
+  });
+
+  it('renders as a WORD in a blocker line, never as an empty parenthesis', () => {
+    // `${undefined}` would print "undefined" and an empty string would print `T-1 ()`, where
+    // the parenthesis is the only evidence anything is wrong. A stalled CHILD is the path that
+    // interpolates a status, so the parent's line is where this shows.
+    const r = computeReady([
+      task({ id: 'T-1', status: 'pending', type: 'task' }),
+      bad({ id: 'backlog/T-2', title: 'child with no usable status', type: 'task', parent: 'backlog/T-1', deps: [] }),
+    ]);
+
+    const line = JSON.stringify(r);
+    assert.doesNotMatch(line, /\(undefined\)/);
+    assert.doesNotMatch(line, /\(\)/);
+  });
+});
