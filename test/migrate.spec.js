@@ -305,6 +305,10 @@ describe('CLI guards (the two data-loss stops)', () => {
       existsSync(join(dir, 'diarium', 'tasks', 'tasks-backlog.yml')) &&
       /gitignored/.test(out) && /bd-final-export\.jsonl/.test(out)
     );
+    // Same blind spot as the channel-policy sibling, and it was here first: all three archive
+    // branches carry the token `gitignored`, so this passed on branch three with branch two
+    // destroyed. Tightening rather than rewriting — every assertion above still holds.
+    assert.doesNotMatch(out, /NOT gitignored/, 'a different archive branch fired than the one under test');
   });
 
   it('archive not ignored + bd history never tracked → flagged as a NEW choice', (t) => {
@@ -785,10 +789,19 @@ describe('a numeric bd id (the parse boundary)', () => {
     assert.equal(r?.id, '0');
   });
 
-  it('leaves a non-numeric `id` alone rather than laundering it into a usable one', () => {
+  it('does not launder a JSON `null` id into the string "null"', () => {
     // NUMBERS ONLY. A blanket `String()` turns `null` into the perfectly plausible id
-    // `'null'` — a boundary inventing a value is worse than one passing a bad value to the
+    // `'null'` — a boundary inventing a value is worse than one passing a bad value to a
     // guard that refuses it.
+    //
+    // 🚨 THE TITLE IS DELIBERATELY NARROW, because a wider one was a lie. This case read
+    // `leaves a non-numeric id alone rather than laundering it into a usable one`, and it
+    // tested exactly one non-numeric value — the only one the product actually refuses.
+    // `null` is FALSY, so `projectLive`'s `if (!r.id) throw` catches it; `true`, `{}` and
+    // `[]` are truthy and reach the written store. So the case claimed a class, covered its
+    // one safe member, and made the hole read as covered. See the refusal block below for
+    // the members it does not speak for.
+    //
     // Compared through `JSON.stringify` so the assertion says the value is still the JSON
     // null it arrived as — `assert.equal(r?.id, 'null')` would PASS on the laundered string,
     // which is the whole thing being refused here.
@@ -825,8 +838,12 @@ describe('a numeric bd id (the parse boundary)', () => {
     const { code, dir, out } = migrateRecords(t, [target, blocked]);
 
     assert.equal(code, 0, out);
-    assert.doesNotMatch(out, /blocker not live/,
-      'the loss report named a blocker sitting in the file it just wrote');
+    // The TALLY line, not the per-edge sentence. A `doesNotMatch` pinned to prose is the
+    // dangerous direction of coupling: reword the message and the assertion passes forever
+    // instead of failing loudly. `dropped N edge(s)` is the structural line and it is also
+    // strictly stronger — it catches ANY dropped edge, not only one phrased as a liveness
+    // claim about a blocker sitting three lines up in the file being written.
+    assert.doesNotMatch(out, /dropped \d+ edge/, 'an edge was dropped that should have survived');
     assert.deepEqual(rowsIn(dir).find(r => r.id === 'x-2')?.deps, ['12345']);
   });
 
@@ -834,7 +851,7 @@ describe('a numeric bd id (the parse boundary)', () => {
     const { code, dir, out } = migrateRecords(t, [blocked, target]);
 
     assert.equal(code, 0, out);
-    assert.doesNotMatch(out, /blocker not live/);
+    assert.doesNotMatch(out, /dropped \d+ edge/, 'an edge was dropped that should have survived');
     assert.deepEqual(rowsIn(dir).find(r => r.id === 'x-2')?.deps, ['12345']);
   });
 });
@@ -876,6 +893,15 @@ describe('the channel policy (stderr may DUPLICATE, never ORIGINATE)', () => {
     const { code, stderr, stdout } = run(['--root', dir]);
     assert.equal(code, 0);
     assert.match(stdout, /gitignored/);
+    // THE LINE THAT MAKES THIS TEST ABOUT THIS BRANCH. All three archive branches contain the
+    // token `gitignored` — the third says `is NOT gitignored` — so `/gitignored/` alone matches
+    // whichever one fired. MEASURED: with `archiveIgnored` forced to false, destroying this
+    // branch entirely, the assertion above stayed green while branch three printed instead.
+    //
+    // A negative on the DISCRIMINATOR rather than a positive on the prose, deliberately: the
+    // sibling test below records that pinning a sentence broke it once when the wording
+    // improved. `NOT` is the one word that cannot change without the branches changing meaning.
+    assert.doesNotMatch(stdout, /NOT gitignored/, 'a different archive branch fired than the one under test');
     assert.equal(stderr, '');
   });
 
@@ -912,5 +938,41 @@ describe('the channel policy (stderr may DUPLICATE, never ORIGINATE)', () => {
     const { code, stderr } = run(['--root', tmpDir(t)]);
     assert.equal(code, 0);
     assert.equal(stderr, '');
+  });
+
+  it('every `stderr.write` in bootstrap.js sits below the standalone-entry guard', () => {
+    // The standing version of the five hand-mutations above, and the answer to the limit the
+    // previous case admits: a sixth message behind a flag is caught by nothing until someone
+    // writes its case. This one needs no case, because it reads the source rather than the
+    // output. The repo has the precedent — `test/cli.spec.js` walks the tree to enforce the
+    // `exit(2)` reservation rather than trusting a comment.
+    //
+    // Chosen over an ast-grep rule because the invariant is POSITIONAL, not syntactic:
+    // `stderr.write` is correct and must stay legal below the `import.meta.url` guard, where
+    // it is the direct-execution error handler mirroring `cli.js`. ast-grep matches shapes,
+    // not "this node is lexically after that one".
+    const src = readFileSync(fileURLToPath(new URL('../lib/migrate/bootstrap.js', import.meta.url)), 'utf8');
+
+    // Comments stripped FIRST, and the anchor located in the stripped text so the offsets
+    // agree. This file discusses stderr at length — that is what the fix was about — and a
+    // prose mention must never read as a call. (Verified there is no `//` inside any string
+    // or regex literal here, so line-stripping cannot eat code.)
+    const code = src.split('\n').map(l => l.replace(/\/\/.*$/, '')).join('\n');
+
+    // TWO POSITIVE CONTROLS, and they are the difference between a guard and a decoration.
+    // Without them this passes vacuously the moment either anchor moves: a reworded entry
+    // guard, or a renamed/extracted runMigration, would leave the test happily asserting
+    // something about a file that no longer contains what it names.
+    assert.match(code, /export async function runMigration\b/, 'runMigration moved — re-anchor this test');
+    const marker = code.indexOf('if (argv[1] && fileURLToPath(import.meta.url) === argv[1])');
+    assert.notEqual(marker, -1, 'the standalone-entry guard was reworded — re-anchor this test');
+
+    const offenders = [...code.matchAll(/\bstderr\s*\.\s*write\b/g)]
+      .filter(m => m.index < marker)
+      .map(m => code.slice(0, m.index).split('\n').length);
+
+    assert.deepEqual(offenders, [],
+      `stderr.write above the standalone-entry handler at line(s) ${offenders.join(', ')} — ` +
+      'a fact that exists only on stderr is a fact ten callers pipe to /dev/null');
   });
 });
