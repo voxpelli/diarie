@@ -1873,6 +1873,8 @@ tasks:
     status: pending
     type: task
     priority: high
+    deps:
+      - diarie-fsp
     labels:
       - decision
     acceptance_criteria:
@@ -1887,6 +1889,7 @@ tasks:
       - "THIRD COUNTER, the one most likely to bite: if form is per-instance, users need a way to PROMOTE a row to a file and demote it back. That is a CRUD operation, and VISION.md refuses a CRUD layer on the grounds that it would make diarie the owner of your data. Either the promotion is a hand-edit (plausible — delete a YAML entry, write a file) and stays honest, or the demand for `diarie promote` becomes the thin end of exactly the wedge the vision declines. Decide this BEFORE the model, because it may be what settles it"
       - "OPTIONS TO WEIGH EXPLICITLY, not just the first two: (a) decouple — any type in either form, loader reads both; (b) collapse to files — one entity per markdown file, no YAML rows at all; (c) collapse to rows — prose moves into YAML block scalars, no record files at all (note this repo already writes 6-line `description: >-` blocks, so it is less absurd than it sounds); (d) keep the coupling but fix its JUSTIFICATION in schema.js to say what is actually true, which is that batching suits terse entities and files suit prose ones — a defensible rule stated on the right axis, still enforced by type as a proxy"
       - "SEQUENCING: this pressures diarie-rel (can a record satisfy a dep) and diarie-ids (a record has no slug, so what is its GlobalId — decoupling forces that answer), and it subsumes part of diarie-typ (`doc` being vestigial). Do not answer those separately first; whichever option wins here decides them"
+      - "🚨 MEASURE BEFORE DECIDING — this row now DEPENDS ON diarie-fsp (added 2026-08-05), so the decision cannot be taken before the spike prices option (a). As first filed it did not, which meant the spike could be skipped in silence: a one-way store-format decision taken on a guess, with nothing anywhere recording that the number was never obtained. The dep is the mechanism this tool exists to provide, so use it rather than a note. Consequence, so it does not read as a regression: this row leaves `ready` for `blocked` and diarie-fsp becomes the visible next storage-form job — which is the more actionable of the two anyway. It also creates this store's FIRST two-deep chain (diarie-fmg → diarie-frm → diarie-fsp); confirm with `node cli.js ready --root . --blocked` that diarie-fmg still does not surface as ready"
     description: >-
       Raised 2026-08-05 by the user immediately after `validate` was widened to read the whole store:
       "why do we have to rule which to choose for what, can't we support both for everything and get
