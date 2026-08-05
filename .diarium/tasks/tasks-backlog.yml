@@ -2065,3 +2065,26 @@ tasks:
       REVIVAL TRIGGER: any change to the VALID_* vocabularies, or the first report of a consumer
       mutating one of the exported Sets.
     updated: '2026-08-06'
+  - id: diarie-snp
+    title: 'The YAML parse snippet: the loader throws it away, `validate` puts 5 newlines in a string array — neither channel is right'
+    status: pending
+    type: task
+    priority: medium
+    labels:
+      - bug
+    acceptance_criteria:
+      - "MEASURED 2026-08-06 on one store with a real tab byte. js-yaml produces the full diagnostic — reason line, a 3-line source snippet, a caret under the offending column, and `→` rendered for the tab: `tab characters must not be used in indentation (3:1)` then ` 3 | →bad indent: [unterminated` then `-----^`"
+      - "THE LOADER THROWS IT AWAY. lib/store/load-tasks.js:162 does `err.message.split('\\n')[0]`, so `ready` ships the reason line ALONE — no snippet, no caret, no `→`. There is NO comment explaining the truncation (the surrounding comment explains warn-and-skip, and the only TODO there is about pony-cause), so it reads as incidental rather than decided"
+      - "`validate` DOES NOT TRUNCATE — it prints the whole snippet, and this row should not claim otherwise. But `validate --json`'s `errors[0]` is then a string containing FIVE newlines, dropped into a flat string array. That is exactly the hazard already recorded against the structured-diagnostics work: a consumer that splits on `\\n` invents findings that were never reported"
+      - "🚨 SO THE TWO CHANNELS ARE WRONG IN OPPOSITE DIRECTIONS, and that is the actual finding: the loader is machine-safe and human-poor; validate is human-good and machine-hostile. Fixing either one in isolation just moves the defect. The right shape is the structured `Diagnostic[]` — snippet, line, column as FIELDS rather than embedded newlines — at which point both channels can carry the full diagnostic without either lying"
+      - "DO NOT `fix` this by making the loader multi-line. `ready --json`'s `warnings[]` is payload a machine consumer reads, and it is the ONE channel this project holds up as the model to copy (payload AND stderr AND the --strict exit code). Putting newlines into it would break the model rather than extend it"
+      - "HOW IT SURVIVED, worth recording because it is the reusable part: this was listed under `what is ALREADY GOOD — do not break it` in the remediation plan, as `js-yaml's parse snippet passed through verbatim with the caret and → for tabs`. Nobody re-checks a thing already labelled good, so the label suppressed the check that would have caught it. A do-not-break list is load-bearing documentation that no gate validates"
+    description: >-
+      Found 2026-08-06 while verifying a do-not-break list against the real binary, rather than by
+      any gate — no test asserts either channel's rendering of a parse failure.
+      Not urgent: nothing is silently lost (`ready` still names the file, says the rows are MISSING
+      from every count, and points at `validate`, which has the detail). What is lost is the part
+      that says WHERE the file broke, for the reader who only runs `ready`.
+      SEQUENCING: this is the same defect the structured-diagnostics work exists to fix, seen from
+      the loader's side. Do them together, or do this one second.
+    updated: '2026-08-06'
