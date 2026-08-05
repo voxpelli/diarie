@@ -901,12 +901,17 @@ tasks:
       - "`milestone` has no type-specific validation — the model says 'no effort, no assignment' (schema.js) yet a milestone row can carry agent/priority/acceptance_criteria with no warning; decide whether to enforce"
       - "the `meta:` block (slug/title) is WRITTEN by the migrator and READ by nothing (store.js/validate discard `doc['meta']`) — dead data that can silently diverge from the filename slug; validate it or drop writing it"
       - "a `type: doc`/`type: decision` ROW placed directly in tasks-*.yml is not flagged as a model violation (schema.js:50 says they must not live as rows) — silently excluded from ready with no diagnostic; decide whether validate should reject it"
+      - "🚨 DO NOT ACT ON THE PREVIOUS TWO CRITERIA BEFORE diarie-frm (added 2026-08-05). Flagging a `type: decision` row ENFORCES the type↔form coupling, and diarie-frm is deciding whether that coupling should exist at all — implementing the flag first would settle a live decision as a side effect of a chore. The `doc`-is-vestigial criterion is in the same position: diarie-frm's options (b) and (c) both make `docs/` moot. The `milestone` and `meta:` criteria are independent and can proceed"
     description: >-
       Four adjacent type-model coverage edges, all silent, surfaced by the 2026-07-18 audit:
       doc-type vestigial, milestone unconstrained, meta block dead data, mis-placed doc/decision
       row unflagged. Consolidated because they are all "the type model defines something the
       tooling never enforces" — each needs a prune-or-enforce decision.
-    updated: '2026-07-18'
+      AMENDED 2026-08-05: two of the four turned out to be downstream of diarie-frm rather than
+      independent, and the row now says so — measurement while filing diarie-frm showed that a
+      `type: decision` row is accepted today while a `type: task` record is refused, so this row's
+      "enforce it" instinct would harden an asymmetry that is itself under review.
+    updated: '2026-08-05'
   - id: diarie-agf
     title: Reconsider check-ast-grep-floor.js — a bespoke fix for a general ignore-driven-coverage-shrink problem?
     status: completed
@@ -1097,7 +1102,8 @@ tasks:
     acceptance_criteria:
       - "CORE: consolidate the scattered id logic into a SINGLE diarienummer authority (a module, mirroring how lib/schema.js is THE vocabulary authority) — shape (ID_RE), namespacing (slug/id vs bare decision/doc ids), branch-safe GENERATION (for register), and UNIQUENESS validation. Today this is fragmented: validate's within-file dup check, register's (diarie-rgc) free-check, ID_RE in schema, and the implicit filename===frontmatter-id rule all live apart and can drift"
       - "Both consumers draw from the one authority — never fork it: `diarie register` (diarie-rgc) allocates through it; `diarie validate` checks through it. Allocation and validation share one definition of 'a valid, free diarienummer' so they cannot disagree"
-      - "Adds the missing cross-surface uniqueness: today validate (lib/validate.js) only catches duplicate task ids WITHIN a file; nothing checks a task id against a decision/doc id, and decision/doc frontmatter is not validated at all (surfaced by the diarie-reg deliberation). Collect ids from ALL surfaces — task rows in tasks-*.yml PLUS decision/doc ids (their <id>.md filename AND frontmatter id — reconcile filename === frontmatter id as its own check) — and report any diarienummer used by more than one entity"
+      - "PARTLY DONE 2026-08-05 (c1c832d): decision/doc frontmatter IS validated now, the filename===frontmatter-id reconciliation IS a check, and duplicate ids BETWEEN records are caught. What remains of this criterion is the cross-SURFACE half — a task row id versus a record id — which was deliberately left out, because records are kept out of validate's dep graph and cross-namespace uniqueness only becomes meaningful once records are referenceable (diarie-rel)"
+      - "⚠️ AND THE REMAINING HALF IS GATED ON diarie-frm, not merely on diarie-rel: if storage form stops being decided by type, `a task id versus a record id` stops being a CROSS-type question and becomes a plain duplicate-id question over one entity set. The check to build differs by option, so building it first would encode an answer diarie-frm has not given"
       - "Decide severity deliberately: a cross-type collision does not break the ready-walk (deps resolve only among task rows) but creates prose/reference ambiguity — a real integrity finding. Emit via the existing gate (exit 2 for an invalid store), naming the consequence, never a silent pass"
       - "This is the integrity-gate counterpart to diarie-reg: register PREVENTS the collision at creation, validate CATCHES it if introduced by hand. Belt and suspenders — register is optional, so validate must still guard"
       - "Tests: task-vs-decision id clash, filename≠frontmatter-id, malformed id shape, clean store passes; assert doTheWork data + exit code; and that register + validate agree on the same fixtures (one authority)"
@@ -1108,7 +1114,10 @@ tasks:
       diarienummer subsystem that owns shape, namespacing, generation, and uniqueness — the single
       authority both register and validate consume — then extend validate to check across all three
       surfaces. On-thesis: a new pass in the existing gate over a shared module, not a new command.
-    updated: '2026-07-20'
+      AMENDED 2026-08-05: the "nothing validates decision/doc frontmatter" premise is no longer
+      true — c1c832d made validate read the whole store — so the row is narrower than filed, and
+      what is left of its cross-surface half now waits on diarie-frm as well as diarie-rel.
+    updated: '2026-08-05'
   - id: diarie-cmd
     title: brand/index.html has no full command reference — add a raw documentation section listing every subcommand
     status: pending
@@ -1868,7 +1877,9 @@ tasks:
       - decision
     acceptance_criteria:
       - "THE MEASUREMENT THAT PROMPTED THIS (2026-08-05, this repo's own store): 72 rows, 57 of them carrying >1000 characters of prose in `description` + `acceptance_criteria`, 25 carrying >2000, and ZERO carrying under 100. The 16 decision records' bodies run 2161/5527/13195 (min/median/max). The largest ROW (diarie-snd, 10773 chars) out-proses 14 of the 16 RECORDS. schema.js justifies the split as `the body is the prose the terse row can't hold` — the rows are not terse and the distributions overlap almost completely, so TYPE does not predict prose volume, which is the only stated reason two forms exist"
-      - "SECOND MEASUREMENT, same pass: all 72 rows are `type: task`. Zero milestones exist, and `docs/` is created by nothing (see diarie-typ). So the four-type/two-form mapping has exactly TWO live cases — task→YAML row, decision→markdown file — and the other two arms are asserted, not exercised"
+      - "REPLICATED on a SECOND, independent store (vp-beads `.diarie/`, 2026-08-05): 110 rows, prose min/median/max 311/1493/25963, 84 over 1000 chars, NONE under 100; its 5 records' bodies run 3682/4452/5377. The largest ROW there carries 4.8× the prose of the largest RECORD body. So across 182 rows in two stores the claim is not merely unsupported, it is INVERTED — rows hold more prose than bodies do. Known limit, stated rather than hidden: both stores share one author, and no third-party store exists to check, so this is not evidence about diarie's users in general"
+      - "SECOND MEASUREMENT, both stores: every one of the 182 rows is `type: task`. Zero milestones exist ANYWHERE, and `docs/` is created by nothing (see diarie-typ). So the four-type/two-form mapping has exactly TWO live arms — task→YAML row, decision→markdown file — and the other two are asserted, never exercised"
+      - "THE COUPLING IS NOT SYMMETRICALLY ENFORCED, and as of 2026-08-05 that asymmetry is SHARPER than it was. Measured: a `type: decision` row inside `tasks-<slug>.yml` is accepted silently — validate says nothing, ready correctly excludes it — so decision-as-row already WORKS and is unflagged (diarie-typ owns flagging it, and whether it SHOULD be flagged depends on this decision). Meanwhile a `type: task` record is now an explicit ERROR, from the directory↔type check added in c1c832d. One direction is convention, the other is enforced, and the enforcement was added by the commit that widened validate — noted so it is not mistaken for a long-standing rule"
       - "THE REFRAME the user proposed and the evidence supports: the rule is drawn on the wrong axis. `does this entity carry prose` is an INSTANCE property; `what kind of thing is this` is a TYPE property. Coupling them means a 10k-character task cannot become a file and a one-line decision cannot become a row, for no reason either the schema or the data can defend"
       - "WHAT MAKES THIS NEWLY CHEAP: as of 2026-08-05 the field schema is already ONE implementation across both forms (`lintFields` in lib/validate.js validates a task row and a record's frontmatter identically). The entity model is therefore ALREADY unified; what remains coupled is only which directory the bytes sit in and which serialization they use"
       - "THE STRONGEST COUNTER, and it must not be waved through: today a decision in force is STRUCTURALLY incapable of being offered as workable, because the loader globs `tasks-*.yml` and records are not in it — schema.js and README both state this as a guarantee, and bd got it wrong precisely here. Decoupling downgrades that from `cannot happen` to `there is a type check`. That check already exists in ready.js:171 for the SUBJECT — and the dep loop forty lines below it lacks the same check (see the non-task-deps work), which is live evidence that the runtime check is easy to forget and the structural property is doing real work"
@@ -1884,4 +1895,45 @@ tasks:
       question into a factual one — the current split is justified by a claim about prose volume that
       this repo's own data contradicts. Note the honest possibility that the answer is (d): keep the
       behaviour, fix the reasoning. A rule can be right while its stated reason is wrong.
+    updated: '2026-08-05'
+  - id: diarie-fsp
+    title: 'SPIKE: cost out letting the loader read RECORDS — the one number diarie-frm lacks'
+    status: pending
+    type: task
+    priority: high
+    labels:
+      - spike
+    acceptance_criteria:
+      - "PURPOSE: diarie-frm asks whether storage form should stop being decided by entity type. Three of its four options are cheap to reason about; option (a) `any type in either form` is the one nobody can price, and a one-way store-format decision should not be taken on a guess. This spike produces a NUMBER and a verdict, not an implementation — close it with findings, per the `spike` label's semantics"
+      - "MEASURED ALREADY, so start from here rather than rediscovering it: the directory↔type check is ONE line in `lintRecords` (lib/validate.js) plus one test. That is the enforcement point, and it is trivially removable. The real cost is elsewhere — `lib/store/load-tasks.js` globs `tasks-*.yml` and has no notion of a record at all, so `computeReady` cannot see one no matter what its type says"
+      - "cost the four things that actually change: (1) the loader reading two serializations; (2) a record's GlobalId — rows namespace as `slug/id` via nsId and a record HAS no slug, so decoupling forces the id model (diarie-xid / diarie-ids own it); (3) dep resolution across forms (diarie-rel); (4) the ready-walk's per-row work — records are whole files, so N records means N reads where N rows means one"
+      - "state plainly what is LOST, because it is the strongest counter and a spike that ignores it is advocacy: today a decision cannot be offered as work because the loader structurally cannot see it. Under option (a) that becomes a type check — and ready.js's dep loop demonstrably lacks the equivalent check today, so `we will remember to check` has already failed once in this file"
+      - "do NOT prototype into main. A throwaway branch or a scratch store is enough to produce the estimate; the point is to inform a decision, and an implementation would prejudge it"
+    description: >-
+      Filed 2026-08-05 alongside diarie-frm. It exists so the decision is not taken on vibes: the
+      measurement that motivates diarie-frm is about PROSE, and the thing that makes decoupling
+      expensive is the LOADER, which no measurement has touched. Ready now and deliberately not
+      blocked on diarie-frm — it is an input to that decision, not an output of it.
+    updated: '2026-08-05'
+  - id: diarie-fmg
+    title: 'Realize whatever diarie-frm decides — a one-way store migration that must refuse rather than lose'
+    status: pending
+    type: task
+    priority: high
+    deps:
+      - diarie-frm
+    labels:
+      - feature
+    acceptance_criteria:
+      - "BLOCKED BY DESIGN on diarie-frm, so this row exists to make sure the implementation is not lost once the decision lands — it becomes ready automatically the moment diarie-frm completes. Three of the four options move data on disk: (b) collapse-to-files turns 72 rows into 72 files, (c) collapse-to-rows folds 16 record bodies into YAML, (a) decouple moves nothing immediately but changes what every reader must handle. Only option (d) — keep the behaviour, fix the justification — is a comment change"
+      - "🚨 THE HAZARD THAT DECIDES THE MECHANISM, already measured (2026-08-05, recorded under the validate --fix work): a whole-document js-yaml round-trip on this repo's store goes 1816 → 2956 lines (+63%) and 15 comment lines → 1, with 2544 lines changed. The deleted header includes the sentence explaining why there is no CRUD command. So any option that REWRITES tasks-<slug>.yml programmatically destroys the file's comments on its first run. Surgical byte-splicing or hand-editing only; `yaml.dump` over the store is not available as a tool here"
+      - "hold it to the standard `migrate` is held to: refuse rather than lose data it cannot map, leave NO TRACE on failure (project everything before the first write), report on stdout with a non-zero exit, and never claim success for a partial move. This is the same class of operation and must not be softer for being internal"
+      - "whatever ships, `validate` must be able to read the store BEFORE and AFTER — including the mixed state if the move is incremental. A migration that leaves the gate unable to parse its own store reproduces the founding defect at the worst possible moment"
+      - "the docs that state the current model must move in the same change, not after: `lib/schema.js`'s type-model header (which currently carries a ⚠️ marking its justification contested), README's `decision and doc carry prose` paragraph, and CLAUDE.md's store bullet. Grep before drafting, not after — feature-rename commits routinely triple in scope on the doc surfaces"
+    description: >-
+      Filed 2026-08-05 as the downstream half of diarie-frm. Deliberately carries `deps` rather than
+      sitting as a note inside the decision row: a dep is the mechanism this tool exists to provide,
+      it puts the work in `ready --blocked` today, and it promotes the row automatically instead of
+      relying on someone re-reading the decision later. If diarie-frm settles on option (d), close
+      this row as cancelled with that reason recorded.
     updated: '2026-08-05'
