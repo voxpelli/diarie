@@ -233,13 +233,23 @@ const EXPORT = fileURLToPath(new URL('fixtures/bd-export.jsonl', import.meta.url
 /**
  * Run the migrator CLI against the synthetic export.
  *
+ * `out` is the two streams CONCATENATED, and that is exactly why the channel-policy bug it
+ * hides went unnoticed: a helper that flattens stdout and stderr into one string cannot fail
+ * when a message moves between them. `stdout`/`stderr` are returned separately so a test can
+ * assert WHICH stream carried a fact, not merely that something said it somewhere.
+ *
  * @param {string[]} args
  * @param {string} [wd] working dir (to exercise the CWD default)
- * @returns {{ code: number|null, out: string }}
+ * @returns {{ code: number|null, out: string, stderr: string, stdout: string }}
  */
 const run = (args, wd) => {
   const r = spawnSync('node', [SCRIPT, EXPORT, ...args], { cwd: wd, encoding: 'utf8' });
-  return { code: r.status, out: (r.stdout ?? '') + (r.stderr ?? '') };
+  return {
+    code: r.status,
+    out: (r.stdout ?? '') + (r.stderr ?? ''),
+    stderr: r.stderr ?? '',
+    stdout: r.stdout ?? '',
+  };
 };
 
 /**
@@ -524,7 +534,7 @@ describe('a missing input file is an InputError, not a crash (vp-beads-mig)', ()
  * @param {Record<string, unknown>} issue  merged over a minimal valid bd issue
  * @param {string[]} [args]
  * @param {boolean} [viaCli]  drive `cli.js` rather than the script directly — see below
- * @returns {{ code: number|null, out: string, stdout: string, dir: string }}
+ * @returns {{ code: number|null, dir: string, out: string, stderr: string, stdout: string }}
  */
 function migrateOne (t, issue, args = [], viaCli = false) {
   const dir = tmpDir(t);
@@ -546,7 +556,13 @@ function migrateOne (t, issue, args = [], viaCli = false) {
   const entry = viaCli ? CLI : SCRIPT;
   const argv = viaCli ? [entry, 'migrate', file] : [entry, file];
   const r = spawnSync('node', [...argv, '--root', dir, ...args], { encoding: 'utf8' });
-  return { code: r.status, out: (r.stdout ?? '') + (r.stderr ?? ''), stdout: r.stdout ?? '', dir };
+  return {
+    code: r.status,
+    dir,
+    out: (r.stdout ?? '') + (r.stderr ?? ''),
+    stderr: r.stderr ?? '',
+    stdout: r.stdout ?? '',
+  };
 }
 
 /**
@@ -728,14 +744,21 @@ describe('the decision WRITE path — a record whose entire content is prose', (
  *
  * @param {TestContext} t
  * @param {Record<string, unknown>[]} records
- * @returns {{ code: number|null, dir: string, out: string }}
+ * @param {string[]} [args]
+ * @returns {{ code: number|null, dir: string, out: string, stderr: string, stdout: string }}
  */
-function migrateRecords (t, records) {
+function migrateRecords (t, records, args = []) {
   const dir = tmpDir(t);
   const file = join(dir, 'export.jsonl');
   writeFileSync(file, records.map(r => JSON.stringify({ _type: 'issue', ...r })).join('\n') + '\n');
-  const r = spawnSync('node', [SCRIPT, file, '--root', dir], { encoding: 'utf8' });
-  return { code: r.status, out: (r.stdout ?? '') + (r.stderr ?? ''), dir };
+  const r = spawnSync('node', [SCRIPT, file, '--root', dir, ...args], { encoding: 'utf8' });
+  return {
+    code: r.status,
+    dir,
+    out: (r.stdout ?? '') + (r.stderr ?? ''),
+    stderr: r.stderr ?? '',
+    stdout: r.stdout ?? '',
+  };
 }
 
 describe('a numeric bd id (the parse boundary)', () => {
@@ -813,5 +836,81 @@ describe('a numeric bd id (the parse boundary)', () => {
     assert.equal(code, 0, out);
     assert.doesNotMatch(out, /blocker not live/);
     assert.deepEqual(rowsIn(dir).find(r => r.id === 'x-2')?.deps, ['12345']);
+  });
+});
+
+describe('the channel policy (stderr may DUPLICATE, never ORIGINATE)', () => {
+  // Row `diarie-wsp`, applied to this command. The sharpest inversion was `--lossy`: the
+  // harmless "nothing is lost" report went to stdout while THE DATA-LOSS WARNING went to
+  // stderr, and `--lossy` exits 0 — so a caller who redirected stderr saw a clean success and
+  // never learned which fields it had just agreed to lose. The streams were ordered by the
+  // exact inverse of importance, on the stream this package's founding paragraph calls the one
+  // ten call sites pipe to /dev/null.
+  //
+  // NOTE what made this invisible: every helper here returned stdout and stderr CONCATENATED,
+  // so no assertion in the suite could fail when a message moved between them. The helpers now
+  // return the streams separately, and each case below asserts BOTH halves — the fact is on
+  // stdout, AND stderr originated nothing. Asserting only the first would pass on a duplicate.
+
+  it('--lossy names the dropped fields on stdout, with nothing originating on stderr', (t) => {
+    const { code, stderr, stdout } = migrateOne(t, { some_future_field: 'x' }, ['--lossy']);
+    assert.equal(code, 0);
+    assert.match(stdout, /being dropped/);
+    assert.match(stdout, /some_future_field/);
+    assert.equal(stderr, '');
+  });
+
+  it('an --epic naming a non-live issue warns on stdout', (t) => {
+    // The consequence is a task file written EMPTY, which the tally reports only as a bare
+    // `0 → tasks-migration.yml`. The reason existed nowhere but stderr.
+    const { code, stderr, stdout } = run(['--root', tmpDir(t), '--epic', 'nope=migration']);
+    assert.equal(code, 0);
+    assert.match(stdout, /--epic nope is not a live issue/);
+    assert.equal(stderr, '');
+  });
+
+  it('the gitignored-archive note is on stdout', (t) => {
+    const dir = tmpDir(t);
+    spawnSync('git', ['-C', dir, 'init', '-q']);
+    writeFileSync(join(dir, '.gitignore'), '*.jsonl\n');
+    const { code, stderr, stdout } = run(['--root', dir]);
+    assert.equal(code, 0);
+    assert.match(stdout, /gitignored/);
+    assert.equal(stderr, '');
+  });
+
+  it('the bd-history REGRESSION warning is on stdout (this branch had no test at all)', (t) => {
+    // The one branch of the archive trio that reports a real regression: the project DID
+    // version `.beads/`, and after this migration it would stop. `git add` alone is enough —
+    // `git ls-files` reads the index, and `commit` would need a user identity CI may not have.
+    const dir = tmpDir(t);
+    spawnSync('git', ['-C', dir, 'init', '-q']);
+    writeFileSync(join(dir, '.gitignore'), '_archive/\n');
+    mkdirSync(join(dir, '.beads'), { recursive: true });
+    writeFileSync(join(dir, '.beads', 'issues.db'), 'x');
+    spawnSync('git', ['-C', dir, 'add', '.beads']);
+
+    const { code, stderr, stdout } = run(['--root', dir]);
+    assert.equal(code, 0);
+    assert.match(stdout, /would stop being versioned/);
+    assert.equal(stderr, '');
+  });
+
+  it('a plain successful migration writes NOTHING to stderr', (t) => {
+    // Names no string, so it catches an UNCONDITIONAL future write that the four cases above
+    // — each of which needs its own flag or git setup to reach its message — would miss.
+    //
+    // Its limits, stated because the whole point of this block is not overclaiming a channel:
+    // it exercises the plain path only. A sixth message behind a flag is caught by nothing
+    // here until someone adds the case. What covers the five CURRENT sites is that every `it`
+    // asserts `stderr === ''` — not this one test.
+    //
+    // Measured by moving each message back to stderr in turn: four of the five turn exactly
+    // one case red. The fifth (the archive-would-commit note) fires on ANY migration into a
+    // non-git directory, so it reddens every case that does not set one up — which is why it
+    // needs no dedicated `it` and why this one would catch it even if the others were deleted.
+    const { code, stderr } = run(['--root', tmpDir(t)]);
+    assert.equal(code, 0);
+    assert.equal(stderr, '');
   });
 });

@@ -1687,6 +1687,26 @@ tasks:
       the kind this project has been bitten by — see the CLAUDE.md table on instruments answering a
       narrower question than the one asked.
     updated: '2026-08-05'
+  - id: diarie-gig
+    title: "migrate's GITIGNORED hard stop throws after ~20 stdout writes, so its --json error is unparseable"
+    status: pending
+    type: task
+    priority: high
+    labels:
+      - bug
+    acceptance_criteria:
+      - "FOUND 2026-08-05 while moving migrate's stderr writes to stdout. `runMigration` writes the whole success report to stdout (`migrated N live issues`, the tally, dropped edges/labels/priorities, `written:`), and THEN asks git what would be ignored. If the live store is gitignored it throws an InputError — so under `--json` a caller gets ~20 lines of prose followed by a JSON error, which no `jq` can parse"
+      - "that is the founding defect wearing the exit code that reports it: the consumer's parse fails, it falls back to 'no data', and a refusal reads as nothing. bootstrap.js's own comment at the census refusal already warns about exactly this shape ('a human-readable line printed here ahead of the throw lands in front of that JSON and makes it unparseable') — the warning is right and this site violates it"
+      - "PRE-EXISTING, not a branch regression: verified against `git show main:lib/migrate/bootstrap.js` (stdout at :545, the GITIGNORED throw at :583). What IS new on the branch is the comment claiming stdout is safe because it is 'past every refusal' — corrected in the same commit that found this, since a false absolute there invites the next refusal to be placed below it"
+      - "FIX (likely): `git check-ignore` takes PATH STRINGS and does not need the files to exist, so the check can move above the writes — the store paths are derivable from `grouped` and `decisions` before `write()` runs. That also makes the refusal leave NO TRACE, which the archive-ordering comment says is the standard for every other refusal in this function"
+      - "check whether the same shape exists elsewhere: any InputError thrown after a stdout write is this bug. A test that runs each refusal under --json and asserts the stdout parses as JSON would be the mechanical version"
+    description: >-
+      Filed 2026-08-05 from U4 step 3. Same family as diarie-wsp (which channel carries a fact)
+      but a distinct mechanism: not a fact on the wrong stream, a refusal made unreadable by the
+      prose in front of it. Deliberately NOT fixed in step 3 — the fix is a reordering of
+      `runMigration`, which is the same surgery U4 step 4 performs for the census refusal; doing
+      both at once would make neither commit reviewable.
+    updated: '2026-08-05'
   - id: diarie-wsp
     title: 'THE INVARIANT: stderr may only ever DUPLICATE, never ORIGINATE — make it greppable'
     status: pending
@@ -1698,7 +1718,7 @@ tasks:
       - "A whisper audit 2026-08-05 found 10 findings, and four of them are ONE rule being broken four times. The rule is already stated in lib/format.js:13-20 (stdout = THE ANSWER, stderr = ASIDES) but nothing enforces the sharp version: NO FACT MAY EXIST ONLY ON STDERR. stderr may repeat what stdout or the --json payload already carries; it may never be the sole carrier"
       - "the audit's own table shows why this is the right abstraction: neither channel is consistently richer. `--json` beats human for loader warnings; human beats `--json` for InputError.body (now fixed) and for validate's lint warnings. There is no rule a reader could apply to PREDICT which stream carries a given fact — which is how each violation got written one at a time without anyone noticing the pattern"
       - "MAKE IT MECHANICAL: an ast-grep rule or a test that walks `warn()` call sites and requires each message to have a stdout or payload counterpart. That is the instrument; a comment is not. Note the repo already has the precedent — the exit(2) walker in test/cli.spec.js greps the tree to enforce a claim rather than trusting a comment"
-      - "known violations to close under this rule: ignored task files (see H4/U6 in the review plan), migrate's --lossy loss report on stderr while the success report is on stdout, ready/stats text-mode warnings (diarie-rtx), and validate's `notices`"
+      - "known violations to close under this rule: ignored task files (see H4/U6 in the review plan), ready/stats text-mode warnings (diarie-rtx), and validate's `notices`. MIGRATE IS DONE — all five originating stderr writes in bootstrap.js moved to stdout, and the suite now returns the two streams separately (it used to concatenate them, which is why no assertion could see the channel at all). Only the direct-execution error boundary still writes to stderr, which is legitimate"
       - "counter-check before building it: `warn()` is also used for genuinely advisory asides. Enumerate those first and decide whether they are exempt or whether they too should be on stdout — if MOST calls need an exemption the rule is wrong and should not be built"
     description: >-
       Filed 2026-08-05. This is the generalisation of the founding thesis, and it is worth more than
