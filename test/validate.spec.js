@@ -59,6 +59,15 @@ describe('lintTasks — Pass 1 (structural)', () => {
   it('duplicate id within file errors', () => {
     assert.ok(lint([ok({ id: 'T-1' }), ok({ id: 'T-1' })]).errors.some(e => /duplicate id/.test(e)));
   });
+
+  it('duplicate id errors across TYPES too — `1` and `\'1\'` are one id to the loader', () => {
+    // An unquoted `id: 1` in YAML is a NUMBER. `nsId` — the loader's namespacing, and the
+    // thing that decides what a row is actually called — is `String(ref)`, so both rows
+    // become the same `GlobalId` and `ready.js`'s `byId` map keeps only the later one. The
+    // duplicate check compared the RAW values and so saw two ids where the loader sees one,
+    // and validate exited 0 on a file with a row that silently disappears.
+    assert.ok(lint([ok({ id: 1 }), ok({ id: '1' })]).errors.some(e => /duplicate id/.test(e)));
+  });
 });
 
 describe('lintTasks — Pass 2 (dep graph)', () => {

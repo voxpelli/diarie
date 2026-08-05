@@ -35,7 +35,7 @@ import {
 
 import { load } from 'js-yaml';
 
-import { projectRecords } from '../lib/migrate/bd-map.js';
+import { parseBdExport, projectRecords } from '../lib/migrate/bd-map.js';
 import {
   groupTasks, MIGRATE_OPTIONS, normalizeBody, projectLive, splitBody, USAGE,
 } from '../lib/migrate/bootstrap.js';
@@ -717,5 +717,101 @@ describe('the decision WRITE path — a record whose entire content is prose', (
     assert.equal((md.match(/Acceptance Criteria/gi) ?? []).length, 0,
       'the AC heading survived in the prose after being lifted into frontmatter');
     assert.match(md, /acceptance_criteria:/, 'AC should still reach the frontmatter');
+  });
+});
+
+/**
+ * Migrate a WHOLE list of records verbatim — no defaults merged.
+ *
+ * `migrateOne` cannot do this job: the defect below only exists between two records, and it
+ * is sensitive to the order they appear in, so the caller has to own both.
+ *
+ * @param {TestContext} t
+ * @param {Record<string, unknown>[]} records
+ * @returns {{ code: number|null, dir: string, out: string }}
+ */
+function migrateRecords (t, records) {
+  const dir = tmpDir(t);
+  const file = join(dir, 'export.jsonl');
+  writeFileSync(file, records.map(r => JSON.stringify({ _type: 'issue', ...r })).join('\n') + '\n');
+  const r = spawnSync('node', [SCRIPT, file, '--root', dir], { encoding: 'utf8' });
+  return { code: r.status, out: (r.stdout ?? '') + (r.stderr ?? ''), dir };
+}
+
+describe('a numeric bd id (the parse boundary)', () => {
+  // `BdIssue` types `id` as a string and every bd export we have seen agrees — but JSON's
+  // other scalar is a number, and bd's export is foreign and frozen. Untreated, a numeric id
+  // put a NUMBER in `liveIds` while every lookup used a string, so the migrator reported
+  // `blocker not live` about a blocker three lines up in the file it was writing, and offered
+  // the blocked task as ready work in the migrated store.
+
+  it('coerces a numeric `id` to a string', () => {
+    const [r] = parseBdExport('{"_type":"issue","id":12345}\n');
+    assert.equal(r?.id, '12345');
+  });
+
+  it('coerces a numeric `depends_on_id` to a string', () => {
+    const [r] = parseBdExport('{"_type":"issue","id":"a","dependencies":[{"type":"blocks","depends_on_id":7}]}\n');
+    assert.equal(r?.dependencies?.[0]?.depends_on_id, '7');
+  });
+
+  it('coerces `id: 0` rather than reading it as no id at all', () => {
+    // The falsy-zero trap this file already warns about for `priority`: `!r.id` read a real
+    // id as an absent one. `String(0)` is `'0'`, which is truthy and which `ID_RE` accepts.
+    const [r] = parseBdExport('{"_type":"issue","id":0}\n');
+    assert.equal(r?.id, '0');
+  });
+
+  it('leaves a non-numeric `id` alone rather than laundering it into a usable one', () => {
+    // NUMBERS ONLY. A blanket `String()` turns `null` into the perfectly plausible id
+    // `'null'` — a boundary inventing a value is worse than one passing a bad value to the
+    // guard that refuses it.
+    // Compared through `JSON.stringify` so the assertion says the value is still the JSON
+    // null it arrived as — `assert.equal(r?.id, 'null')` would PASS on the laundered string,
+    // which is the whole thing being refused here.
+    const [r] = parseBdExport('{"_type":"issue","id":null}\n');
+    assert.equal(JSON.stringify(r?.id), 'null');
+  });
+
+  it('does not ADD an `id` key to a record that had none', () => {
+    // `censusFields` classifies by the keys a record carries, so it is the one consumer that
+    // can tell absent from present-and-undefined. Normalising must not move that line.
+    const [r] = parseBdExport('{"_type":"issue","title":"t"}\n');
+    assert.ok(r && !('id' in r), 'the boundary invented an `id` key');
+  });
+
+  // The two orders below are the whole point. `dumpTasks` sorts with
+  // `a.id.localeCompare(b.id)`, and `localeCompare` coerces its ARGUMENT but not its
+  // RECEIVER — so before the fix, the numeric row LAST threw a TypeError (after `_archive`
+  // was already written) while the same two rows the other way round wrote a corrupt store
+  // and exited 0. One input, two failure modes, chosen by line order.
+
+  /** @type {Record<string, unknown>} */
+  const target = { id: 12345, title: 'The blocker', status: 'open', issue_type: 'task', priority: 2 };
+  /** @type {Record<string, unknown>} */
+  const blocked = {
+    id: 'x-2',
+    title: 'Blocked on it',
+    status: 'open',
+    issue_type: 'task',
+    priority: 2,
+    dependencies: [{ type: 'blocks', depends_on_id: '12345' }],
+  };
+
+  it('keeps the edge when the numeric-id row comes FIRST (this order used to exit 0 on a corrupt store)', (t) => {
+    const { code, dir, out } = migrateRecords(t, [target, blocked]);
+
+    assert.equal(code, 0, out);
+    assert.doesNotMatch(out, /blocker not live/,
+      'the loss report named a blocker sitting in the file it just wrote');
+    assert.deepEqual(rowsIn(dir).find(r => r.id === 'x-2')?.deps, ['12345']);
+  });
+
+  it('keeps the edge when the numeric-id row comes LAST (this order used to throw at the sort)', (t) => {
+    const { code, dir, out } = migrateRecords(t, [blocked, target]);
+
+    assert.equal(code, 0, out);
+    assert.doesNotMatch(out, /blocker not live/);
+    assert.deepEqual(rowsIn(dir).find(r => r.id === 'x-2')?.deps, ['12345']);
   });
 });
