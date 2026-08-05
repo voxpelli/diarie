@@ -1,6 +1,6 @@
 ---
 id: diarie-dsv
-title: Decision records carry an inert `status: pending` — give them their own status vocabulary (recommend an ADR-style enum; reuse task statuses as fallback)
+title: 'Decision records carry an inert `status: pending` — give them their own status vocabulary (recommend an ADR-style enum; reuse task statuses as fallback)'
 status: pending
 type: decision
 priority: medium
