@@ -1824,7 +1824,7 @@ tasks:
       - decision
     acceptance_criteria:
       - "THE HAZARD, and it is this project's founding defect wearing a flag: a narrowed run must never be indistinguishable from a full one. `validate --only decision` that prints `Store validation passed` is a tracker reporting a clean store it did not read. Whatever ships must state the narrowing in BOTH channels — the text line and the `--json` payload — not merely leave `fileCount` lower and hope someone notices"
-      - "THE DESIGN TENSION THAT DECIDES THE SHAPE: entity type does NOT map onto storage region. `milestone` rows live inside `tasks-<slug>.yml` beside `task` rows, so `--only task` cannot skip reading a single file — it can only suppress findings after reading everything. `--only decision` genuinely skips a directory. So `--only <type>` is a filter on FINDINGS, while a region filter (`tasks/` vs records) is a filter on IO. They are two different flags wearing one name; pick one deliberately or name them differently"
+      - "THE DESIGN TENSION THAT DECIDES THE SHAPE: one type filter is TWO different operations depending on which side of the store it falls. Across the record homes it is an IO filter — `RECORD_DIRS` maps type to directory, so `--only task` can skip reading `decisions/` and `docs/` outright. Inside `tasks/` it is a findings filter — `milestone` rows share `tasks-<slug>.yml` with `task` rows, so no type filter can skip a single file there. The consequence is what matters: the same flag would skip files in one region and merely mute findings in the other, so 'what did this run actually READ' has two answers at once. Decide whether the flag means read-less or report-less, and say which in the output"
       - "if it is a findings filter, the honest motivation is FOCUS, not speed — validate reads 17 files in this repo in milliseconds, so nobody is waiting. Say that plainly when deciding, because 'it will be faster' is the reason that will be assumed and it is not true"
       - "`check:tasks` must never pass it. The gate's whole value is that it asks the widest question; a narrowing flag reachable from the gate script is how the gate quietly stops covering things (precedent: `check:test` being removable is exactly this failure, recorded in CLAUDE.md)"
       - "vocabulary comes from `VALID_TYPES` in schema.js, never a bespoke list — and the flag must reject an unknown value with EUSAGE rather than silently matching nothing, which would be a narrowed run reporting clean for a typo"
@@ -1836,4 +1836,26 @@ tasks:
       than built because the narrowing direction is a real fork — see the second criterion — and
       because a partial-coverage flag on the integrity gate is precisely the shape this tool exists
       to refuse, so it earns a decision rather than an implementation.
+    updated: '2026-08-05'
+  - id: diarie-bmk
+    title: "`brand-book.html`'s `diarie validate` mock is not verbatim output — the surface CLAUDE.md says has lied twice"
+    status: pending
+    type: task
+    priority: medium
+    labels:
+      - bug
+    acceptance_criteria:
+      - "the mock at `brand/brand-book.html` (the ink/colour-annotation terminal) prints `✗ proj-login: dep \"proj-authh\" does not exist — did you mean \"proj-auth\"?`. Real `validate` prints errors as `  - <file>: task <label>: …` under a `Store validation failed:` header, with a trailing `N error(s).` — no `✗` glyph exists anywhere in the command's output"
+      - "the `stats --stale` line directly above it needs the same treatment in the same pass; do not fix one mock and leave its neighbour, they are read as a pair"
+      - "generate by running the real binary against a throwaway store and pasting the bytes (`node cli.js validate --root <tmp>`), then diff the tag-stripped `<pre>` text against saved stdout — the method CLAUDE.md prescribes. Never hand-edit and never truncate with `…`"
+      - "the colour annotation is the page's actual subject, so the fix must keep a red error line, an amber stale claim and a green ready line all present — pick a fixture store that genuinely produces all three rather than trimming the demonstration to fit"
+      - "check `brand/index.html` in the same pass; it references `diarie validate` in prose (`is the integrity gate`) which is still true, but the exit-2 copy at :700 should be read against the current wording too"
+    description: >-
+      Found 2026-08-05 while grepping brand surfaces before widening `validate` to read the whole
+      store. The wording change that prompted the grep (`Task` → `Store validation passed`) does NOT
+      affect this mock — it shows a failure, not a pass — so this is pre-existing rather than a
+      regression, and was deliberately not folded into that commit. Filed because no gate can reach
+      it: `check:md` lints only `.md`, and diarie.dev documents the CLI contract, so a paraphrase
+      here is a false claim about the contract with nothing able to go red. CLAUDE.md records this
+      exact surface shipping a false CLI claim twice already.
     updated: '2026-08-05'
