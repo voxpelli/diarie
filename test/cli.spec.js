@@ -1439,6 +1439,29 @@ describe('every error code, through the real CLI boundary', () => {
         return run(['migrate'], [file, '--root', dir, '--json'], '', { cwd: dir });
       },
     },
+    {
+      code: 'EPLUGINSTORE',
+      why: 'the walk-up landed inside an installed plugin\'s own store',
+      run: (t) => {
+        // The whole scenario has to be REAL, because the defect is a property of the walk-up:
+        // a store must exist inside the plugin root, and cwd must be BELOW it, so that
+        // resolving upward genuinely succeeds on the wrong store. Asserting the guard any
+        // other way tests the guard's code rather than the situation it guards.
+        const plugin = tmpDir(t, 'diarie-code-plugin-');
+        const inner = join(plugin, 'inner');
+        seedStore(inner, 'a', 'tasks:\n  - id: P-1\n    title: the plugin author\'s task\n    status: pending\n    type: task\n');
+        const below = join(inner, 'sub');
+        mkdirSync(below, { recursive: true });
+
+        // `tasksRoot` is '' ON PURPOSE: passing one sets DIARIUM_ROOT, and an explicit root is
+        // exactly what this guard honours — the seam would make the walk-up never happen and
+        // the case would pass without ever reaching the code it claims to prove.
+        return run(READY, ['--json'], '', {
+          cwd: below,
+          extraEnv: { CLAUDE_PLUGIN_ROOT: plugin },
+        });
+      },
+    },
   ];
 
   for (const { code, run: trigger, why } of CASES) {

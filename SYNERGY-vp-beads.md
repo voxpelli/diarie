@@ -40,8 +40,8 @@ consumer-side fixes before publishing — but no warning at the moment of publis
 
 * **The store is now the `diarium` pair — vp-beads reads the old name** (2026-07-28, decision
   `diarie-pos`). diarie's store is `diarium/` or `.diarium/`, chosen by which directory exists;
-  `.diarie/` is legacy, detected only so a reader can name the `git mv`. Three breaks for the
-  consumer side, all deliberate and all loud:
+  `.diarie/` is legacy, detected only so a reader can name the `git mv`. Four breaks for the
+  consumer side, all deliberate and all loud — the fourth added 2026-08-05:
 
   1. **`TRACKER_DIR` is GONE from `diarie/schema`.** Not aliased — removed. A singular constant
      cannot answer "which of two forms is on disk", and leaving it as `'diarium'` would have kept
@@ -57,13 +57,22 @@ consumer-side fixes before publishing — but no warning at the moment of publis
   3. **New exit codes**: `ETWOSTORES` and `ELEGACY` join `ENOSTORE`/`EUSAGE`/`EEXIST`. Any skill
      that branches on `code` should learn them; `ELEGACY` in particular is what stops a hook from
      answering `ENOSTORE` by running `init` and creating a second backlog.
+  4. **`EPLUGINSTORE` (2026-08-05), and this one is about vp-beads specifically.** The refusal
+     already existed — a walk-up that lands inside `CLAUDE_PLUGIN_ROOT` will not serve the
+     plugin's own committed store as your backlog — but it reported `ENOSTORE`, so a `--json`
+     caller could not tell it from a genuine miss. That mattered here more than anywhere: vp-beads
+     is a plugin that ships this CLI and tracks its own work in a store of the same shape, so it
+     is the scenario the guard was written for. And the collision had teeth, because the two codes
+     have OPPOSITE remedies — `ENOSTORE` says run `init`, which in a plugin cache creates a store
+     the walk-up then finds forever. **Any hook that answers `ENOSTORE` with `init` must now
+     exclude `EPLUGINSTORE` explicitly**; the remedy is `--root`, which the hooks already pass.
 
   **Also stale on the vp-beads side: its copy of `no-hardcoded-tracker-dir.yml`.** That rule
   deliberately lives on both sides (its own header says so — ast-grep sgconfig has no `extends`).
   diarie's copy learned the pair today; the plugin's copy still flags only `.diarie`/`backlog/`, so
   it under-guards exactly where the rule matters most — in guard code, where a stale literal does
   not error, it silently stops guarding.
-  Status: **breaking, unreconciled** · Last verified: 2026-07-28
+  Status: **breaking, unreconciled** · Last verified: 2026-08-05
 
 ## Extraction Candidates
 

@@ -156,14 +156,21 @@ gate — that trap is closed now; don't reopen it. If you want the complete gate
   so), **`EEXIST`** (`init` or `migrate` refusing an existing store, in either posture),
   **`ETWOSTORES`** (both forms of the pair present — refuses to guess), **`ELEGACY`** (`init`
   refusing to start a second store beside a `.diarie/`), **`ELOSSY`** (`migrate` refusing to drop
-  data it cannot map).
+  data it cannot map), **`EPLUGINSTORE`** (the walk-up landed inside an installed plugin's OWN
+  store — its own code because ENOSTORE's documented remedy is `diarie init`, which here would
+  create a store inside the plugin cache).
 * `2` — `ResultError` ("it ran; the answer is no": invalid store, `--strict`). **NOTHING ELSE MAY USE
   2** — it's reserved so CI can tell a dependency cycle from a typo. Only `lib/utils/exit.js` writes it.
 * The vocabulary is `VALID_ERROR_CODES` in `lib/schema.js`; the shapes are `lib/utils/errors.js`,
   which imports nothing and is the base every layer may depend on. Anything reaching `cli.js` must
   BE an `InputError` or `ResultError` — the store errors extend it rather than being converted at a
-  call site. Adding a code costs a case in `test/cli.spec.js`'s boundary table, which fails if one
-  goes unexercised. `InputError` is exported from `lib/index.js`.
+  call site. **Adding a code costs SEVEN surfaces, and only ONE of them is gated** (measured
+  2026-08-05): `lib/schema.js` twice — the array _and_ the hand-written prose above it — plus a case
+  in `test/cli.spec.js`'s boundary table (the gate: it fails if a code goes unexercised), README's
+  exit-code row, the bullet above, and **`brand/index.html`, `brand/brand-book.html` and
+  `brand/tokens.json`, which carry the vocabulary as prose and are gated by nothing**. This bullet
+  used to name only the test, which is how the brand surfaces drift. `InputError` is exported from
+  `lib/index.js`.
 
 ## Conventions & gotchas
 
