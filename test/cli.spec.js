@@ -478,7 +478,13 @@ describe('the loader REPORTS every field it rejects (a guard that drops is not a
     { field: 'type', row: 'title: t\n    status: pending\n    type: bug', consequence: /NO partition|no tally/ },
     { field: 'priority', row: 'title: t\n    status: pending\n    type: task\n    priority: urgent', consequence: /medium/ },
     { field: 'status', row: 'title: t\n    status: bogus\n    type: task', consequence: /ready|blocked/ },
-    { field: 'deps', row: 'title: t\n    status: pending\n    type: task\n    deps: nope', consequence: /empty/ },
+    { variant: 'the whole list', field: 'deps', row: 'title: t\n    status: pending\n    type: task\n    deps: nope', consequence: /empty/ },
+    // PER ELEMENT, and a separate case from the row above on purpose. The census greps field
+    // NAMES, so `deps` counts as covered the moment the wholesale case exists — a second
+    // `reject('deps', …)` with a different consequence would ride in behind it, untested. This
+    // is the census stating what its completeness is over, taken at its word.
+    { variant: 'one element', field: 'deps', row: 'title: t\n    status: pending\n    type: task\n    deps: [42]', consequence: /offered as READY/ },
+    { field: 'parent', row: 'title: t\n    status: pending\n    type: task\n    parent: 42', consequence: /NO parent|ready work/ },
     { field: 'acceptance_criteria', row: 'title: t\n    status: pending\n    type: task\n    acceptance_criteria: one', consequence: /dropped/ },
     { field: 'title', row: 'title: 42\n    status: pending\n    type: task', consequence: /EMPTY title/ },
     { field: 'agent', row: 'title: t\n    status: in_progress\n    type: task\n    agent: 7', consequence: /unclaimed/ },
@@ -486,15 +492,18 @@ describe('the loader REPORTS every field it rejects (a guard that drops is not a
     { field: 'description', row: 'title: t\n    status: pending\n    type: task\n    description: false', consequence: /body is dropped/ },
   ];
 
-  for (const { consequence, field, row } of REJECTS) {
+  for (const { consequence, field, row, variant } of REJECTS) {
     const yaml = `tasks:\n  - id: R\n    ${row}\n`;
+    // `deps` appears TWICE — wholesale and per-element — and identical test titles are banned
+    // (an ast-grep rule), for the good reason that two same-named tests read as one.
+    const label = variant ? `${field}: (${variant})` : `${field}:`;
 
-    it(`an invalid \`${field}:\` is REPORTED`, (t) => {
+    it(`an invalid \`${label}\` is REPORTED`, (t) => {
       const { err } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-reject-'), 'x', yaml));
       assert.match(err, new RegExp(`invalid ${field}`), `\`${field}\` was DROPPED IN SILENCE`);
     });
 
-    it(`...and the \`${field}:\` complaint names the CONSEQUENCE`, (t) => {
+    it(`...and the \`${label}\` complaint names the CONSEQUENCE`, (t) => {
       const { err } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-reject-'), 'x', yaml));
       assert.match(err, consequence, `\`${field}\` was reported without saying what it costs`);
     });
@@ -536,6 +545,111 @@ describe('the loader REPORTS every field it rejects (a guard that drops is not a
     const { out } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-reject-'), 'x', BAD));
     const j = JSON.parse(out);
     assert.ok(j.needsAttention.some((/** @type {{ id: string, reason: string }} */ t2) => t2.id === 'x/B' && /type/.test(t2.reason)));
+  });
+});
+
+describe('AN ID IS NOT A NUMBER: a ref must be judged before `nsId` mints from it', () => {
+  // `nsId` is `String(ref)`, so it is total — it cannot fail, and therefore cannot refuse. That
+  // makes every scalar YAML admits into a plausible id, and the damage is not a dropped edge but
+  // a FABRICATED one: `parent: 42` and `id: '42'` produce the same `GlobalId` from two rows that
+  // share no identity. These assert the three fields separately, because they fail differently.
+
+  /** The bug as reported: an untouched row silently becomes the container of a child. */
+  const FABRICATED = 'tasks:\n' +
+    "  - id: '42'\n    title: an ordinary task nobody touched\n    status: pending\n    type: task\n" +
+    '  - id: T-9\n    title: parent typed unquoted\n    status: pending\n    type: task\n    parent: 42\n';
+
+  it('an unquoted `parent:` does not turn an UNRELATED row into a container', (t) => {
+    const { out } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-ref-'), 'backlog', FABRICATED));
+    const j = JSON.parse(out);
+    assert.equal(j.blocked.length, 0, 'row `42` was reclassified as a container of a child it never had');
+    assert.ok(j.ready.some((/** @type {{ id: string }} */ r) => r.id === 'backlog/42'));
+  });
+
+  it('...and the store is no longer sound, so `--strict` exits 2 where it exited 0', (t) => {
+    const { code } = run(READY, ['--strict', '--json'], seedStore(tmpDir(t, 'diarie-ref-'), 'backlog', FABRICATED));
+    assert.equal(code, 2);
+  });
+
+  it('...and `validate` agrees rather than calling the store clean', (t) => {
+    const { code, out } = run(VALIDATE, [], seedStore(tmpDir(t, 'diarie-ref-'), 'backlog', FABRICATED));
+    assert.equal(code, 2);
+    assert.match(out, /parent 42 is not a usable id/);
+  });
+
+  it('the fabricated child no longer SUPPRESSES the epic diagnostic it satisfied', (t) => {
+    // The sharpest edge of this bug: the misread row carries `labels: [epic]`, and an epic with
+    // no open children is exactly what `needsAttention` exists to report — so the typo bought
+    // silence twice, once by misfiling the row and once by answering the check that would have
+    // named it.
+    const EPIC = 'tasks:\n' +
+      "  - id: '42'\n    title: an epic with no real children\n    status: pending\n    type: task\n    labels: [epic]\n" +
+      '  - id: T-9\n    title: parent typed unquoted\n    status: pending\n    type: task\n    parent: 42\n';
+    const { out } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-ref-'), 'backlog', EPIC));
+    const j = JSON.parse(out);
+    assert.ok(
+      j.needsAttention.some((/** @type {{ id: string, reason: string }} */ r) => r.id === 'backlog/42' && /epic/.test(r.reason)),
+      'the epic-with-no-children diagnostic stayed suppressed by the fabricated child'
+    );
+  });
+
+  it('a SLASHED id cannot mint into another file\'s namespace', (t) => {
+    // Cross-file identity THEFT, and it outranks the parent case: a row in `a` claiming the id
+    // `beta/T-1` answers to bare `deps: [T-1]` written in `beta`, so a task is served as READY
+    // on a dependency that does not exist in its own file. `ID_RE` admits no `/`, which is also
+    // what keeps `../../pwned` out of the migrator's interpolated paths.
+    const dir = tmpDir(t, 'diarie-ref-');
+    seedStore(dir, 'a', 'tasks:\n  - id: beta/T-1\n    title: minting into beta\n    status: completed\n    type: task\n');
+    seedStore(dir, 'beta', 'tasks:\n  - id: T-2\n    title: depends on a T-1 it does not have\n    status: pending\n    type: task\n    deps: [T-1]\n');
+
+    const { code, out } = run(READY, ['--strict', '--json'], dir);
+    const j = JSON.parse(out);
+    assert.equal(code, 2);
+    assert.equal(j.ready.length, 0, 'a task was served as ready on a stolen dependency');
+    assert.ok(j.needsAttention.some((/** @type {{ reason: string }} */ r) => /beta\/T-1 \(missing\)/.test(r.reason)));
+  });
+
+  it('the reader stops SERVING an id the validator rejects', (t) => {
+    // The two commands disagreed in the open: `validate` exited 2 on `bad id!` while `ready`
+    // served `x/bad id!` as real work at exit 0. A string is not the same question as a usable
+    // id, which is why the type check alone does not close this.
+    const body = 'tasks:\n  - id: bad id!\n    title: a string that is not an id\n    status: pending\n    type: task\n';
+    const dir = seedStore(tmpDir(t, 'diarie-ref-'), 'x', body);
+
+    const { code, err, out } = run(READY, ['--json'], dir);
+    assert.equal(JSON.parse(out).ready.length, 0, 'ready still serves an id validate rejects');
+    assert.match(err, /unusable id "bad id!"/, 'the row vanished without the drop being reported');
+    assert.equal(code, 0, 'a malformed row is reported, not promoted to a hard failure on the default path');
+    assert.equal(run(VALIDATE, [], dir).code, 2, 'validate must still be the one that refuses');
+  });
+
+  it('a bad `deps` element is dropped ALONE — its good siblings survive', (t) => {
+    // Per element, where `labels` rejects its whole list. A dep is an EDGE and each stands on
+    // its own; blinding the ready computation to the real blockers because a sibling is
+    // malformed would trade one wrong answer for a worse one.
+    const body = 'tasks:\n' +
+      '  - id: T-1\n    title: a real blocker\n    status: pending\n    type: task\n' +
+      '  - id: T-2\n    title: one good dep, one number\n    status: pending\n    type: task\n    deps: [T-1, 42]\n';
+    const { out } = run(READY, ['--json'], seedStore(tmpDir(t, 'diarie-ref-'), 'x', body));
+    const j = JSON.parse(out);
+    assert.ok(
+      j.blocked.some((/** @type {{ id: string, blockers: string[] }} */ r) => r.id === 'x/T-2' && r.blockers.includes('x/T-1')),
+      'the surviving dep went with the rejected one'
+    );
+  });
+
+  it('a CROSS-SLUG ref still resolves — the slug half is not held to `ID_RE`', (t) => {
+    // THE REGRESSION THIS GUARD COULD EASILY HAVE BEEN. A slug is not an id: it is whatever
+    // `slugOf` gets from a filename, bounded only by `TASKS_FILE_RE`'s `.+`. Requiring `ID_RE`
+    // on both halves would refuse every cross-file reference into a legal store — silently, and
+    // only for people whose file names are not ASCII.
+    const dir = tmpDir(t, 'diarie-ref-');
+    seedStore(dir, 'Ärende', 'tasks:\n  - id: T-1\n    title: a completed dep in a non-ASCII file\n    status: completed\n    type: task\n');
+    seedStore(dir, 'b', 'tasks:\n  - id: T-2\n    title: depends across files\n    status: pending\n    type: task\n    deps: [Ärende/T-1]\n');
+
+    const { code, out } = run(READY, ['--strict', '--json'], dir);
+    assert.equal(code, 0, 'a working cross-slug dep was refused');
+    assert.ok(JSON.parse(out).ready.some((/** @type {{ id: string }} */ r) => r.id === 'b/T-2'));
   });
 });
 
