@@ -1802,10 +1802,11 @@ tasks:
       - "the sting: `lib/commands/validate.js` asserts in a comment that ``--json` ALWAYS emits JSON. That is the contract.` A consumer sees exit 1 for both a missing store and this, but can branch on `code` in only one of them; `jq` fails on empty input for the other"
       - "FIX SHAPE: emit `{error, code}`-shaped JSON on stdout when --json is set, keeping the stack trace on stderr. Needs a code — check whether an existing member of VALID_ERROR_CODES fits before adding one, since adding a code costs a README row, a boundary-table case, and FOUR brand surfaces that list the set verbatim and which no gate can check"
       - "note this is the generic door. Two specific instances were already closed individually (bootstrap.js and store/init.js both have comments about it), which is evidence the class is real and that closing it once is better than closing it a third time"
+      - "2026-08-06 — a THIRD instance closed individually, exactly as AC 4 predicted: all four of `projectLive`'s refusals (no id, unusable id, unmapped status, unmapped issue_type) were `new Error`, so `migrate --json` on a foreign export answered exit 1 with ZERO BYTES on stdout. Promoted to InputError/EUSAGE. This row stays OPEN and its case is now stronger, not weaker — three hand-closed instances is the argument for the generic door, not a substitute for it"
     description: >-
       Filed 2026-08-05 from a silent-failure audit. Related to the founding thesis directly: exit 1
       with an empty stdout is exactly what an automated caller reads as "no store here".
-    updated: '2026-08-05'
+    updated: '2026-08-06'
   - id: diarie-doc
     title: 'If a `doctor` is ever added it must check the ENVIRONMENT, not the data — and the scope is small'
     status: pending

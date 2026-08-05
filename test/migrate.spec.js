@@ -35,7 +35,9 @@ import {
 
 import { load } from 'js-yaml';
 
-import { CONSUMED_BD_FIELDS, parseBdExport, projectRecords } from '../lib/migrate/bd-map.js';
+import {
+  CONSUMED_BD_FIELDS, parseBdExport, projectRecords, TYPE_MAP,
+} from '../lib/migrate/bd-map.js';
 import {
   groupTasks, MIGRATE_OPTIONS, normalizeBody, PLACED_BY, projectLive, splitBody, USAGE,
 } from '../lib/migrate/bootstrap.js';
@@ -662,6 +664,69 @@ describe('the field census (transparency: nothing is discarded quietly)', () => 
     assert.equal(code, 0);
     assert.match(out, /not carried over/);
     assert.match(out, /owner — 1 record\(s\)/);
+  });
+});
+
+describe('projectLive refuses as an InputError — a foreign export is INPUT, not a crash', () => {
+  // THE INVARIANT (lib/utils/errors.js): anything reaching cli.js must be an InputError or a
+  // ResultError. All four of projectLive's refusals were `new Error`, so all four landed in the
+  // "genuinely unexpected" branch — stack trace on stderr, and NOTHING on stdout. Measured
+  // before the fix: `migrate --json` on an unmapped status gave exit 1 with stdout at ZERO
+  // BYTES, which a caller cannot tell from ENOSTORE, and `jq` fails on either way.
+  //
+  // These are the most ordinary things that can happen to this command. bd's own exports carry
+  // id/status/issue_type, so only a FOREIGN export was ever bitten — which is exactly the input
+  // class this migrator exists to serve.
+
+  /** @type {Array<{ variant: string, over: Record<string, unknown>, error: RegExp }>} */
+  const REFUSALS = [
+    { variant: 'no id at all', over: { id: undefined }, error: /bd record with no id/ },
+    { variant: 'an unusable id', over: { id: true }, error: /unusable id true/ },
+    { variant: 'an unmapped status', over: { status: 'frobnicated' }, error: /unmapped bd status/ },
+    { variant: 'an unmapped issue_type', over: { issue_type: 'widget' }, error: /unmapped bd issue_type/ },
+  ];
+
+  for (const { error, over, variant } of REFUSALS) {
+    // Through cli.js, not the script: the `{error, code}`-on-stdout contract is produced at the
+    // CLI boundary, so an in-process assertion would pass for the wrong reason.
+    it(`${variant}: EUSAGE as parseable JSON on stdout, not a stack trace`, (t) => {
+      const { code, stdout } = migrateOne(t, over, ['--json'], true);
+      assert.equal(code, 1);
+
+      const parsed = JSON.parse(stdout);
+      assert.equal(parsed.code, 'EUSAGE');
+      assert.match(parsed.error, error);
+    });
+
+    it(`${variant}: refusing leaves NO TRACE of a store`, (t) => {
+      const { dir } = migrateOne(t, over);
+      assert.ok(!existsSync(join(dir, 'diarium')), 'wrote a store despite refusing');
+    });
+  }
+
+  it('the enum refusals NAME the vocabulary, so one message is enough to act on', (t) => {
+    // An agent holding only this string should not need a second lookup to map its value. The
+    // list is DERIVED from STATUS_MAP/TYPE_MAP rather than restated — a hand-written copy is
+    // how the message comes to disagree with the map it describes.
+    const status = JSON.parse(migrateOne(t, { status: 'frobnicated' }, ['--json'], true).stdout);
+    assert.match(status.body, /Accepted bd statuses: closed, deferred, in_progress, open\./);
+
+    const type = JSON.parse(migrateOne(t, { issue_type: 'widget' }, ['--json'], true).stdout);
+    assert.match(type.body, /Accepted bd issue types: /);
+    // Every TYPE_MAP key, so a map entry that stops being offered to the reader goes red.
+    for (const known of Object.keys(TYPE_MAP)) assert.ok(type.body.includes(known), known);
+  });
+
+  it('no refusal reaches the unexpected-error branch', (t) => {
+    // The tell that distinguishes an owned refusal from a crash, and the one a passing exit code
+    // hides: cli.js prefixes the unexpected branch with "unexpected error:" and follows it with a
+    // stack. Asserting the ABSENCE of that is what pins the InputError promotion — the exit code
+    // is 1 either way.
+    for (const { over } of REFUSALS) {
+      const { stderr } = migrateOne(t, over, [], true);
+      assert.doesNotMatch(stderr, /unexpected error:/);
+      assert.doesNotMatch(stderr, /^\s+at /m);
+    }
   });
 });
 
